@@ -4,18 +4,18 @@ import { apiFetch } from '@/lib/api';
 import type { SearchResult } from '@/lib/types';
 
 const TYPE_PATHS: Record<string, string> = {
-  recipe: '/recipes',
-  spell: '/spells',
-  brew: '/brews',
-  ingredient: '/ingredients',
+  formula: '/formulas',
+  technique: '/techniques',
+  project: '/projects',
+  material: '/materials',
   curiosity: '/curiosities',
 };
 
 const TYPE_GLYPHS: Record<string, string> = {
-  recipe: '◉',
-  spell: '✦',
-  brew: '▦',
-  ingredient: '◈',
+  formula: '◉',
+  technique: '✦',
+  project: '▦',
+  material: '◈',
   curiosity: '★',
 };
 

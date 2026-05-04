@@ -1,33 +1,33 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useBrew, useUpdateBrew } from '@/hooks/useBrews';
+import { useProject, useUpdateProject } from '@/hooks/useProjects';
 import { ApiError } from '@/lib/api';
 
-export function BrewEdit() {
+export function ProjectEdit() {
   const { id } = useParams();
-  const brewId = Number(id);
-  const { data: brew, isLoading } = useBrew(brewId);
-  const updateBrew = useUpdateBrew();
+  const projectId = Number(id);
+  const { data: project, isLoading } = useProject(projectId);
+  const updateProject = useUpdateProject();
   const navigate = useNavigate();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  useEffect(() => { if (brew) { setTitle(brew.title); setDescription(brew.description || ''); } }, [brew]);
+  useEffect(() => { if (project) { setTitle(project.title); setDescription(project.description || ''); } }, [project]);
   if (isLoading) return <p className="text-text-muted">Loading...</p>;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErrors({});
     try {
-      await updateBrew.mutateAsync({ id: brewId, data: { title, description: description || undefined } });
-      navigate(`/brews/${brewId}`);
+      await updateProject.mutateAsync({ id: projectId, data: { title, description: description || undefined } });
+      navigate(`/projects/${projectId}`);
     } catch (err) { if (err instanceof ApiError && err.details) setErrors(err.details); }
   }
 
   return (
     <div className="max-w-xl">
-      <h1 className="text-xl font-semibold text-text-primary mb-6">Edit Brew</h1>
+      <h1 className="text-xl font-semibold text-text-primary mb-6">Edit Project</h1>
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
         <div>
           <label className="block text-sm text-text-secondary mb-1">Title</label>
@@ -39,8 +39,8 @@ export function BrewEdit() {
           <textarea value={description} onChange={e => setDescription(e.target.value)} rows={4} className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none resize-y" />
         </div>
         <div className="flex gap-3">
-          <button type="submit" disabled={updateBrew.isPending} className="px-4 py-2 bg-accent text-white rounded-lg font-medium hover:bg-accent-light transition-colors disabled:opacity-50">Save Changes</button>
-          <button type="button" onClick={() => navigate(`/brews/${brewId}`)} className="px-4 py-2 border border-border rounded-lg text-text-secondary hover:border-accent transition-colors">Cancel</button>
+          <button type="submit" disabled={updateProject.isPending} className="px-4 py-2 bg-accent text-white rounded-lg font-medium hover:bg-accent-light transition-colors disabled:opacity-50">Save Changes</button>
+          <button type="button" onClick={() => navigate(`/projects/${projectId}`)} className="px-4 py-2 border border-border rounded-lg text-text-secondary hover:border-accent transition-colors">Cancel</button>
         </div>
       </form>
     </div>

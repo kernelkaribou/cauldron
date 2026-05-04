@@ -1,35 +1,31 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useSpell, useUpdateSpell } from '@/hooks/useSpells';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useCreateTechnique } from '@/hooks/useTechniques';
 import { CraftSelect } from '@/components/shared/CraftSelect';
 import { ApiError } from '@/lib/api';
 
-export function SpellEdit() {
-  const { id } = useParams();
-  const spellId = Number(id);
-  const { data: spell, isLoading } = useSpell(spellId);
-  const updateSpell = useUpdateSpell();
-  const navigate = useNavigate();
+export function TechniqueNew() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [craftId, setCraftId] = useState<number | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
-
-  useEffect(() => { if (spell) { setTitle(spell.title); setContent(spell.content || ''); setCraftId(spell.craft_id); } }, [spell]);
-  if (isLoading) return <p className="text-text-muted">Loading...</p>;
+  const createTechnique = useCreateTechnique();
+  const navigate = useNavigate();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErrors({});
     try {
-      await updateSpell.mutateAsync({ id: spellId, data: { title, content: content || undefined, craft_id: craftId } });
-      navigate(`/spells/${spellId}`);
-    } catch (err) { if (err instanceof ApiError && err.details) setErrors(err.details); }
+      const technique = await createTechnique.mutateAsync({ title, content: content || undefined, craft_id: craftId });
+      navigate(`/techniques/${technique.id}`);
+    } catch (err) {
+      if (err instanceof ApiError && err.details) setErrors(err.details);
+    }
   }
 
   return (
     <div className="max-w-xl">
-      <h1 className="text-xl font-semibold text-text-primary mb-6">Edit Spell</h1>
+      <h1 className="text-xl font-semibold text-text-primary mb-6">New Technique</h1>
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
         <div>
           <label className="block text-sm text-text-secondary mb-1">Title</label>
@@ -44,10 +40,9 @@ export function SpellEdit() {
           <label className="block text-sm text-text-secondary mb-1">Craft</label>
           <CraftSelect value={craftId} onChange={setCraftId} />
         </div>
-        <div className="flex gap-3">
-          <button type="submit" disabled={updateSpell.isPending} className="px-4 py-2 bg-accent text-white rounded-lg font-medium hover:bg-accent-light transition-colors disabled:opacity-50">Save Changes</button>
-          <button type="button" onClick={() => navigate(`/spells/${spellId}`)} className="px-4 py-2 border border-border rounded-lg text-text-secondary hover:border-accent transition-colors">Cancel</button>
-        </div>
+        <button type="submit" disabled={createTechnique.isPending} className="px-4 py-2 bg-accent text-white rounded-lg font-medium hover:bg-accent-light transition-colors disabled:opacity-50">
+          {createTechnique.isPending ? 'Creating...' : 'Create Technique'}
+        </button>
       </form>
     </div>
   );

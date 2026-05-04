@@ -1,29 +1,29 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useCreateRecipe } from '@/hooks/useRecipes';
+import { useCreateFormula } from '@/hooks/useFormulas';
 import { CraftSelect } from '@/components/shared/CraftSelect';
 import { ApiError } from '@/lib/api';
 
-export function RecipeNew() {
+export function FormulaNew() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [craftId, setCraftId] = useState<number | null>(null);
   const [duration, setDuration] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const createRecipe = useCreateRecipe();
+  const createFormula = useCreateFormula();
   const navigate = useNavigate();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErrors({});
     try {
-      const recipe = await createRecipe.mutateAsync({
+      const formula = await createFormula.mutateAsync({
         title,
         description: description || undefined,
         craft_id: craftId,
         duration_minutes: duration ? parseInt(duration) : undefined,
       });
-      navigate(`/recipes/${recipe.id}`);
+      navigate(`/formulas/${formula.id}`);
     } catch (err) {
       if (err instanceof ApiError && err.details) setErrors(err.details);
     }
@@ -31,7 +31,7 @@ export function RecipeNew() {
 
   return (
     <div className="max-w-xl">
-      <h1 className="text-xl font-semibold text-text-primary mb-6">New Recipe</h1>
+      <h1 className="text-xl font-semibold text-text-primary mb-6">New Formula</h1>
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
         <div>
           <label className="block text-sm text-text-secondary mb-1">Title</label>
@@ -50,8 +50,8 @@ export function RecipeNew() {
           <label className="block text-sm text-text-secondary mb-1">Estimated Duration (minutes)</label>
           <input type="number" value={duration} onChange={e => setDuration(e.target.value)} min="0" className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none" />
         </div>
-        <button type="submit" disabled={createRecipe.isPending} className="px-4 py-2 bg-accent text-white rounded-lg font-medium hover:bg-accent-light transition-colors disabled:opacity-50">
-          {createRecipe.isPending ? 'Creating...' : 'Create Recipe'}
+        <button type="submit" disabled={createFormula.isPending} className="px-4 py-2 bg-accent text-white rounded-lg font-medium hover:bg-accent-light transition-colors disabled:opacity-50">
+          {createFormula.isPending ? 'Creating...' : 'Create Formula'}
         </button>
       </form>
     </div>

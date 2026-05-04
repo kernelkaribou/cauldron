@@ -1,15 +1,15 @@
 import { useState } from 'react';
-import { useSpellResources, useAddSpellResource, useDeleteSpellResource } from '@/hooks/useSubResources';
-import type { SpellResource } from '@/lib/types';
+import { useTechniqueResources, useAddTechniqueResource, useDeleteTechniqueResource } from '@/hooks/useSubResources';
+import type { TechniqueResource } from '@/lib/types';
 
 interface ResourceManagerProps {
-  spellId: number;
+  techniqueId: number;
 }
 
-export function ResourceManager({ spellId }: ResourceManagerProps) {
-  const { data, isLoading } = useSpellResources(spellId);
-  const addResource = useAddSpellResource();
-  const deleteResource = useDeleteSpellResource();
+export function ResourceManager({ techniqueId }: ResourceManagerProps) {
+  const { data, isLoading } = useTechniqueResources(techniqueId);
+  const addResource = useAddTechniqueResource();
+  const deleteResource = useDeleteTechniqueResource();
   const [showForm, setShowForm] = useState(false);
   const [url, setUrl] = useState('');
   const [title, setTitle] = useState('');
@@ -17,7 +17,7 @@ export function ResourceManager({ spellId }: ResourceManagerProps) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    await addResource.mutateAsync({ spellId, data: { url, title, type } });
+    await addResource.mutateAsync({ techniqueId, data: { url, title, type } });
     setUrl('');
     setTitle('');
     setShowForm(false);
@@ -46,13 +46,13 @@ export function ResourceManager({ spellId }: ResourceManagerProps) {
       {isLoading && <p className="text-xs text-text-muted">Loading...</p>}
       {data?.items.length === 0 && !isLoading && <p className="text-xs text-text-muted">No resources yet.</p>}
       <div className="space-y-1">
-        {data?.items.map((res: SpellResource) => (
+        {data?.items.map((res: TechniqueResource) => (
           <div key={res.id} className="flex items-center justify-between p-2 bg-page rounded-lg group">
             <div className="min-w-0 flex-1">
               <a href={res.url} target="_blank" rel="noopener noreferrer" className="text-sm text-accent-light hover:text-accent truncate block">{res.title}</a>
               {res.type && <span className="text-xs text-text-muted">{res.type}</span>}
             </div>
-            <button onClick={() => deleteResource.mutate({ spellId, resourceId: res.id })} className="text-xs text-text-muted hover:text-error opacity-0 group-hover:opacity-100 transition-opacity ml-2">×</button>
+            <button onClick={() => deleteResource.mutate({ techniqueId, resourceId: res.id })} className="text-xs text-text-muted hover:text-error opacity-0 group-hover:opacity-100 transition-opacity ml-2">×</button>
           </div>
         ))}
       </div>

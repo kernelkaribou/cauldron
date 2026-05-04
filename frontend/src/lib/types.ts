@@ -20,7 +20,7 @@ export interface Tag {
   created_at: string;
 }
 
-export interface Spell {
+export interface Technique {
   id: number;
   title: string;
   content: string | null;
@@ -32,16 +32,16 @@ export interface Spell {
   tags?: Tag[];
 }
 
-export interface SpellResource {
+export interface TechniqueResource {
   id: number;
-  spell_id: number;
+  technique_id: number;
   url: string;
   title: string;
   description: string | null;
   type: 'video' | 'article' | 'other' | null;
 }
 
-export interface Recipe {
+export interface Formula {
   id: number;
   title: string;
   description: string | null;
@@ -55,20 +55,20 @@ export interface Recipe {
   tags?: Tag[];
 }
 
-export interface Brew {
+export interface Project {
   id: number;
   title: string;
   description: string | null;
-  status: 'gathering' | 'brewing' | 'bottled' | 'spilled';
-  recipe_id: number | null;
+  status: 'planning' | 'active' | 'complete' | 'archived';
+  formula_id: number | null;
   owner_id: number;
   created_at: string;
   updated_at: string;
-  recipe?: { id: number; title: string } | null;
+  formula?: { id: number; title: string } | null;
   tags?: Tag[];
 }
 
-export interface Ingredient {
+export interface Material {
   id: number;
   name: string;
   description: string | null;
@@ -99,8 +99,8 @@ export interface Curiosity {
 export interface Photo {
   id: number;
   owner_id: number;
-  recipe_id: number | null;
-  brew_id: number | null;
+  formula_id: number | null;
+  project_id: number | null;
   image: string;
   caption: string | null;
   sort_order: number;
@@ -110,8 +110,8 @@ export interface Photo {
 export interface Log {
   id: number;
   owner_id: number;
-  recipe_id: number | null;
-  brew_id: number | null;
+  formula_id: number | null;
+  project_id: number | null;
   content: string | null;
   duration_minutes: number;
   date: string;
@@ -121,8 +121,8 @@ export interface Log {
 export interface Task {
   id: number;
   owner_id: number;
-  recipe_id: number | null;
-  brew_id: number | null;
+  formula_id: number | null;
+  project_id: number | null;
   title: string;
   notes: string | null;
   done: number;
@@ -134,8 +134,8 @@ export interface Task {
 export interface JournalEntry {
   id: number;
   owner_id: number;
-  recipe_id: number | null;
-  brew_id: number | null;
+  formula_id: number | null;
+  project_id: number | null;
   title: string;
   content: string | null;
   created_at: string;
@@ -144,13 +144,13 @@ export interface JournalEntry {
 
 export interface StockEntry {
   id: number;
-  ingredient_id: number;
+  material_id: number;
   type: 'purchase' | 'usage' | 'adjustment';
   quantity: number;
   unit_cost: number;
   location: string | null;
   notes: string | null;
-  brew_id: number | null;
+  project_id: number | null;
   date: string;
   owner_id: number;
   created_at: string;
@@ -168,5 +168,5 @@ export interface StockSummary {
 export interface SearchResult {
   id: number;
   title: string;
-  type: 'recipe' | 'spell' | 'brew' | 'ingredient' | 'curiosity';
+  type: 'formula' | 'technique' | 'project' | 'material' | 'curiosity';
 }

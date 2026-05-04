@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useIngredient, useUpdateIngredient } from '@/hooks/useIngredients';
+import { useMaterial, useUpdateMaterial } from '@/hooks/useMaterials';
 import { ApiError } from '@/lib/api';
 
-export function IngredientEdit() {
+export function MaterialEdit() {
   const { id } = useParams();
-  const ingredientId = Number(id);
-  const { data: ingredient, isLoading } = useIngredient(ingredientId);
-  const updateIngredient = useUpdateIngredient();
+  const materialId = Number(id);
+  const { data: material, isLoading } = useMaterial(materialId);
+  const updateMaterial = useUpdateMaterial();
   const navigate = useNavigate();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -15,21 +15,21 @@ export function IngredientEdit() {
   const [reusable, setReusable] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  useEffect(() => { if (ingredient) { setName(ingredient.name); setDescription(ingredient.description || ''); setUnit(ingredient.unit || ''); setReusable(!!ingredient.reusable); } }, [ingredient]);
+  useEffect(() => { if (material) { setName(material.name); setDescription(material.description || ''); setUnit(material.unit || ''); setReusable(!!material.reusable); } }, [material]);
   if (isLoading) return <p className="text-text-muted">Loading...</p>;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErrors({});
     try {
-      await updateIngredient.mutateAsync({ id: ingredientId, data: { name, description: description || undefined, unit: unit || undefined, reusable: reusable ? 1 : 0 } });
-      navigate(`/ingredients/${ingredientId}`);
+      await updateMaterial.mutateAsync({ id: materialId, data: { name, description: description || undefined, unit: unit || undefined, reusable: reusable ? 1 : 0 } });
+      navigate(`/materials/${materialId}`);
     } catch (err) { if (err instanceof ApiError && err.details) setErrors(err.details); }
   }
 
   return (
     <div className="max-w-xl">
-      <h1 className="text-xl font-semibold text-text-primary mb-6">Edit Ingredient</h1>
+      <h1 className="text-xl font-semibold text-text-primary mb-6">Edit Material</h1>
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
         <div>
           <label className="block text-sm text-text-secondary mb-1">Name</label>
@@ -49,8 +49,8 @@ export function IngredientEdit() {
           Reusable (tool/equipment)
         </label>
         <div className="flex gap-3">
-          <button type="submit" disabled={updateIngredient.isPending} className="px-4 py-2 bg-accent text-white rounded-lg font-medium hover:bg-accent-light transition-colors disabled:opacity-50">Save Changes</button>
-          <button type="button" onClick={() => navigate(`/ingredients/${ingredientId}`)} className="px-4 py-2 border border-border rounded-lg text-text-secondary hover:border-accent transition-colors">Cancel</button>
+          <button type="submit" disabled={updateMaterial.isPending} className="px-4 py-2 bg-accent text-white rounded-lg font-medium hover:bg-accent-light transition-colors disabled:opacity-50">Save Changes</button>
+          <button type="button" onClick={() => navigate(`/materials/${materialId}`)} className="px-4 py-2 border border-border rounded-lg text-text-secondary hover:border-accent transition-colors">Cancel</button>
         </div>
       </form>
     </div>

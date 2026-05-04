@@ -27,7 +27,7 @@ CREATE TABLE tags (
   UNIQUE(name, owner_id)
 );
 
-CREATE TABLE spells (
+CREATE TABLE techniques (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   title TEXT NOT NULL,
   content TEXT,
@@ -37,47 +37,16 @@ CREATE TABLE spells (
   updated_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE spell_resources (
+CREATE TABLE technique_resources (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  spell_id INTEGER NOT NULL REFERENCES spells(id) ON DELETE CASCADE,
+  technique_id INTEGER NOT NULL REFERENCES techniques(id) ON DELETE CASCADE,
   url TEXT NOT NULL,
   title TEXT NOT NULL,
   description TEXT,
   type TEXT CHECK(type IN ('video','article','other'))
 );
 
-CREATE TABLE recipes (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  title TEXT NOT NULL,
-  description TEXT,
-  craft_id INTEGER REFERENCES crafts(id) ON DELETE SET NULL,
-  thumbnail TEXT,
-  duration_minutes INTEGER DEFAULT 0,
-  owner_id INTEGER NOT NULL REFERENCES users(id),
-  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-  updated_at TEXT DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE recipe_spells (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  recipe_id INTEGER NOT NULL REFERENCES recipes(id) ON DELETE CASCADE,
-  spell_id INTEGER NOT NULL REFERENCES spells(id) ON DELETE CASCADE,
-  sort_order INTEGER DEFAULT 0,
-  notes TEXT,
-  UNIQUE(recipe_id, spell_id)
-);
-
-CREATE TABLE recipe_ingredients (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  recipe_id INTEGER NOT NULL REFERENCES recipes(id) ON DELETE CASCADE,
-  ingredient_id INTEGER NOT NULL REFERENCES ingredients(id) ON DELETE CASCADE,
-  quantity REAL DEFAULT 0,
-  unit TEXT,
-  notes TEXT,
-  UNIQUE(recipe_id, ingredient_id)
-);
-
-CREATE TABLE ingredients (
+CREATE TABLE materials (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   description TEXT,
@@ -89,45 +58,76 @@ CREATE TABLE ingredients (
   updated_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE brews (
+CREATE TABLE formulas (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   title TEXT NOT NULL,
   description TEXT,
-  status TEXT NOT NULL DEFAULT 'gathering' CHECK(status IN ('gathering','brewing','bottled','spilled')),
-  recipe_id INTEGER REFERENCES recipes(id) ON DELETE SET NULL,
+  craft_id INTEGER REFERENCES crafts(id) ON DELETE SET NULL,
+  thumbnail TEXT,
+  duration_minutes INTEGER DEFAULT 0,
   owner_id INTEGER NOT NULL REFERENCES users(id),
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE brew_spells (
+CREATE TABLE formula_techniques (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  brew_id INTEGER NOT NULL REFERENCES brews(id) ON DELETE CASCADE,
-  spell_id INTEGER NOT NULL REFERENCES spells(id) ON DELETE CASCADE,
+  formula_id INTEGER NOT NULL REFERENCES formulas(id) ON DELETE CASCADE,
+  technique_id INTEGER NOT NULL REFERENCES techniques(id) ON DELETE CASCADE,
   sort_order INTEGER DEFAULT 0,
   notes TEXT,
-  UNIQUE(brew_id, spell_id)
+  UNIQUE(formula_id, technique_id)
 );
 
-CREATE TABLE brew_ingredients (
+CREATE TABLE formula_materials (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  brew_id INTEGER NOT NULL REFERENCES brews(id) ON DELETE CASCADE,
-  ingredient_id INTEGER NOT NULL REFERENCES ingredients(id) ON DELETE CASCADE,
+  formula_id INTEGER NOT NULL REFERENCES formulas(id) ON DELETE CASCADE,
+  material_id INTEGER NOT NULL REFERENCES materials(id) ON DELETE CASCADE,
   quantity REAL DEFAULT 0,
   unit TEXT,
   notes TEXT,
-  UNIQUE(brew_id, ingredient_id)
+  UNIQUE(formula_id, material_id)
 );
 
-CREATE TABLE ingredient_stock (
+CREATE TABLE projects (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  ingredient_id INTEGER NOT NULL REFERENCES ingredients(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  description TEXT,
+  status TEXT NOT NULL DEFAULT 'planning' CHECK(status IN ('planning','active','complete','archived')),
+  formula_id INTEGER REFERENCES formulas(id) ON DELETE SET NULL,
+  owner_id INTEGER NOT NULL REFERENCES users(id),
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE project_techniques (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  technique_id INTEGER NOT NULL REFERENCES techniques(id) ON DELETE CASCADE,
+  sort_order INTEGER DEFAULT 0,
+  notes TEXT,
+  UNIQUE(project_id, technique_id)
+);
+
+CREATE TABLE project_materials (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  material_id INTEGER NOT NULL REFERENCES materials(id) ON DELETE CASCADE,
+  quantity REAL DEFAULT 0,
+  unit TEXT,
+  notes TEXT,
+  UNIQUE(project_id, material_id)
+);
+
+CREATE TABLE material_stock (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  material_id INTEGER NOT NULL REFERENCES materials(id) ON DELETE CASCADE,
   type TEXT NOT NULL CHECK(type IN ('purchase','usage','adjustment')),
   quantity REAL NOT NULL,
   unit_cost REAL DEFAULT 0,
   location TEXT,
   notes TEXT,
-  brew_id INTEGER REFERENCES brews(id) ON DELETE SET NULL,
+  project_id INTEGER REFERENCES projects(id) ON DELETE SET NULL,
   date TEXT NOT NULL,
   owner_id INTEGER NOT NULL REFERENCES users(id),
   created_at TEXT DEFAULT CURRENT_TIMESTAMP
@@ -150,8 +150,8 @@ CREATE TABLE curiosities (
 CREATE TABLE photos (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   owner_id INTEGER NOT NULL REFERENCES users(id),
-  recipe_id INTEGER REFERENCES recipes(id) ON DELETE CASCADE,
-  brew_id INTEGER REFERENCES brews(id) ON DELETE CASCADE,
+  formula_id INTEGER REFERENCES formulas(id) ON DELETE CASCADE,
+  project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE,
   image TEXT NOT NULL,
   caption TEXT,
   sort_order INTEGER DEFAULT 0,
@@ -161,8 +161,8 @@ CREATE TABLE photos (
 CREATE TABLE logs (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   owner_id INTEGER NOT NULL REFERENCES users(id),
-  recipe_id INTEGER REFERENCES recipes(id) ON DELETE CASCADE,
-  brew_id INTEGER REFERENCES brews(id) ON DELETE CASCADE,
+  formula_id INTEGER REFERENCES formulas(id) ON DELETE CASCADE,
+  project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE,
   content TEXT,
   duration_minutes INTEGER DEFAULT 0,
   date TEXT NOT NULL,
@@ -172,8 +172,8 @@ CREATE TABLE logs (
 CREATE TABLE tasks (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   owner_id INTEGER NOT NULL REFERENCES users(id),
-  recipe_id INTEGER REFERENCES recipes(id) ON DELETE CASCADE,
-  brew_id INTEGER REFERENCES brews(id) ON DELETE CASCADE,
+  formula_id INTEGER REFERENCES formulas(id) ON DELETE CASCADE,
+  project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
   notes TEXT,
   done INTEGER DEFAULT 0,
@@ -185,8 +185,8 @@ CREATE TABLE tasks (
 CREATE TABLE journal_entries (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   owner_id INTEGER NOT NULL REFERENCES users(id),
-  recipe_id INTEGER REFERENCES recipes(id) ON DELETE CASCADE,
-  brew_id INTEGER REFERENCES brews(id) ON DELETE CASCADE,
+  formula_id INTEGER REFERENCES formulas(id) ON DELETE CASCADE,
+  project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
   content TEXT,
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
@@ -194,28 +194,28 @@ CREATE TABLE journal_entries (
 );
 
 -- Tag junction tables
-CREATE TABLE recipe_tags (
-  recipe_id INTEGER NOT NULL REFERENCES recipes(id) ON DELETE CASCADE,
+CREATE TABLE formula_tags (
+  formula_id INTEGER NOT NULL REFERENCES formulas(id) ON DELETE CASCADE,
   tag_id INTEGER NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
-  PRIMARY KEY (recipe_id, tag_id)
+  PRIMARY KEY (formula_id, tag_id)
 );
 
-CREATE TABLE spell_tags (
-  spell_id INTEGER NOT NULL REFERENCES spells(id) ON DELETE CASCADE,
+CREATE TABLE technique_tags (
+  technique_id INTEGER NOT NULL REFERENCES techniques(id) ON DELETE CASCADE,
   tag_id INTEGER NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
-  PRIMARY KEY (spell_id, tag_id)
+  PRIMARY KEY (technique_id, tag_id)
 );
 
-CREATE TABLE brew_tags (
-  brew_id INTEGER NOT NULL REFERENCES brews(id) ON DELETE CASCADE,
+CREATE TABLE project_tags (
+  project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
   tag_id INTEGER NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
-  PRIMARY KEY (brew_id, tag_id)
+  PRIMARY KEY (project_id, tag_id)
 );
 
-CREATE TABLE ingredient_tags (
-  ingredient_id INTEGER NOT NULL REFERENCES ingredients(id) ON DELETE CASCADE,
+CREATE TABLE material_tags (
+  material_id INTEGER NOT NULL REFERENCES materials(id) ON DELETE CASCADE,
   tag_id INTEGER NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
-  PRIMARY KEY (ingredient_id, tag_id)
+  PRIMARY KEY (material_id, tag_id)
 );
 
 CREATE TABLE curiosity_tags (
@@ -225,22 +225,22 @@ CREATE TABLE curiosity_tags (
 );
 
 -- Indexes for common queries
-CREATE INDEX idx_spells_owner ON spells(owner_id);
-CREATE INDEX idx_spells_craft ON spells(craft_id);
-CREATE INDEX idx_recipes_owner ON recipes(owner_id);
-CREATE INDEX idx_recipes_craft ON recipes(craft_id);
-CREATE INDEX idx_brews_owner ON brews(owner_id);
-CREATE INDEX idx_brews_status ON brews(status);
-CREATE INDEX idx_brews_recipe ON brews(recipe_id);
-CREATE INDEX idx_ingredients_owner ON ingredients(owner_id);
+CREATE INDEX idx_techniques_owner ON techniques(owner_id);
+CREATE INDEX idx_techniques_craft ON techniques(craft_id);
+CREATE INDEX idx_formulas_owner ON formulas(owner_id);
+CREATE INDEX idx_formulas_craft ON formulas(craft_id);
+CREATE INDEX idx_projects_owner ON projects(owner_id);
+CREATE INDEX idx_projects_status ON projects(status);
+CREATE INDEX idx_projects_formula ON projects(formula_id);
+CREATE INDEX idx_materials_owner ON materials(owner_id);
 CREATE INDEX idx_curiosities_owner ON curiosities(owner_id);
 CREATE INDEX idx_curiosities_craft ON curiosities(craft_id);
-CREATE INDEX idx_ingredient_stock_ingredient ON ingredient_stock(ingredient_id);
-CREATE INDEX idx_photos_recipe ON photos(recipe_id);
-CREATE INDEX idx_photos_brew ON photos(brew_id);
-CREATE INDEX idx_logs_recipe ON logs(recipe_id);
-CREATE INDEX idx_logs_brew ON logs(brew_id);
-CREATE INDEX idx_tasks_recipe ON tasks(recipe_id);
-CREATE INDEX idx_tasks_brew ON tasks(brew_id);
-CREATE INDEX idx_journal_recipe ON journal_entries(recipe_id);
-CREATE INDEX idx_journal_brew ON journal_entries(brew_id);
+CREATE INDEX idx_material_stock_material ON material_stock(material_id);
+CREATE INDEX idx_photos_formula ON photos(formula_id);
+CREATE INDEX idx_photos_project ON photos(project_id);
+CREATE INDEX idx_logs_formula ON logs(formula_id);
+CREATE INDEX idx_logs_project ON logs(project_id);
+CREATE INDEX idx_tasks_formula ON tasks(formula_id);
+CREATE INDEX idx_tasks_project ON tasks(project_id);
+CREATE INDEX idx_journal_formula ON journal_entries(formula_id);
+CREATE INDEX idx_journal_project ON journal_entries(project_id);

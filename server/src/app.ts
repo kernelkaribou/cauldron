@@ -6,10 +6,10 @@ import { errorHandler } from './middleware/errors.js';
 import authRoutes from './routes/auth.js';
 import craftsRoutes from './routes/crafts.js';
 import tagsRoutes from './routes/tags.js';
-import spellsRoutes from './routes/spells.js';
-import recipesRoutes from './routes/recipes.js';
-import brewsRoutes from './routes/brews.js';
-import ingredientsRoutes from './routes/ingredients.js';
+import techniquesRoutes from './routes/techniques.js';
+import formulasRoutes from './routes/formulas.js';
+import projectsRoutes from './routes/projects.js';
+import materialsRoutes from './routes/materials.js';
 import curiositiesRoutes from './routes/curiosities.js';
 import photosRoutes from './routes/photos.js';
 import searchRoutes from './routes/search.js';
@@ -26,26 +26,22 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
-// Health check (public)
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Auth routes (mixed public/protected)
 app.use('/api/auth', authRoutes);
 
-// Protected routes
 app.use('/api/crafts', authMiddleware, craftsRoutes);
 app.use('/api/tags', authMiddleware, tagsRoutes);
-app.use('/api/spells', authMiddleware, spellsRoutes);
-app.use('/api/recipes', authMiddleware, recipesRoutes);
-app.use('/api/brews', authMiddleware, brewsRoutes);
-app.use('/api/ingredients', authMiddleware, ingredientsRoutes);
+app.use('/api/techniques', authMiddleware, techniquesRoutes);
+app.use('/api/formulas', authMiddleware, formulasRoutes);
+app.use('/api/projects', authMiddleware, projectsRoutes);
+app.use('/api/materials', authMiddleware, materialsRoutes);
 app.use('/api/curiosities', authMiddleware, curiositiesRoutes);
 app.use('/api/photos', authMiddleware, photosRoutes);
 app.use('/api/search', authMiddleware, searchRoutes);
 app.use('/api/admin', authMiddleware, adminRoutes);
 app.use('/api', authMiddleware, subresourcesRoutes);
 
-// Error handler
 app.use(errorHandler);

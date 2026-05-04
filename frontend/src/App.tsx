@@ -7,22 +7,22 @@ import { Login } from '@/pages/Login';
 import { SetupWizard } from '@/pages/SetupWizard';
 import { Dashboard } from '@/pages/Dashboard';
 import { NotFound } from '@/pages/NotFound';
-import { RecipeList } from '@/pages/recipes/RecipeList';
-import { RecipeNew } from '@/pages/recipes/RecipeNew';
-import { RecipeDetail } from '@/pages/recipes/RecipeDetail';
-import { RecipeEdit } from '@/pages/recipes/RecipeEdit';
-import { SpellList } from '@/pages/spells/SpellList';
-import { SpellNew } from '@/pages/spells/SpellNew';
-import { SpellDetail } from '@/pages/spells/SpellDetail';
-import { SpellEdit } from '@/pages/spells/SpellEdit';
-import { BrewList } from '@/pages/brews/BrewList';
-import { BrewNew } from '@/pages/brews/BrewNew';
-import { BrewDetail } from '@/pages/brews/BrewDetail';
-import { BrewEdit } from '@/pages/brews/BrewEdit';
-import { IngredientList } from '@/pages/ingredients/IngredientList';
-import { IngredientNew } from '@/pages/ingredients/IngredientNew';
-import { IngredientDetail } from '@/pages/ingredients/IngredientDetail';
-import { IngredientEdit } from '@/pages/ingredients/IngredientEdit';
+import { FormulaList } from '@/pages/formulas/FormulaList';
+import { FormulaNew } from '@/pages/formulas/FormulaNew';
+import { FormulaDetail } from '@/pages/formulas/FormulaDetail';
+import { FormulaEdit } from '@/pages/formulas/FormulaEdit';
+import { TechniqueList } from '@/pages/techniques/TechniqueList';
+import { TechniqueNew } from '@/pages/techniques/TechniqueNew';
+import { TechniqueDetail } from '@/pages/techniques/TechniqueDetail';
+import { TechniqueEdit } from '@/pages/techniques/TechniqueEdit';
+import { ProjectList } from '@/pages/projects/ProjectList';
+import { ProjectNew } from '@/pages/projects/ProjectNew';
+import { ProjectDetail } from '@/pages/projects/ProjectDetail';
+import { ProjectEdit } from '@/pages/projects/ProjectEdit';
+import { MaterialList } from '@/pages/materials/MaterialList';
+import { MaterialNew } from '@/pages/materials/MaterialNew';
+import { MaterialDetail } from '@/pages/materials/MaterialDetail';
+import { MaterialEdit } from '@/pages/materials/MaterialEdit';
 import { CuriosityList } from '@/pages/curiosities/CuriosityList';
 import { CuriosityNew } from '@/pages/curiosities/CuriosityNew';
 import { CuriosityDetail } from '@/pages/curiosities/CuriosityDetail';
@@ -44,26 +44,28 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Routes>
+          <Route path="/setup" element={<SetupWizard />} />
+          <Route path="/login" element={<Login />} />
           <Route element={<SetupGuard />}>
             <Route element={<AuthGuard />}>
               <Route element={<AppLayout />}>
                 <Route path="/" element={<Dashboard />} />
-                <Route path="/recipes" element={<RecipeList />} />
-                <Route path="/recipes/new" element={<RecipeNew />} />
-                <Route path="/recipes/:id" element={<RecipeDetail />} />
-                <Route path="/recipes/:id/edit" element={<RecipeEdit />} />
-                <Route path="/spells" element={<SpellList />} />
-                <Route path="/spells/new" element={<SpellNew />} />
-                <Route path="/spells/:id" element={<SpellDetail />} />
-                <Route path="/spells/:id/edit" element={<SpellEdit />} />
-                <Route path="/brews" element={<BrewList />} />
-                <Route path="/brews/new" element={<BrewNew />} />
-                <Route path="/brews/:id" element={<BrewDetail />} />
-                <Route path="/brews/:id/edit" element={<BrewEdit />} />
-                <Route path="/ingredients" element={<IngredientList />} />
-                <Route path="/ingredients/new" element={<IngredientNew />} />
-                <Route path="/ingredients/:id" element={<IngredientDetail />} />
-                <Route path="/ingredients/:id/edit" element={<IngredientEdit />} />
+                <Route path="/formulas" element={<FormulaList />} />
+                <Route path="/formulas/new" element={<FormulaNew />} />
+                <Route path="/formulas/:id" element={<FormulaDetail />} />
+                <Route path="/formulas/:id/edit" element={<FormulaEdit />} />
+                <Route path="/techniques" element={<TechniqueList />} />
+                <Route path="/techniques/new" element={<TechniqueNew />} />
+                <Route path="/techniques/:id" element={<TechniqueDetail />} />
+                <Route path="/techniques/:id/edit" element={<TechniqueEdit />} />
+                <Route path="/projects" element={<ProjectList />} />
+                <Route path="/projects/new" element={<ProjectNew />} />
+                <Route path="/projects/:id" element={<ProjectDetail />} />
+                <Route path="/projects/:id/edit" element={<ProjectEdit />} />
+                <Route path="/materials" element={<MaterialList />} />
+                <Route path="/materials/new" element={<MaterialNew />} />
+                <Route path="/materials/:id" element={<MaterialDetail />} />
+                <Route path="/materials/:id/edit" element={<MaterialEdit />} />
                 <Route path="/curiosities" element={<CuriosityList />} />
                 <Route path="/curiosities/new" element={<CuriosityNew />} />
                 <Route path="/curiosities/:id" element={<CuriosityDetail />} />
@@ -72,8 +74,6 @@ function App() {
                 <Route path="/settings/admin" element={<AdminSettings />} />
               </Route>
             </Route>
-            <Route path="/login" element={<Login />} />
-            <Route path="/setup" element={<SetupWizard />} />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>

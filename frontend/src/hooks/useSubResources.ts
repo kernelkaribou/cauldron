@@ -1,12 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api';
-import type { Log, Task, JournalEntry, SpellResource, StockEntry, StockSummary } from '@/lib/types';
+import type { Log, Task, JournalEntry, TechniqueResource, StockEntry, StockSummary } from '@/lib/types';
 
 // --- Logs ---
-export function useLogs(params: { recipe_id?: number; brew_id?: number }) {
+export function useLogs(params: { formula_id?: number; project_id?: number }) {
   const qs = new URLSearchParams();
-  if (params.recipe_id) qs.set('recipe_id', String(params.recipe_id));
-  if (params.brew_id) qs.set('brew_id', String(params.brew_id));
+  if (params.formula_id) qs.set('formula_id', String(params.formula_id));
+  if (params.project_id) qs.set('project_id', String(params.project_id));
   return useQuery({
     queryKey: ['logs', params],
     queryFn: () => apiFetch<{ items: Log[] }>(`/logs?${qs}`),
@@ -31,10 +31,10 @@ export function useDeleteLog() {
 }
 
 // --- Tasks ---
-export function useTasks(params: { recipe_id?: number; brew_id?: number }) {
+export function useTasks(params: { formula_id?: number; project_id?: number }) {
   const qs = new URLSearchParams();
-  if (params.recipe_id) qs.set('recipe_id', String(params.recipe_id));
-  if (params.brew_id) qs.set('brew_id', String(params.brew_id));
+  if (params.formula_id) qs.set('formula_id', String(params.formula_id));
+  if (params.project_id) qs.set('project_id', String(params.project_id));
   return useQuery({
     queryKey: ['tasks', params],
     queryFn: () => apiFetch<{ items: Task[] }>(`/tasks?${qs}`),
@@ -68,10 +68,10 @@ export function useDeleteTask() {
 }
 
 // --- Journal Entries ---
-export function useJournalEntries(params: { recipe_id?: number; brew_id?: number }) {
+export function useJournalEntries(params: { formula_id?: number; project_id?: number }) {
   const qs = new URLSearchParams();
-  if (params.recipe_id) qs.set('recipe_id', String(params.recipe_id));
-  if (params.brew_id) qs.set('brew_id', String(params.brew_id));
+  if (params.formula_id) qs.set('formula_id', String(params.formula_id));
+  if (params.project_id) qs.set('project_id', String(params.project_id));
   return useQuery({
     queryKey: ['journal-entries', params],
     queryFn: () => apiFetch<{ items: JournalEntry[] }>(`/journal-entries?${qs}`),
@@ -104,121 +104,121 @@ export function useDeleteJournalEntry() {
   });
 }
 
-// --- Spell Resources ---
-export function useSpellResources(spellId: number) {
+// --- Technique Resources ---
+export function useTechniqueResources(techniqueId: number) {
   return useQuery({
-    queryKey: ['spell-resources', spellId],
-    queryFn: () => apiFetch<{ items: SpellResource[] }>(`/spells/${spellId}/resources`),
-    enabled: !!spellId,
+    queryKey: ['technique-resources', techniqueId],
+    queryFn: () => apiFetch<{ items: TechniqueResource[] }>(`/techniques/${techniqueId}/resources`),
+    enabled: !!techniqueId,
   });
 }
 
-export function useAddSpellResource() {
+export function useAddTechniqueResource() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ spellId, data }: { spellId: number; data: Record<string, unknown> }) =>
-      apiFetch<SpellResource>(`/spells/${spellId}/resources`, { method: 'POST', body: JSON.stringify(data) }),
-    onSuccess: (_, { spellId }) => qc.invalidateQueries({ queryKey: ['spell-resources', spellId] }),
+    mutationFn: ({ techniqueId, data }: { techniqueId: number; data: Record<string, unknown> }) =>
+      apiFetch<TechniqueResource>(`/techniques/${techniqueId}/resources`, { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: (_, { techniqueId }) => qc.invalidateQueries({ queryKey: ['technique-resources', techniqueId] }),
   });
 }
 
-export function useDeleteSpellResource() {
+export function useDeleteTechniqueResource() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ spellId, resourceId }: { spellId: number; resourceId: number }) =>
-      apiFetch(`/spells/${spellId}/resources/${resourceId}`, { method: 'DELETE' }),
-    onSuccess: (_, { spellId }) => qc.invalidateQueries({ queryKey: ['spell-resources', spellId] }),
+    mutationFn: ({ techniqueId, resourceId }: { techniqueId: number; resourceId: number }) =>
+      apiFetch(`/techniques/${techniqueId}/resources/${resourceId}`, { method: 'DELETE' }),
+    onSuccess: (_, { techniqueId }) => qc.invalidateQueries({ queryKey: ['technique-resources', techniqueId] }),
   });
 }
 
-// --- Recipe/Brew Spells ---
-export function useEntitySpells(entityType: 'recipes' | 'brews', entityId: number) {
+// --- Formula/Project Techniques ---
+export function useEntityTechniques(entityType: 'formulas' | 'projects', entityId: number) {
   return useQuery({
-    queryKey: [entityType, entityId, 'spells'],
-    queryFn: () => apiFetch<{ items: Array<{ id: number; spell_id: number; sort_order: number; notes: string | null; title: string; content: string | null }> }>(`/${entityType}/${entityId}/spells`),
+    queryKey: [entityType, entityId, 'techniques'],
+    queryFn: () => apiFetch<{ items: Array<{ id: number; technique_id: number; sort_order: number; notes: string | null; title: string; content: string | null }> }>(`/${entityType}/${entityId}/techniques`),
     enabled: !!entityId,
   });
 }
 
-export function useAddEntitySpell() {
+export function useAddEntityTechnique() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ entityType, entityId, data }: { entityType: 'recipes' | 'brews'; entityId: number; data: Record<string, unknown> }) =>
-      apiFetch(`/${entityType}/${entityId}/spells`, { method: 'POST', body: JSON.stringify(data) }),
-    onSuccess: (_, { entityType, entityId }) => qc.invalidateQueries({ queryKey: [entityType, entityId, 'spells'] }),
+    mutationFn: ({ entityType, entityId, data }: { entityType: 'formulas' | 'projects'; entityId: number; data: Record<string, unknown> }) =>
+      apiFetch(`/${entityType}/${entityId}/techniques`, { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: (_, { entityType, entityId }) => qc.invalidateQueries({ queryKey: [entityType, entityId, 'techniques'] }),
   });
 }
 
-export function useRemoveEntitySpell() {
+export function useRemoveEntityTechnique() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ entityType, entityId, spellId }: { entityType: 'recipes' | 'brews'; entityId: number; spellId: number }) =>
-      apiFetch(`/${entityType}/${entityId}/spells/${spellId}`, { method: 'DELETE' }),
-    onSuccess: (_, { entityType, entityId }) => qc.invalidateQueries({ queryKey: [entityType, entityId, 'spells'] }),
+    mutationFn: ({ entityType, entityId, techniqueId }: { entityType: 'formulas' | 'projects'; entityId: number; techniqueId: number }) =>
+      apiFetch(`/${entityType}/${entityId}/techniques/${techniqueId}`, { method: 'DELETE' }),
+    onSuccess: (_, { entityType, entityId }) => qc.invalidateQueries({ queryKey: [entityType, entityId, 'techniques'] }),
   });
 }
 
-// --- Recipe/Brew Ingredients ---
-export function useEntityIngredients(entityType: 'recipes' | 'brews', entityId: number) {
+// --- Formula/Project Materials ---
+export function useEntityMaterials(entityType: 'formulas' | 'projects', entityId: number) {
   return useQuery({
-    queryKey: [entityType, entityId, 'ingredients'],
-    queryFn: () => apiFetch<{ items: Array<{ id: number; ingredient_id: number; quantity: number; unit: string | null; notes: string | null; name: string }> }>(`/${entityType}/${entityId}/ingredients`),
+    queryKey: [entityType, entityId, 'materials'],
+    queryFn: () => apiFetch<{ items: Array<{ id: number; material_id: number; quantity: number; unit: string | null; notes: string | null; name: string }> }>(`/${entityType}/${entityId}/materials`),
     enabled: !!entityId,
   });
 }
 
-export function useAddEntityIngredient() {
+export function useAddEntityMaterial() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ entityType, entityId, data }: { entityType: 'recipes' | 'brews'; entityId: number; data: Record<string, unknown> }) =>
-      apiFetch(`/${entityType}/${entityId}/ingredients`, { method: 'POST', body: JSON.stringify(data) }),
-    onSuccess: (_, { entityType, entityId }) => qc.invalidateQueries({ queryKey: [entityType, entityId, 'ingredients'] }),
+    mutationFn: ({ entityType, entityId, data }: { entityType: 'formulas' | 'projects'; entityId: number; data: Record<string, unknown> }) =>
+      apiFetch(`/${entityType}/${entityId}/materials`, { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: (_, { entityType, entityId }) => qc.invalidateQueries({ queryKey: [entityType, entityId, 'materials'] }),
   });
 }
 
-export function useRemoveEntityIngredient() {
+export function useRemoveEntityMaterial() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ entityType, entityId, ingredientId }: { entityType: 'recipes' | 'brews'; entityId: number; ingredientId: number }) =>
-      apiFetch(`/${entityType}/${entityId}/ingredients/${ingredientId}`, { method: 'DELETE' }),
-    onSuccess: (_, { entityType, entityId }) => qc.invalidateQueries({ queryKey: [entityType, entityId, 'ingredients'] }),
+    mutationFn: ({ entityType, entityId, materialId }: { entityType: 'formulas' | 'projects'; entityId: number; materialId: number }) =>
+      apiFetch(`/${entityType}/${entityId}/materials/${materialId}`, { method: 'DELETE' }),
+    onSuccess: (_, { entityType, entityId }) => qc.invalidateQueries({ queryKey: [entityType, entityId, 'materials'] }),
   });
 }
 
-// --- Ingredient Stock ---
-export function useStock(ingredientId: number) {
+// --- Material Stock ---
+export function useStock(materialId: number) {
   return useQuery({
-    queryKey: ['stock', ingredientId],
-    queryFn: () => apiFetch<{ items: StockEntry[] }>(`/ingredients/${ingredientId}/stock`),
-    enabled: !!ingredientId,
+    queryKey: ['stock', materialId],
+    queryFn: () => apiFetch<{ items: StockEntry[] }>(`/materials/${materialId}/stock`),
+    enabled: !!materialId,
   });
 }
 
-export function useStockSummary(ingredientId: number) {
+export function useStockSummary(materialId: number) {
   return useQuery({
-    queryKey: ['stock-summary', ingredientId],
-    queryFn: () => apiFetch<StockSummary>(`/ingredients/${ingredientId}/stock-summary`),
-    enabled: !!ingredientId,
+    queryKey: ['stock-summary', materialId],
+    queryFn: () => apiFetch<StockSummary>(`/materials/${materialId}/stock-summary`),
+    enabled: !!materialId,
   });
 }
 
 export function useAddStock() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ ingredientId, data }: { ingredientId: number; data: Record<string, unknown> }) =>
-      apiFetch<StockEntry>(`/ingredients/${ingredientId}/stock`, { method: 'POST', body: JSON.stringify(data) }),
-    onSuccess: (_, { ingredientId }) => {
-      qc.invalidateQueries({ queryKey: ['stock', ingredientId] });
-      qc.invalidateQueries({ queryKey: ['stock-summary', ingredientId] });
+    mutationFn: ({ materialId, data }: { materialId: number; data: Record<string, unknown> }) =>
+      apiFetch<StockEntry>(`/materials/${materialId}/stock`, { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: (_, { materialId }) => {
+      qc.invalidateQueries({ queryKey: ['stock', materialId] });
+      qc.invalidateQueries({ queryKey: ['stock-summary', materialId] });
     },
   });
 }
 
 // --- Photos ---
-export function usePhotos(params: { recipe_id?: number; brew_id?: number }) {
+export function usePhotos(params: { formula_id?: number; project_id?: number }) {
   const qs = new URLSearchParams();
-  if (params.recipe_id) qs.set('recipe_id', String(params.recipe_id));
-  if (params.brew_id) qs.set('brew_id', String(params.brew_id));
+  if (params.formula_id) qs.set('formula_id', String(params.formula_id));
+  if (params.project_id) qs.set('project_id', String(params.project_id));
   return useQuery({
     queryKey: ['photos', params],
     queryFn: () => apiFetch<{ items: Array<{ id: number; image: string; thumbnail?: string; caption: string | null; sort_order: number; created_at: string }> }>(`/photos?${qs}`),

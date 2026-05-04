@@ -3,12 +3,12 @@ import { useTasks, useCreateTask, useUpdateTask, useDeleteTask } from '@/hooks/u
 import type { Task } from '@/lib/types';
 
 interface TaskListProps {
-  recipeId?: number;
-  brewId?: number;
+  formulaId?: number;
+  projectId?: number;
 }
 
-export function TaskList({ recipeId, brewId }: TaskListProps) {
-  const { data, isLoading } = useTasks({ recipe_id: recipeId, brew_id: brewId });
+export function TaskList({ formulaId, projectId }: TaskListProps) {
+  const { data, isLoading } = useTasks({ formula_id: formulaId, project_id: projectId });
   const createTask = useCreateTask();
   const updateTask = useUpdateTask();
   const deleteTask = useDeleteTask();
@@ -19,8 +19,8 @@ export function TaskList({ recipeId, brewId }: TaskListProps) {
     if (!newTitle.trim()) return;
     await createTask.mutateAsync({
       title: newTitle,
-      recipe_id: recipeId || null,
-      brew_id: brewId || null,
+      formula_id: formulaId || null,
+      project_id: projectId || null,
     });
     setNewTitle('');
   }

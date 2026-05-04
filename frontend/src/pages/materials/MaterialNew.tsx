@@ -1,29 +1,29 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useCreateIngredient } from '@/hooks/useIngredients';
+import { useCreateMaterial } from '@/hooks/useMaterials';
 import { ApiError } from '@/lib/api';
 
-export function IngredientNew() {
+export function MaterialNew() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [unit, setUnit] = useState('');
   const [reusable, setReusable] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const createIngredient = useCreateIngredient();
+  const createMaterial = useCreateMaterial();
   const navigate = useNavigate();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErrors({});
     try {
-      const ing = await createIngredient.mutateAsync({ name, description: description || undefined, unit: unit || undefined, reusable: reusable ? 1 : 0 });
-      navigate(`/ingredients/${ing.id}`);
+      const ing = await createMaterial.mutateAsync({ name, description: description || undefined, unit: unit || undefined, reusable: reusable ? 1 : 0 });
+      navigate(`/materials/${ing.id}`);
     } catch (err) { if (err instanceof ApiError && err.details) setErrors(err.details); }
   }
 
   return (
     <div className="max-w-xl">
-      <h1 className="text-xl font-semibold text-text-primary mb-6">New Ingredient</h1>
+      <h1 className="text-xl font-semibold text-text-primary mb-6">New Material</h1>
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
         <div>
           <label className="block text-sm text-text-secondary mb-1">Name</label>
@@ -42,8 +42,8 @@ export function IngredientNew() {
           <input type="checkbox" checked={reusable} onChange={e => setReusable(e.target.checked)} className="rounded" />
           Reusable (tool/equipment)
         </label>
-        <button type="submit" disabled={createIngredient.isPending} className="px-4 py-2 bg-accent text-white rounded-lg font-medium hover:bg-accent-light transition-colors disabled:opacity-50">
-          {createIngredient.isPending ? 'Creating...' : 'Create Ingredient'}
+        <button type="submit" disabled={createMaterial.isPending} className="px-4 py-2 bg-accent text-white rounded-lg font-medium hover:bg-accent-light transition-colors disabled:opacity-50">
+          {createMaterial.isPending ? 'Creating...' : 'Create Material'}
         </button>
       </form>
     </div>

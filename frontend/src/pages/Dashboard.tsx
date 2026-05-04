@@ -1,37 +1,37 @@
 import { Link } from 'react-router-dom';
-import { useRecipes } from '@/hooks/useRecipes';
-import { useBrews } from '@/hooks/useBrews';
+import { useFormulas } from '@/hooks/useFormulas';
+import { useProjects } from '@/hooks/useProjects';
 import { useCuriosities } from '@/hooks/useCuriosities';
 import { STATUS_CONFIG } from '@/lib/theme';
 import { formatDate } from '@/lib/utils';
-import type { Recipe, Brew, Curiosity } from '@/lib/types';
+import type { Formula, Project, Curiosity } from '@/lib/types';
 
 export function Dashboard() {
-  const { data: recentRecipes } = useRecipes(1, {});
-  const { data: activeBrews } = useBrews(1, {});
+  const { data: recentFormulas } = useFormulas(1, {});
+  const { data: activeProjects } = useProjects(1, {});
   const { data: recentCuriosities } = useCuriosities(1, {});
 
-  const brewing = activeBrews?.items.filter((b: Brew) => b.status === 'gathering' || b.status === 'brewing') || [];
+  const active = activeProjects?.items.filter((b: Project) => b.status === 'planning' || b.status === 'active') || [];
 
   return (
     <div>
       <h1 className="text-xl font-semibold text-text-primary mb-6">Dashboard</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Active Brews */}
+        {/* Active Projects */}
         <div className="bg-card border border-border rounded-xl p-4">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-medium text-text-secondary">Active Brews</h2>
-            <Link to="/brews" className="text-xs text-accent-light hover:text-accent">View all</Link>
+            <h2 className="text-sm font-medium text-text-secondary">Active Projects</h2>
+            <Link to="/projects" className="text-xs text-accent-light hover:text-accent">View all</Link>
           </div>
-          {brewing.length === 0 && <p className="text-xs text-text-muted">No active brews.</p>}
+          {active.length === 0 && <p className="text-xs text-text-muted">No active projects.</p>}
           <div className="space-y-2">
-            {brewing.slice(0, 5).map((brew: Brew) => {
-              const sc = STATUS_CONFIG[brew.status];
+            {active.slice(0, 5).map((project: Project) => {
+              const sc = STATUS_CONFIG[project.status];
               return (
-                <Link key={brew.id} to={`/brews/${brew.id}`} className="block p-2 bg-page rounded-lg hover:border-accent transition-colors">
+                <Link key={project.id} to={`/projects/${project.id}`} className="block p-2 bg-page rounded-lg hover:border-accent transition-colors">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-text-primary truncate">{brew.title}</span>
+                    <span className="text-sm text-text-primary truncate">{project.title}</span>
                     <span className={`px-1.5 py-0.5 rounded text-xs ${sc.color} ${sc.bg}`}>{sc.label}</span>
                   </div>
                 </Link>
@@ -40,19 +40,19 @@ export function Dashboard() {
           </div>
         </div>
 
-        {/* Recent Recipes */}
+        {/* Recent Formulas */}
         <div className="bg-card border border-border rounded-xl p-4">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-medium text-text-secondary">Recent Recipes</h2>
-            <Link to="/recipes" className="text-xs text-accent-light hover:text-accent">View all</Link>
+            <h2 className="text-sm font-medium text-text-secondary">Recent Formulas</h2>
+            <Link to="/formulas" className="text-xs text-accent-light hover:text-accent">View all</Link>
           </div>
-          {(!recentRecipes || recentRecipes.items.length === 0) && <p className="text-xs text-text-muted">No recipes yet.</p>}
+          {(!recentFormulas || recentFormulas.items.length === 0) && <p className="text-xs text-text-muted">No formulas yet.</p>}
           <div className="space-y-2">
-            {recentRecipes?.items.slice(0, 5).map((recipe: Recipe) => (
-              <Link key={recipe.id} to={`/recipes/${recipe.id}`} className="block p-2 bg-page rounded-lg hover:border-accent transition-colors">
+            {recentFormulas?.items.slice(0, 5).map((formula: Formula) => (
+              <Link key={formula.id} to={`/formulas/${formula.id}`} className="block p-2 bg-page rounded-lg hover:border-accent transition-colors">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-text-primary truncate">{recipe.title}</span>
-                  <span className="text-xs text-text-muted">{formatDate(recipe.created_at)}</span>
+                  <span className="text-sm text-text-primary truncate">{formula.title}</span>
+                  <span className="text-xs text-text-muted">{formatDate(formula.created_at)}</span>
                 </div>
               </Link>
             ))}

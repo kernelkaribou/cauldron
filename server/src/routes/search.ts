@@ -16,20 +16,20 @@ router.get('/', (req: Request, res: Response) => {
 
   const pattern = `%${q}%`;
 
-  const recipes = db.prepare(
-    'SELECT id, title, \'recipe\' as type FROM recipes WHERE owner_id = ? AND title LIKE ? LIMIT 5'
+  const formulas = db.prepare(
+    'SELECT id, title, \'formula\' as type FROM formulas WHERE owner_id = ? AND title LIKE ? LIMIT 5'
   ).all(owner, pattern);
 
-  const spells = db.prepare(
-    'SELECT id, title, \'spell\' as type FROM spells WHERE owner_id = ? AND title LIKE ? LIMIT 5'
+  const techniques = db.prepare(
+    'SELECT id, title, \'technique\' as type FROM techniques WHERE owner_id = ? AND title LIKE ? LIMIT 5'
   ).all(owner, pattern);
 
-  const brews = db.prepare(
-    'SELECT id, title, \'brew\' as type FROM brews WHERE owner_id = ? AND title LIKE ? LIMIT 5'
+  const projects = db.prepare(
+    'SELECT id, title, \'project\' as type FROM projects WHERE owner_id = ? AND title LIKE ? LIMIT 5'
   ).all(owner, pattern);
 
-  const ingredients = db.prepare(
-    'SELECT id, name as title, \'ingredient\' as type FROM ingredients WHERE owner_id = ? AND name LIKE ? LIMIT 5'
+  const materials = db.prepare(
+    'SELECT id, name as title, \'material\' as type FROM materials WHERE owner_id = ? AND name LIKE ? LIMIT 5'
   ).all(owner, pattern);
 
   const curiosities = db.prepare(
@@ -37,7 +37,7 @@ router.get('/', (req: Request, res: Response) => {
   ).all(owner, pattern);
 
   res.json({
-    results: [...recipes, ...spells, ...brews, ...ingredients, ...curiosities],
+    results: [...formulas, ...techniques, ...projects, ...materials, ...curiosities],
   });
 });
 

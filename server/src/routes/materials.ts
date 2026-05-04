@@ -6,7 +6,7 @@ const createSchema = z.object({
   description: z.string().optional(),
   unit: z.string().max(50).optional(),
   reusable: z.number().int().min(0).max(1).optional(),
-  preferred_links: z.string().optional(), // JSON string
+  preferred_links: z.string().optional(),
 });
 
 const updateSchema = z.object({
@@ -18,7 +18,7 @@ const updateSchema = z.object({
 });
 
 const router = createCrudRouter({
-  table: 'ingredients',
+  table: 'materials',
   searchColumns: ['name', 'description'],
   filterColumns: ['reusable'],
   sortColumns: ['name', 'created_at', 'updated_at'],
@@ -27,7 +27,7 @@ const router = createCrudRouter({
   expandConfig: {
     tags: {
       type: 'many',
-      query: 'SELECT t.id, t.name FROM tags t JOIN ingredient_tags it ON t.id = it.tag_id WHERE it.ingredient_id = ?',
+      query: 'SELECT t.id, t.name FROM tags t JOIN material_tags mt ON t.id = mt.tag_id WHERE mt.material_id = ?',
       key: 'id',
     },
   },

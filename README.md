@@ -1,18 +1,18 @@
 # 🧪 Cauldron
 
-A self-hosted hobbyist toolkit for tracking crafting projects, recipes, techniques, and supplies. Built with Express, React, and SQLite — designed to run anywhere Docker does.
+A self-hosted hobbyist toolkit for tracking projects, formulas, techniques, and materials. Built with Express, React, and SQLite — designed to run anywhere Docker does.
 
 ## Features
 
-- **Recipes** — Document your project patterns with spells (techniques), ingredients, photos, and time logs
-- **Spells** — A personal knowledge base of techniques, tips, and how-tos (Markdown supported)
-- **Brews** — Track active projects from start to finish with status progression
-- **Ingredients** — Manage your supplies with stock tracking and cost summaries
+- **Formulas** — Document your project patterns with techniques, materials, photos, and time logs
+- **Techniques** — A personal knowledge base of methods, tips, and how-tos (Markdown supported)
+- **Projects** — Track active work from start to finish with status progression
+- **Materials** — Manage your supplies with stock tracking and cost summaries
 - **Curiosities** — Save interesting links, videos, and references for later
 - **Tags & Crafts** — Organize everything by craft type and custom tags
 - **Photos** — Attach progress photos with automatic thumbnail generation
 - **Journal** — Write markdown journal entries on any project
-- **Tasks** — Track to-do items per recipe or brew
+- **Tasks** — Track to-do items per formula or project
 - **Activity Logs** — Log time spent on projects
 - **Global Search** — Find anything instantly with ⌘K
 - **Multi-user** — Optional auth proxy support for SSO, or built-in JWT auth

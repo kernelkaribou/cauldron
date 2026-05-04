@@ -1,21 +1,21 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useCreateBrew } from '@/hooks/useBrews';
+import { useCreateProject } from '@/hooks/useProjects';
 import { ApiError } from '@/lib/api';
 
-export function BrewNew() {
+export function ProjectNew() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const createBrew = useCreateBrew();
+  const createProject = useCreateProject();
   const navigate = useNavigate();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErrors({});
     try {
-      const brew = await createBrew.mutateAsync({ title, description: description || undefined });
-      navigate(`/brews/${brew.id}`);
+      const project = await createProject.mutateAsync({ title, description: description || undefined });
+      navigate(`/projects/${project.id}`);
     } catch (err) {
       if (err instanceof ApiError && err.details) setErrors(err.details);
     }
@@ -23,7 +23,7 @@ export function BrewNew() {
 
   return (
     <div className="max-w-xl">
-      <h1 className="text-xl font-semibold text-text-primary mb-6">New Brew</h1>
+      <h1 className="text-xl font-semibold text-text-primary mb-6">New Project</h1>
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
         <div>
           <label className="block text-sm text-text-secondary mb-1">Title</label>
@@ -34,8 +34,8 @@ export function BrewNew() {
           <label className="block text-sm text-text-secondary mb-1">Description</label>
           <textarea value={description} onChange={e => setDescription(e.target.value)} rows={4} className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none resize-y" />
         </div>
-        <button type="submit" disabled={createBrew.isPending} className="px-4 py-2 bg-accent text-white rounded-lg font-medium hover:bg-accent-light transition-colors disabled:opacity-50">
-          {createBrew.isPending ? 'Creating...' : 'Create Brew'}
+        <button type="submit" disabled={createProject.isPending} className="px-4 py-2 bg-accent text-white rounded-lg font-medium hover:bg-accent-light transition-colors disabled:opacity-50">
+          {createProject.isPending ? 'Creating...' : 'Create Project'}
         </button>
       </form>
     </div>

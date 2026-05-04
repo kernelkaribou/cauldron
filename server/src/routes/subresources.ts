@@ -6,199 +6,199 @@ import { validate } from '../middleware/validate.js';
 
 const router = Router();
 
-// --- Recipe Spells ---
-router.get('/recipes/:id/spells', (req: Request, res: Response) => {
+// --- Formula Techniques ---
+router.get('/formulas/:id/techniques', (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const recipe = db.prepare('SELECT id FROM recipes WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!recipe) { res.status(404).json({ error: 'Recipe not found' }); return; }
+  const formula = db.prepare('SELECT id FROM formulas WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
+  if (!formula) { res.status(404).json({ error: 'Formula not found' }); return; }
 
   const items = db.prepare(`
-    SELECT rs.id, rs.spell_id, rs.sort_order, rs.notes, s.title, s.content
-    FROM recipe_spells rs JOIN spells s ON rs.spell_id = s.id
-    WHERE rs.recipe_id = ? ORDER BY rs.sort_order
+    SELECT ft.id, ft.technique_id, ft.sort_order, ft.notes, t.title, t.content
+    FROM formula_techniques ft JOIN techniques t ON ft.technique_id = t.id
+    WHERE ft.formula_id = ? ORDER BY ft.sort_order
   `).all(req.params.id);
   res.json({ items });
 });
 
-const addSpellSchema = z.object({
-  spell_id: z.number().int().positive(),
+const addTechniqueSchema = z.object({
+  technique_id: z.number().int().positive(),
   sort_order: z.number().int().min(0).optional(),
   notes: z.string().max(1000).optional(),
 });
 
-router.post('/recipes/:id/spells', validate(addSpellSchema), (req: Request, res: Response) => {
+router.post('/formulas/:id/techniques', validate(addTechniqueSchema), (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const recipe = db.prepare('SELECT id FROM recipes WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!recipe) { res.status(404).json({ error: 'Recipe not found' }); return; }
+  const formula = db.prepare('SELECT id FROM formulas WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
+  if (!formula) { res.status(404).json({ error: 'Formula not found' }); return; }
 
-  const { spell_id, sort_order, notes } = req.body;
+  const { technique_id, sort_order, notes } = req.body;
   try {
-    db.prepare('INSERT INTO recipe_spells (recipe_id, spell_id, sort_order, notes) VALUES (?, ?, ?, ?)')
-      .run(req.params.id, spell_id, sort_order || 0, notes || null);
+    db.prepare('INSERT INTO formula_techniques (formula_id, technique_id, sort_order, notes) VALUES (?, ?, ?, ?)')
+      .run(req.params.id, technique_id, sort_order || 0, notes || null);
   } catch {
-    res.status(409).json({ error: 'Spell already attached to this recipe' });
+    res.status(409).json({ error: 'Technique already attached to this formula' });
     return;
   }
-  res.status(201).json({ message: 'Spell added' });
+  res.status(201).json({ message: 'Technique added' });
 });
 
-router.delete('/recipes/:id/spells/:spellId', (req: Request, res: Response) => {
+router.delete('/formulas/:id/techniques/:techniqueId', (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const recipe = db.prepare('SELECT id FROM recipes WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!recipe) { res.status(404).json({ error: 'Recipe not found' }); return; }
+  const formula = db.prepare('SELECT id FROM formulas WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
+  if (!formula) { res.status(404).json({ error: 'Formula not found' }); return; }
 
-  db.prepare('DELETE FROM recipe_spells WHERE recipe_id = ? AND spell_id = ?')
-    .run(req.params.id, req.params.spellId);
+  db.prepare('DELETE FROM formula_techniques WHERE formula_id = ? AND technique_id = ?')
+    .run(req.params.id, req.params.techniqueId);
   res.status(204).send();
 });
 
-// --- Recipe Ingredients ---
-router.get('/recipes/:id/ingredients', (req: Request, res: Response) => {
+// --- Formula Materials ---
+router.get('/formulas/:id/materials', (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const recipe = db.prepare('SELECT id FROM recipes WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!recipe) { res.status(404).json({ error: 'Recipe not found' }); return; }
+  const formula = db.prepare('SELECT id FROM formulas WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
+  if (!formula) { res.status(404).json({ error: 'Formula not found' }); return; }
 
   const items = db.prepare(`
-    SELECT ri.id, ri.ingredient_id, ri.quantity, ri.unit, ri.notes, i.name
-    FROM recipe_ingredients ri JOIN ingredients i ON ri.ingredient_id = i.id
-    WHERE ri.recipe_id = ? ORDER BY ri.id
+    SELECT fm.id, fm.material_id, fm.quantity, fm.unit, fm.notes, m.name
+    FROM formula_materials fm JOIN materials m ON fm.material_id = m.id
+    WHERE fm.formula_id = ? ORDER BY fm.id
   `).all(req.params.id);
   res.json({ items });
 });
 
-const addIngredientSchema = z.object({
-  ingredient_id: z.number().int().positive(),
+const addMaterialSchema = z.object({
+  material_id: z.number().int().positive(),
   quantity: z.number().min(0).optional(),
   unit: z.string().max(50).optional(),
   notes: z.string().max(1000).optional(),
 });
 
-router.post('/recipes/:id/ingredients', validate(addIngredientSchema), (req: Request, res: Response) => {
+router.post('/formulas/:id/materials', validate(addMaterialSchema), (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const recipe = db.prepare('SELECT id FROM recipes WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!recipe) { res.status(404).json({ error: 'Recipe not found' }); return; }
+  const formula = db.prepare('SELECT id FROM formulas WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
+  if (!formula) { res.status(404).json({ error: 'Formula not found' }); return; }
 
-  const { ingredient_id, quantity, unit, notes } = req.body;
+  const { material_id, quantity, unit, notes } = req.body;
   try {
-    db.prepare('INSERT INTO recipe_ingredients (recipe_id, ingredient_id, quantity, unit, notes) VALUES (?, ?, ?, ?, ?)')
-      .run(req.params.id, ingredient_id, quantity || 0, unit || null, notes || null);
+    db.prepare('INSERT INTO formula_materials (formula_id, material_id, quantity, unit, notes) VALUES (?, ?, ?, ?, ?)')
+      .run(req.params.id, material_id, quantity || 0, unit || null, notes || null);
   } catch {
-    res.status(409).json({ error: 'Ingredient already attached to this recipe' });
+    res.status(409).json({ error: 'Material already attached to this formula' });
     return;
   }
-  res.status(201).json({ message: 'Ingredient added' });
+  res.status(201).json({ message: 'Material added' });
 });
 
-router.delete('/recipes/:id/ingredients/:ingredientId', (req: Request, res: Response) => {
+router.delete('/formulas/:id/materials/:materialId', (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const recipe = db.prepare('SELECT id FROM recipes WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!recipe) { res.status(404).json({ error: 'Recipe not found' }); return; }
+  const formula = db.prepare('SELECT id FROM formulas WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
+  if (!formula) { res.status(404).json({ error: 'Formula not found' }); return; }
 
-  db.prepare('DELETE FROM recipe_ingredients WHERE recipe_id = ? AND ingredient_id = ?')
-    .run(req.params.id, req.params.ingredientId);
+  db.prepare('DELETE FROM formula_materials WHERE formula_id = ? AND material_id = ?')
+    .run(req.params.id, req.params.materialId);
   res.status(204).send();
 });
 
-// --- Brew Spells ---
-router.get('/brews/:id/spells', (req: Request, res: Response) => {
+// --- Project Techniques ---
+router.get('/projects/:id/techniques', (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const brew = db.prepare('SELECT id FROM brews WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!brew) { res.status(404).json({ error: 'Brew not found' }); return; }
+  const project = db.prepare('SELECT id FROM projects WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
+  if (!project) { res.status(404).json({ error: 'Project not found' }); return; }
 
   const items = db.prepare(`
-    SELECT bs.id, bs.spell_id, bs.sort_order, bs.notes, s.title, s.content
-    FROM brew_spells bs JOIN spells s ON bs.spell_id = s.id
-    WHERE bs.brew_id = ? ORDER BY bs.sort_order
+    SELECT pt.id, pt.technique_id, pt.sort_order, pt.notes, t.title, t.content
+    FROM project_techniques pt JOIN techniques t ON pt.technique_id = t.id
+    WHERE pt.project_id = ? ORDER BY pt.sort_order
   `).all(req.params.id);
   res.json({ items });
 });
 
-router.post('/brews/:id/spells', validate(addSpellSchema), (req: Request, res: Response) => {
+router.post('/projects/:id/techniques', validate(addTechniqueSchema), (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const brew = db.prepare('SELECT id FROM brews WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!brew) { res.status(404).json({ error: 'Brew not found' }); return; }
+  const project = db.prepare('SELECT id FROM projects WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
+  if (!project) { res.status(404).json({ error: 'Project not found' }); return; }
 
-  const { spell_id, sort_order, notes } = req.body;
+  const { technique_id, sort_order, notes } = req.body;
   try {
-    db.prepare('INSERT INTO brew_spells (brew_id, spell_id, sort_order, notes) VALUES (?, ?, ?, ?)')
-      .run(req.params.id, spell_id, sort_order || 0, notes || null);
+    db.prepare('INSERT INTO project_techniques (project_id, technique_id, sort_order, notes) VALUES (?, ?, ?, ?)')
+      .run(req.params.id, technique_id, sort_order || 0, notes || null);
   } catch {
-    res.status(409).json({ error: 'Spell already attached to this brew' });
+    res.status(409).json({ error: 'Technique already attached to this project' });
     return;
   }
-  res.status(201).json({ message: 'Spell added' });
+  res.status(201).json({ message: 'Technique added' });
 });
 
-router.delete('/brews/:id/spells/:spellId', (req: Request, res: Response) => {
+router.delete('/projects/:id/techniques/:techniqueId', (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const brew = db.prepare('SELECT id FROM brews WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!brew) { res.status(404).json({ error: 'Brew not found' }); return; }
+  const project = db.prepare('SELECT id FROM projects WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
+  if (!project) { res.status(404).json({ error: 'Project not found' }); return; }
 
-  db.prepare('DELETE FROM brew_spells WHERE brew_id = ? AND spell_id = ?')
-    .run(req.params.id, req.params.spellId);
+  db.prepare('DELETE FROM project_techniques WHERE project_id = ? AND technique_id = ?')
+    .run(req.params.id, req.params.techniqueId);
   res.status(204).send();
 });
 
-// --- Brew Ingredients ---
-router.get('/brews/:id/ingredients', (req: Request, res: Response) => {
+// --- Project Materials ---
+router.get('/projects/:id/materials', (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const brew = db.prepare('SELECT id FROM brews WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!brew) { res.status(404).json({ error: 'Brew not found' }); return; }
+  const project = db.prepare('SELECT id FROM projects WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
+  if (!project) { res.status(404).json({ error: 'Project not found' }); return; }
 
   const items = db.prepare(`
-    SELECT bi.id, bi.ingredient_id, bi.quantity, bi.unit, bi.notes, i.name
-    FROM brew_ingredients bi JOIN ingredients i ON bi.ingredient_id = i.id
-    WHERE bi.brew_id = ? ORDER BY bi.id
+    SELECT pm.id, pm.material_id, pm.quantity, pm.unit, pm.notes, m.name
+    FROM project_materials pm JOIN materials m ON pm.material_id = m.id
+    WHERE pm.project_id = ? ORDER BY pm.id
   `).all(req.params.id);
   res.json({ items });
 });
 
-router.post('/brews/:id/ingredients', validate(addIngredientSchema), (req: Request, res: Response) => {
+router.post('/projects/:id/materials', validate(addMaterialSchema), (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const brew = db.prepare('SELECT id FROM brews WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!brew) { res.status(404).json({ error: 'Brew not found' }); return; }
+  const project = db.prepare('SELECT id FROM projects WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
+  if (!project) { res.status(404).json({ error: 'Project not found' }); return; }
 
-  const { ingredient_id, quantity, unit, notes } = req.body;
+  const { material_id, quantity, unit, notes } = req.body;
   try {
-    db.prepare('INSERT INTO brew_ingredients (brew_id, ingredient_id, quantity, unit, notes) VALUES (?, ?, ?, ?, ?)')
-      .run(req.params.id, ingredient_id, quantity || 0, unit || null, notes || null);
+    db.prepare('INSERT INTO project_materials (project_id, material_id, quantity, unit, notes) VALUES (?, ?, ?, ?, ?)')
+      .run(req.params.id, material_id, quantity || 0, unit || null, notes || null);
   } catch {
-    res.status(409).json({ error: 'Ingredient already attached to this brew' });
+    res.status(409).json({ error: 'Material already attached to this project' });
     return;
   }
-  res.status(201).json({ message: 'Ingredient added' });
+  res.status(201).json({ message: 'Material added' });
 });
 
-router.delete('/brews/:id/ingredients/:ingredientId', (req: Request, res: Response) => {
+router.delete('/projects/:id/materials/:materialId', (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const brew = db.prepare('SELECT id FROM brews WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!brew) { res.status(404).json({ error: 'Brew not found' }); return; }
+  const project = db.prepare('SELECT id FROM projects WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
+  if (!project) { res.status(404).json({ error: 'Project not found' }); return; }
 
-  db.prepare('DELETE FROM brew_ingredients WHERE brew_id = ? AND ingredient_id = ?')
-    .run(req.params.id, req.params.ingredientId);
+  db.prepare('DELETE FROM project_materials WHERE project_id = ? AND material_id = ?')
+    .run(req.params.id, req.params.materialId);
   res.status(204).send();
 });
 
-// --- Spell Resources ---
-router.get('/spells/:id/resources', (req: Request, res: Response) => {
+// --- Technique Resources ---
+router.get('/techniques/:id/resources', (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const spell = db.prepare('SELECT id FROM spells WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!spell) { res.status(404).json({ error: 'Spell not found' }); return; }
+  const technique = db.prepare('SELECT id FROM techniques WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
+  if (!technique) { res.status(404).json({ error: 'Technique not found' }); return; }
 
-  const items = db.prepare('SELECT * FROM spell_resources WHERE spell_id = ?').all(req.params.id);
+  const items = db.prepare('SELECT * FROM technique_resources WHERE technique_id = ?').all(req.params.id);
   res.json({ items });
 });
 
@@ -209,49 +209,49 @@ const addResourceSchema = z.object({
   type: z.enum(['video', 'article', 'other']).optional(),
 });
 
-router.post('/spells/:id/resources', validate(addResourceSchema), (req: Request, res: Response) => {
+router.post('/techniques/:id/resources', validate(addResourceSchema), (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const spell = db.prepare('SELECT id FROM spells WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!spell) { res.status(404).json({ error: 'Spell not found' }); return; }
+  const technique = db.prepare('SELECT id FROM techniques WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
+  if (!technique) { res.status(404).json({ error: 'Technique not found' }); return; }
 
   const { url, title, description, type } = req.body;
   const result = db.prepare(
-    'INSERT INTO spell_resources (spell_id, url, title, description, type) VALUES (?, ?, ?, ?, ?)'
+    'INSERT INTO technique_resources (technique_id, url, title, description, type) VALUES (?, ?, ?, ?, ?)'
   ).run(req.params.id, url, title, description || null, type || null);
 
-  const resource = db.prepare('SELECT * FROM spell_resources WHERE id = ?').get(result.lastInsertRowid);
+  const resource = db.prepare('SELECT * FROM technique_resources WHERE id = ?').get(result.lastInsertRowid);
   res.status(201).json(resource);
 });
 
-router.delete('/spells/:id/resources/:resourceId', (req: Request, res: Response) => {
+router.delete('/techniques/:id/resources/:resourceId', (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const spell = db.prepare('SELECT id FROM spells WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!spell) { res.status(404).json({ error: 'Spell not found' }); return; }
+  const technique = db.prepare('SELECT id FROM techniques WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
+  if (!technique) { res.status(404).json({ error: 'Technique not found' }); return; }
 
-  db.prepare('DELETE FROM spell_resources WHERE id = ? AND spell_id = ?')
+  db.prepare('DELETE FROM technique_resources WHERE id = ? AND technique_id = ?')
     .run(req.params.resourceId, req.params.id);
   res.status(204).send();
 });
 
-// --- Ingredient Stock ---
-router.get('/ingredients/:id/stock', (req: Request, res: Response) => {
+// --- Material Stock ---
+router.get('/materials/:id/stock', (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const ingredient = db.prepare('SELECT id FROM ingredients WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!ingredient) { res.status(404).json({ error: 'Ingredient not found' }); return; }
+  const material = db.prepare('SELECT id FROM materials WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
+  if (!material) { res.status(404).json({ error: 'Material not found' }); return; }
 
-  const items = db.prepare('SELECT * FROM ingredient_stock WHERE ingredient_id = ? ORDER BY date DESC, created_at DESC')
+  const items = db.prepare('SELECT * FROM material_stock WHERE material_id = ? ORDER BY date DESC, created_at DESC')
     .all(req.params.id);
   res.json({ items });
 });
 
-router.get('/ingredients/:id/stock-summary', (req: Request, res: Response) => {
+router.get('/materials/:id/stock-summary', (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const ingredient = db.prepare('SELECT id FROM ingredients WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!ingredient) { res.status(404).json({ error: 'Ingredient not found' }); return; }
+  const material = db.prepare('SELECT id FROM materials WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
+  if (!material) { res.status(404).json({ error: 'Material not found' }); return; }
 
   const summary = db.prepare(`
     SELECT
@@ -268,7 +268,7 @@ router.get('/ingredients/:id/stock-summary', (req: Request, res: Response) => {
         THEN SUM(CASE WHEN type = 'purchase' THEN quantity * unit_cost ELSE 0 END) / SUM(CASE WHEN type = 'purchase' THEN quantity ELSE 0 END)
         ELSE 0
       END as avg_unit_cost
-    FROM ingredient_stock WHERE ingredient_id = ?
+    FROM material_stock WHERE material_id = ?
   `).get(req.params.id);
 
   res.json(summary);
@@ -280,37 +280,36 @@ const addStockSchema = z.object({
   unit_cost: z.number().min(0).optional(),
   location: z.string().max(200).optional(),
   notes: z.string().max(1000).optional(),
-  brew_id: z.number().int().positive().nullable().optional(),
+  project_id: z.number().int().positive().nullable().optional(),
   date: z.string().min(1),
 });
 
-router.post('/ingredients/:id/stock', validate(addStockSchema), (req: Request, res: Response) => {
+router.post('/materials/:id/stock', validate(addStockSchema), (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const ingredient = db.prepare('SELECT id FROM ingredients WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!ingredient) { res.status(404).json({ error: 'Ingredient not found' }); return; }
+  const material = db.prepare('SELECT id FROM materials WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
+  if (!material) { res.status(404).json({ error: 'Material not found' }); return; }
 
-  const { type, quantity, unit_cost, location, notes, brew_id, date } = req.body;
+  const { type, quantity, unit_cost, location, notes, project_id, date } = req.body;
   const result = db.prepare(`
-    INSERT INTO ingredient_stock (ingredient_id, type, quantity, unit_cost, location, notes, brew_id, date, owner_id)
+    INSERT INTO material_stock (material_id, type, quantity, unit_cost, location, notes, project_id, date, owner_id)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(req.params.id, type, quantity, unit_cost || 0, location || null, notes || null, brew_id || null, date, owner);
+  `).run(req.params.id, type, quantity, unit_cost || 0, location || null, notes || null, project_id || null, date, owner);
 
-  const entry = db.prepare('SELECT * FROM ingredient_stock WHERE id = ?').get(result.lastInsertRowid);
+  const entry = db.prepare('SELECT * FROM material_stock WHERE id = ?').get(result.lastInsertRowid);
   res.status(201).json(entry);
 });
 
 // --- Shared Sub-Resources: Logs, Tasks, Journal Entries ---
-// Logs
 router.get('/logs', (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const { recipe_id, brew_id } = req.query;
+  const { formula_id, project_id } = req.query;
 
   let sql = 'SELECT * FROM logs WHERE owner_id = ?';
   const params: any[] = [owner];
-  if (recipe_id) { sql += ' AND recipe_id = ?'; params.push(recipe_id); }
-  else if (brew_id) { sql += ' AND brew_id = ?'; params.push(brew_id); }
+  if (formula_id) { sql += ' AND formula_id = ?'; params.push(formula_id); }
+  else if (project_id) { sql += ' AND project_id = ?'; params.push(project_id); }
   sql += ' ORDER BY date DESC, created_at DESC';
 
   res.json({ items: db.prepare(sql).all(...params) });
@@ -320,18 +319,18 @@ const logSchema = z.object({
   content: z.string().optional(),
   duration_minutes: z.number().int().min(0).optional(),
   date: z.string().min(1),
-  recipe_id: z.number().int().positive().nullable().optional(),
-  brew_id: z.number().int().positive().nullable().optional(),
+  formula_id: z.number().int().positive().nullable().optional(),
+  project_id: z.number().int().positive().nullable().optional(),
 });
 
 router.post('/logs', validate(logSchema), (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const { content, duration_minutes, date, recipe_id, brew_id } = req.body;
+  const { content, duration_minutes, date, formula_id, project_id } = req.body;
 
   const result = db.prepare(
-    'INSERT INTO logs (owner_id, recipe_id, brew_id, content, duration_minutes, date) VALUES (?, ?, ?, ?, ?, ?)'
-  ).run(owner, recipe_id || null, brew_id || null, content || null, duration_minutes || 0, date);
+    'INSERT INTO logs (owner_id, formula_id, project_id, content, duration_minutes, date) VALUES (?, ?, ?, ?, ?, ?)'
+  ).run(owner, formula_id || null, project_id || null, content || null, duration_minutes || 0, date);
 
   res.status(201).json(db.prepare('SELECT * FROM logs WHERE id = ?').get(result.lastInsertRowid));
 });
@@ -360,16 +359,15 @@ router.delete('/logs/:id', (req: Request, res: Response) => {
   res.status(204).send();
 });
 
-// Tasks
 router.get('/tasks', (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const { recipe_id, brew_id } = req.query;
+  const { formula_id, project_id } = req.query;
 
   let sql = 'SELECT * FROM tasks WHERE owner_id = ?';
   const params: any[] = [owner];
-  if (recipe_id) { sql += ' AND recipe_id = ?'; params.push(recipe_id); }
-  else if (brew_id) { sql += ' AND brew_id = ?'; params.push(brew_id); }
+  if (formula_id) { sql += ' AND formula_id = ?'; params.push(formula_id); }
+  else if (project_id) { sql += ' AND project_id = ?'; params.push(project_id); }
   sql += ' ORDER BY sort_order ASC, created_at ASC';
 
   res.json({ items: db.prepare(sql).all(...params) });
@@ -381,18 +379,18 @@ const taskSchema = z.object({
   done: z.number().int().min(0).max(1).optional(),
   due_date: z.string().nullable().optional(),
   sort_order: z.number().int().min(0).optional(),
-  recipe_id: z.number().int().positive().nullable().optional(),
-  brew_id: z.number().int().positive().nullable().optional(),
+  formula_id: z.number().int().positive().nullable().optional(),
+  project_id: z.number().int().positive().nullable().optional(),
 });
 
 router.post('/tasks', validate(taskSchema), (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const { title, notes, done, due_date, sort_order, recipe_id, brew_id } = req.body;
+  const { title, notes, done, due_date, sort_order, formula_id, project_id } = req.body;
 
   const result = db.prepare(
-    'INSERT INTO tasks (owner_id, recipe_id, brew_id, title, notes, done, due_date, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
-  ).run(owner, recipe_id || null, brew_id || null, title, notes || null, done || 0, due_date || null, sort_order || 0);
+    'INSERT INTO tasks (owner_id, formula_id, project_id, title, notes, done, due_date, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+  ).run(owner, formula_id || null, project_id || null, title, notes || null, done || 0, due_date || null, sort_order || 0);
 
   res.status(201).json(db.prepare('SELECT * FROM tasks WHERE id = ?').get(result.lastInsertRowid));
 });
@@ -421,16 +419,15 @@ router.delete('/tasks/:id', (req: Request, res: Response) => {
   res.status(204).send();
 });
 
-// Journal Entries
 router.get('/journal-entries', (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const { recipe_id, brew_id } = req.query;
+  const { formula_id, project_id } = req.query;
 
   let sql = 'SELECT * FROM journal_entries WHERE owner_id = ?';
   const params: any[] = [owner];
-  if (recipe_id) { sql += ' AND recipe_id = ?'; params.push(recipe_id); }
-  else if (brew_id) { sql += ' AND brew_id = ?'; params.push(brew_id); }
+  if (formula_id) { sql += ' AND formula_id = ?'; params.push(formula_id); }
+  else if (project_id) { sql += ' AND project_id = ?'; params.push(project_id); }
   sql += ' ORDER BY created_at DESC';
 
   res.json({ items: db.prepare(sql).all(...params) });
@@ -439,18 +436,18 @@ router.get('/journal-entries', (req: Request, res: Response) => {
 const journalSchema = z.object({
   title: z.string().min(1).max(200),
   content: z.string().optional(),
-  recipe_id: z.number().int().positive().nullable().optional(),
-  brew_id: z.number().int().positive().nullable().optional(),
+  formula_id: z.number().int().positive().nullable().optional(),
+  project_id: z.number().int().positive().nullable().optional(),
 });
 
 router.post('/journal-entries', validate(journalSchema), (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const { title, content, recipe_id, brew_id } = req.body;
+  const { title, content, formula_id, project_id } = req.body;
 
   const result = db.prepare(
-    'INSERT INTO journal_entries (owner_id, recipe_id, brew_id, title, content) VALUES (?, ?, ?, ?, ?)'
-  ).run(owner, recipe_id || null, brew_id || null, title, content || null);
+    'INSERT INTO journal_entries (owner_id, formula_id, project_id, title, content) VALUES (?, ?, ?, ?, ?)'
+  ).run(owner, formula_id || null, project_id || null, title, content || null);
 
   res.status(201).json(db.prepare('SELECT * FROM journal_entries WHERE id = ?').get(result.lastInsertRowid));
 });
@@ -479,7 +476,6 @@ router.delete('/journal-entries/:id', (req: Request, res: Response) => {
   res.status(204).send();
 });
 
-// --- Tag Management (add/remove tags to entities) ---
 const tagActionSchema = z.object({ tag_id: z.number().int().positive() });
 
 function createTagRoutes(entityTable: string, junctionTable: string, fkColumn: string) {
@@ -519,52 +515,49 @@ function createTagRoutes(entityTable: string, junctionTable: string, fkColumn: s
   });
 }
 
-createTagRoutes('recipes', 'recipe_tags', 'recipe_id');
-createTagRoutes('spells', 'spell_tags', 'spell_id');
-createTagRoutes('brews', 'brew_tags', 'brew_id');
-createTagRoutes('ingredients', 'ingredient_tags', 'ingredient_id');
+createTagRoutes('formulas', 'formula_tags', 'formula_id');
+createTagRoutes('techniques', 'technique_tags', 'technique_id');
+createTagRoutes('projects', 'project_tags', 'project_id');
+createTagRoutes('materials', 'material_tags', 'material_id');
 createTagRoutes('curiosities', 'curiosity_tags', 'curiosity_id');
 
-// --- Brew from Recipe ---
-router.post('/brews/from-recipe', validate(z.object({
-  recipe_id: z.number().int().positive(),
+router.post('/projects/from-formula', validate(z.object({
+  formula_id: z.number().int().positive(),
   title: z.string().min(1).max(200),
   description: z.string().optional(),
 })), (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const { recipe_id, title, description } = req.body;
+  const { formula_id, title, description } = req.body;
 
-  const recipe = db.prepare('SELECT id FROM recipes WHERE id = ? AND owner_id = ?').get(recipe_id, owner);
-  if (!recipe) { res.status(404).json({ error: 'Recipe not found' }); return; }
+  const formula = db.prepare('SELECT id FROM formulas WHERE id = ? AND owner_id = ?').get(formula_id, owner);
+  if (!formula) { res.status(404).json({ error: 'Formula not found' }); return; }
 
-  const createBrew = db.transaction(() => {
+  const createProject = db.transaction(() => {
     const result = db.prepare(
-      'INSERT INTO brews (title, description, status, recipe_id, owner_id) VALUES (?, ?, ?, ?, ?)'
-    ).run(title, description || null, 'gathering', recipe_id, owner);
+      'INSERT INTO projects (title, description, status, formula_id, owner_id) VALUES (?, ?, ?, ?, ?)'
+    ).run(title, description || null, 'planning', formula_id, owner);
 
-    const brewId = result.lastInsertRowid;
+    const projectId = result.lastInsertRowid;
 
-    // Copy spells from recipe
-    const recipeSpells = db.prepare('SELECT spell_id, sort_order, notes FROM recipe_spells WHERE recipe_id = ?').all(recipe_id) as any[];
-    for (const rs of recipeSpells) {
-      db.prepare('INSERT INTO brew_spells (brew_id, spell_id, sort_order, notes) VALUES (?, ?, ?, ?)')
-        .run(brewId, rs.spell_id, rs.sort_order, rs.notes);
+    const formulaTechniques = db.prepare('SELECT technique_id, sort_order, notes FROM formula_techniques WHERE formula_id = ?').all(formula_id) as any[];
+    for (const ft of formulaTechniques) {
+      db.prepare('INSERT INTO project_techniques (project_id, technique_id, sort_order, notes) VALUES (?, ?, ?, ?)')
+        .run(projectId, ft.technique_id, ft.sort_order, ft.notes);
     }
 
-    // Copy ingredients from recipe
-    const recipeIngredients = db.prepare('SELECT ingredient_id, quantity, unit, notes FROM recipe_ingredients WHERE recipe_id = ?').all(recipe_id) as any[];
-    for (const ri of recipeIngredients) {
-      db.prepare('INSERT INTO brew_ingredients (brew_id, ingredient_id, quantity, unit, notes) VALUES (?, ?, ?, ?, ?)')
-        .run(brewId, ri.ingredient_id, ri.quantity, ri.unit, ri.notes);
+    const formulaMaterials = db.prepare('SELECT material_id, quantity, unit, notes FROM formula_materials WHERE formula_id = ?').all(formula_id) as any[];
+    for (const fm of formulaMaterials) {
+      db.prepare('INSERT INTO project_materials (project_id, material_id, quantity, unit, notes) VALUES (?, ?, ?, ?, ?)')
+        .run(projectId, fm.material_id, fm.quantity, fm.unit, fm.notes);
     }
 
-    return brewId;
+    return projectId;
   });
 
-  const brewId = createBrew();
-  const brew = db.prepare('SELECT * FROM brews WHERE id = ?').get(brewId);
-  res.status(201).json(brew);
+  const projectId = createProject();
+  const project = db.prepare('SELECT * FROM projects WHERE id = ?').get(projectId);
+  res.status(201).json(project);
 });
 
 export default router;

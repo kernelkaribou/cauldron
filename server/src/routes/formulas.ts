@@ -3,19 +3,21 @@ import { createCrudRouter } from './crud.js';
 
 const createSchema = z.object({
   title: z.string().min(1).max(200),
-  content: z.string().optional(),
+  description: z.string().optional(),
   craft_id: z.number().int().positive().nullable().optional(),
+  duration_minutes: z.number().int().min(0).optional(),
 });
 
 const updateSchema = z.object({
   title: z.string().min(1).max(200).optional(),
-  content: z.string().optional(),
+  description: z.string().optional(),
   craft_id: z.number().int().positive().nullable().optional(),
+  duration_minutes: z.number().int().min(0).optional(),
 });
 
 const router = createCrudRouter({
-  table: 'spells',
-  searchColumns: ['title', 'content'],
+  table: 'formulas',
+  searchColumns: ['title', 'description'],
   filterColumns: ['craft_id'],
   sortColumns: ['title', 'created_at', 'updated_at'],
   createSchema,
@@ -28,7 +30,7 @@ const router = createCrudRouter({
     },
     tags: {
       type: 'many',
-      query: 'SELECT t.id, t.name FROM tags t JOIN spell_tags st ON t.id = st.tag_id WHERE st.spell_id = ?',
+      query: 'SELECT t.id, t.name FROM tags t JOIN formula_tags ft ON t.id = ft.tag_id WHERE ft.formula_id = ?',
       key: 'id',
     },
   },

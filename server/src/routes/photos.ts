@@ -24,7 +24,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+  limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
     const allowed = ['image/jpeg', 'image/png', 'image/webp'];
     if (allowed.includes(file.mimetype)) {
@@ -47,21 +47,21 @@ async function generateThumbnails(sourcePath: string, destDir: string): Promise<
   }
 }
 
-// List photos (filtered by recipe_id or brew_id)
+// List photos (filtered by formula_id or project_id)
 router.get('/', (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const { recipe_id, brew_id } = req.query;
+  const { formula_id, project_id } = req.query;
 
   let sql = 'SELECT * FROM photos WHERE owner_id = ?';
   const params: any[] = [owner];
 
-  if (recipe_id) {
-    sql += ' AND recipe_id = ?';
-    params.push(recipe_id);
-  } else if (brew_id) {
-    sql += ' AND brew_id = ?';
-    params.push(brew_id);
+  if (formula_id) {
+    sql += ' AND formula_id = ?';
+    params.push(formula_id);
+  } else if (project_id) {
+    sql += ' AND project_id = ?';
+    params.push(project_id);
   }
 
   sql += ' ORDER BY sort_order ASC, created_at DESC';
@@ -70,7 +70,6 @@ router.get('/', (req: Request, res: Response) => {
   res.json({ items });
 });
 
-// Upload photo
 router.post('/', upload.single('image'), async (req: Request, res: Response) => {
   if (!req.file) {
     res.status(400).json({ error: 'No image file provided' });
@@ -79,39 +78,38 @@ router.post('/', upload.single('image'), async (req: Request, res: Response) => 
 
   const db = getDb();
   const owner = ownerId(req);
-  const { recipe_id, brew_id, caption } = req.body;
+  const { formula_id, project_id, caption } = req.body;
 
-  if (!recipe_id && !brew_id) {
+  if (!formula_id && !project_id) {
     fs.unlinkSync(req.file.path);
-    res.status(400).json({ error: 'recipe_id or brew_id is required' });
+    res.status(400).json({ error: 'formula_id or project_id is required' });
     return;
   }
 
-  // Verify ownership of parent entity
-  if (recipe_id) {
-    const recipe = db.prepare('SELECT id FROM recipes WHERE id = ? AND owner_id = ?').get(recipe_id, owner);
-    if (!recipe) {
+  if (formula_id) {
+    const formula = db.prepare('SELECT id FROM formulas WHERE id = ? AND owner_id = ?').get(formula_id, owner);
+    if (!formula) {
       fs.unlinkSync(req.file.path);
-      res.status(404).json({ error: 'Recipe not found' });
+      res.status(404).json({ error: 'Formula not found' });
       return;
     }
   }
-  if (brew_id) {
-    const brew = db.prepare('SELECT id FROM brews WHERE id = ? AND owner_id = ?').get(brew_id, owner);
-    if (!brew) {
+
+  if (project_id) {
+    const project = db.prepare('SELECT id FROM projects WHERE id = ? AND owner_id = ?').get(project_id, owner);
+    if (!project) {
       fs.unlinkSync(req.file.path);
-      res.status(404).json({ error: 'Brew not found' });
+      res.status(404).json({ error: 'Project not found' });
       return;
     }
   }
 
   const result = db.prepare(
-    'INSERT INTO photos (owner_id, recipe_id, brew_id, image, caption) VALUES (?, ?, ?, ?, ?)'
-  ).run(owner, recipe_id || null, brew_id || null, '', caption || null);
+    'INSERT INTO photos (owner_id, formula_id, project_id, image, caption) VALUES (?, ?, ?, ?, ?)'
+  ).run(owner, formula_id || null, project_id || null, '', caption || null);
 
   const photoId = result.lastInsertRowid;
 
-  // Move file to permanent location
   const destDir = path.join(dataDir(), 'uploads', 'photos', String(photoId));
   const ext = path.extname(req.file.originalname);
   const filename = `original${ext}`;
@@ -119,17 +117,14 @@ router.post('/', upload.single('image'), async (req: Request, res: Response) => 
   fs.mkdirSync(destDir, { recursive: true });
   fs.renameSync(req.file.path, destPath);
 
-  // Generate thumbnails
   await generateThumbnails(destPath, destDir);
 
-  // Update image path
   db.prepare('UPDATE photos SET image = ? WHERE id = ?').run(filename, photoId);
 
   const photo = db.prepare('SELECT * FROM photos WHERE id = ?').get(photoId);
   res.status(201).json(photo);
 });
 
-// Delete photo
 router.delete('/:id', (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
@@ -142,7 +137,6 @@ router.delete('/:id', (req: Request, res: Response) => {
     return;
   }
 
-  // Remove files
   const photoDir = path.join(dataDir(), 'uploads', 'photos', String(photo.id));
   if (fs.existsSync(photoDir)) {
     fs.rmSync(photoDir, { recursive: true });
@@ -152,7 +146,6 @@ router.delete('/:id', (req: Request, res: Response) => {
   res.status(204).send();
 });
 
-// Serve files
 router.get('/file/:photoId/:filename', (req: Request, res: Response) => {
   const photoId = String(req.params.photoId);
   const filename = String(req.params.filename);

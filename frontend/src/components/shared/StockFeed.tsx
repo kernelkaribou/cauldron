@@ -4,12 +4,12 @@ import { formatDate } from '@/lib/utils';
 import type { StockEntry } from '@/lib/types';
 
 interface StockFeedProps {
-  ingredientId: number;
+  materialId: number;
 }
 
-export function StockFeed({ ingredientId }: StockFeedProps) {
-  const { data: stockData, isLoading } = useStock(ingredientId);
-  const { data: summary } = useStockSummary(ingredientId);
+export function StockFeed({ materialId }: StockFeedProps) {
+  const { data: stockData, isLoading } = useStock(materialId);
+  const { data: summary } = useStockSummary(materialId);
   const addStock = useAddStock();
   const [showForm, setShowForm] = useState(false);
   const [type, setType] = useState<'purchase' | 'usage' | 'adjustment'>('purchase');
@@ -21,7 +21,7 @@ export function StockFeed({ ingredientId }: StockFeedProps) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     await addStock.mutateAsync({
-      ingredientId,
+      materialId,
       data: {
         type,
         quantity: parseFloat(quantity),

@@ -2,12 +2,12 @@ import { useState, useRef } from 'react';
 import { usePhotos, useUploadPhoto, useDeletePhoto } from '@/hooks/useSubResources';
 
 interface PhotoGalleryProps {
-  recipeId?: number;
-  brewId?: number;
+  formulaId?: number;
+  projectId?: number;
 }
 
-export function PhotoGallery({ recipeId, brewId }: PhotoGalleryProps) {
-  const { data, isLoading } = usePhotos({ recipe_id: recipeId, brew_id: brewId });
+export function PhotoGallery({ formulaId, projectId }: PhotoGalleryProps) {
+  const { data, isLoading } = usePhotos({ formula_id: formulaId, project_id: projectId });
   const uploadPhoto = useUploadPhoto();
   const deletePhoto = useDeletePhoto();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -20,8 +20,8 @@ export function PhotoGallery({ recipeId, brewId }: PhotoGalleryProps) {
     const formData = new FormData();
     formData.append('image', file);
     if (caption) formData.append('caption', caption);
-    if (recipeId) formData.append('recipe_id', String(recipeId));
-    if (brewId) formData.append('brew_id', String(brewId));
+    if (formulaId) formData.append('formula_id', String(formulaId));
+    if (projectId) formData.append('project_id', String(projectId));
     await uploadPhoto.mutateAsync(formData);
     setCaption('');
     if (fileRef.current) fileRef.current.value = '';

@@ -1,24 +1,24 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useRecipes } from '@/hooks/useRecipes';
+import { useFormulas } from '@/hooks/useFormulas';
 import { useCrafts } from '@/hooks/useCrafts';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { ErrorBanner } from '@/components/shared/ErrorBanner';
 import { formatDate, formatDuration } from '@/lib/utils';
 
-export function RecipeList() {
+export function FormulaList() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [craftId, setCraftId] = useState<number | undefined>();
-  const { data, isLoading, error, refetch } = useRecipes(page, { craft_id: craftId, search: search || undefined });
+  const { data, isLoading, error, refetch } = useFormulas(page, { craft_id: craftId, search: search || undefined });
   const { data: crafts } = useCrafts();
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-semibold text-text-primary">Recipes</h1>
-        <Link to="/recipes/new" className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent-light transition-colors text-sm">
-          New Recipe
+        <h1 className="text-xl font-semibold text-text-primary">Formulas</h1>
+        <Link to="/formulas/new" className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent-light transition-colors text-sm">
+          New Formula
         </Link>
       </div>
 
@@ -26,7 +26,7 @@ export function RecipeList() {
         <input
           value={search}
           onChange={e => { setSearch(e.target.value); setPage(1); }}
-          placeholder="Search recipes..."
+          placeholder="Search formulas..."
           className="px-3 py-2 bg-page border border-border rounded-lg text-text-primary text-sm focus:border-accent focus:outline-none w-64"
         />
         <select
@@ -44,28 +44,28 @@ export function RecipeList() {
       {isLoading && <p className="text-text-muted">Loading...</p>}
 
       {data && data.items.length === 0 && (
-        <EmptyState title="No recipes yet" description="Create your first recipe to get started." actionLabel="New Recipe" actionTo="/recipes/new" />
+        <EmptyState title="No formulas yet" description="Create your first formula to get started." actionLabel="New Formula" actionTo="/formulas/new" />
       )}
 
       {data && data.items.length > 0 && (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {data.items.map(recipe => (
+            {data.items.map(formula => (
               <Link
-                key={recipe.id}
-                to={`/recipes/${recipe.id}`}
+                key={formula.id}
+                to={`/formulas/${formula.id}`}
                 className="block p-4 bg-card border border-border rounded-xl hover:border-accent hover:-translate-y-0.5 transition-all"
               >
-                <h3 className="font-medium text-text-primary mb-1">{recipe.title}</h3>
-                {recipe.craft && <p className="text-xs text-accent-light mb-2">{recipe.craft.name}</p>}
-                {recipe.description && <p className="text-sm text-text-secondary line-clamp-2 mb-2">{recipe.description}</p>}
+                <h3 className="font-medium text-text-primary mb-1">{formula.title}</h3>
+                {formula.craft && <p className="text-xs text-accent-light mb-2">{formula.craft.name}</p>}
+                {formula.description && <p className="text-sm text-text-secondary line-clamp-2 mb-2">{formula.description}</p>}
                 <div className="flex items-center gap-3 text-xs text-text-muted">
-                  {recipe.duration_minutes > 0 && <span>{formatDuration(recipe.duration_minutes)}</span>}
-                  <span>{formatDate(recipe.created_at)}</span>
+                  {formula.duration_minutes > 0 && <span>{formatDuration(formula.duration_minutes)}</span>}
+                  <span>{formatDate(formula.created_at)}</span>
                 </div>
-                {recipe.tags && recipe.tags.length > 0 && (
+                {formula.tags && formula.tags.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-2">
-                    {recipe.tags.map(t => <span key={t.id} className="px-1.5 py-0.5 bg-accent-bg text-accent-light text-xs rounded">{t.name}</span>)}
+                    {formula.tags.map(t => <span key={t.id} className="px-1.5 py-0.5 bg-accent-bg text-accent-light text-xs rounded">{t.name}</span>)}
                   </div>
                 )}
               </Link>

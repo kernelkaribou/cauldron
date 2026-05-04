@@ -4,32 +4,32 @@ import { createCrudRouter } from './crud.js';
 const createSchema = z.object({
   title: z.string().min(1).max(200),
   description: z.string().optional(),
-  status: z.enum(['gathering', 'brewing', 'bottled', 'spilled']).optional(),
-  recipe_id: z.number().int().positive().nullable().optional(),
+  status: z.enum(['planning', 'active', 'complete', 'archived']).optional(),
+  formula_id: z.number().int().positive().nullable().optional(),
 });
 
 const updateSchema = z.object({
   title: z.string().min(1).max(200).optional(),
   description: z.string().optional(),
-  status: z.enum(['gathering', 'brewing', 'bottled', 'spilled']).optional(),
+  status: z.enum(['planning', 'active', 'complete', 'archived']).optional(),
 });
 
 const router = createCrudRouter({
-  table: 'brews',
+  table: 'projects',
   searchColumns: ['title', 'description'],
-  filterColumns: ['status', 'recipe_id'],
+  filterColumns: ['status', 'formula_id'],
   sortColumns: ['title', 'created_at', 'updated_at', 'status'],
   createSchema,
   updateSchema,
   expandConfig: {
-    recipe: {
+    formula: {
       type: 'one',
-      query: 'SELECT id, title FROM recipes WHERE id = ?',
-      key: 'recipe_id',
+      query: 'SELECT id, title FROM formulas WHERE id = ?',
+      key: 'formula_id',
     },
     tags: {
       type: 'many',
-      query: 'SELECT t.id, t.name FROM tags t JOIN brew_tags bt ON t.id = bt.tag_id WHERE bt.brew_id = ?',
+      query: 'SELECT t.id, t.name FROM tags t JOIN project_tags pt ON t.id = pt.tag_id WHERE pt.project_id = ?',
       key: 'id',
     },
   },
