@@ -1,21 +1,21 @@
 import { useState } from 'react';
-import { useCrafts, useCreateCraft } from '@/hooks/useCrafts';
+import { useCategories, useCreateCategory } from '@/hooks/useCategories';
 
 interface Props {
-  value: number | null;
-  onChange: (id: number | null) => void;
+  categoryId: number | null;
+  onCategoryChange: (id: number | null) => void;
 }
 
-export function CraftSelect({ value, onChange }: Props) {
-  const { data } = useCrafts();
-  const createCraft = useCreateCraft();
+export function CategorySelect({ categoryId, onCategoryChange }: Props) {
+  const { data } = useCategories();
+  const createCategory = useCreateCategory();
   const [newName, setNewName] = useState('');
   const [showNew, setShowNew] = useState(false);
 
   async function handleCreate() {
     if (!newName.trim()) return;
-    const craft = await createCraft.mutateAsync(newName.trim());
-    onChange(craft.id);
+    const category = await createCategory.mutateAsync(newName.trim());
+    onCategoryChange(category.id);
     setNewName('');
     setShowNew(false);
   }
@@ -24,13 +24,13 @@ export function CraftSelect({ value, onChange }: Props) {
     <div>
       <div className="flex gap-2">
         <select
-          value={value ?? ''}
-          onChange={e => onChange(e.target.value ? Number(e.target.value) : null)}
+          value={categoryId ?? ''}
+          onChange={e => onCategoryChange(e.target.value ? Number(e.target.value) : null)}
           className="flex-1 px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none"
         >
-          <option value="">No craft</option>
-          {data?.items.map(c => (
-            <option key={c.id} value={c.id}>{c.name}</option>
+          <option value="">No category</option>
+          {data?.items.map(category => (
+            <option key={category.id} value={category.id}>{category.name}</option>
           ))}
         </select>
         <button
@@ -46,7 +46,7 @@ export function CraftSelect({ value, onChange }: Props) {
           <input
             value={newName}
             onChange={e => setNewName(e.target.value)}
-            placeholder="New craft name"
+            placeholder="New category name"
             className="flex-1 px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none text-sm"
             onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleCreate())}
           />

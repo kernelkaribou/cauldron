@@ -4,7 +4,7 @@ import { apiFetch } from '@/lib/api';
 import type { Tag } from '@/lib/types';
 
 interface Props {
-  entityType: 'formulas' | 'techniques' | 'projects' | 'materials' | 'curiosities';
+  entityType: 'crafts' | 'techniques' | 'projects' | 'materials' | 'curiosities';
   entityId: number;
   tags: Tag[];
   onUpdate: () => void;

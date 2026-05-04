@@ -5,27 +5,28 @@ const createSchema = z.object({
   title: z.string().min(1).max(200),
   description: z.string().optional(),
   status: z.enum(['planning', 'active', 'complete', 'archived']).optional(),
-  formula_id: z.number().int().positive().nullable().optional(),
+  craft_id: z.number().int().positive().nullable().optional(),
 });
 
 const updateSchema = z.object({
   title: z.string().min(1).max(200).optional(),
   description: z.string().optional(),
   status: z.enum(['planning', 'active', 'complete', 'archived']).optional(),
+  craft_id: z.number().int().positive().nullable().optional(),
 });
 
 const router = createCrudRouter({
   table: 'projects',
   searchColumns: ['title', 'description'],
-  filterColumns: ['status', 'formula_id'],
+  filterColumns: ['status', 'craft_id'],
   sortColumns: ['title', 'created_at', 'updated_at', 'status'],
   createSchema,
   updateSchema,
   expandConfig: {
-    formula: {
+    craft: {
       type: 'one',
-      query: 'SELECT id, title FROM formulas WHERE id = ?',
-      key: 'formula_id',
+      query: 'SELECT id, title FROM crafts WHERE id = ?',
+      key: 'craft_id',
     },
     tags: {
       type: 'many',

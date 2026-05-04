@@ -6,7 +6,7 @@ export interface PaginatedResponse<T> {
   total_pages: number;
 }
 
-export interface Craft {
+export interface Category {
   id: number;
   name: string;
   owner_id: number;
@@ -24,11 +24,11 @@ export interface Technique {
   id: number;
   title: string;
   content: string | null;
-  craft_id: number | null;
+  category_id: number | null;
   owner_id: number;
   created_at: string;
   updated_at: string;
-  craft?: Craft | null;
+  category?: Category | null;
   tags?: Tag[];
 }
 
@@ -41,17 +41,17 @@ export interface TechniqueResource {
   type: 'video' | 'article' | 'other' | null;
 }
 
-export interface Formula {
+export interface Craft {
   id: number;
   title: string;
   description: string | null;
-  craft_id: number | null;
+  category_id: number | null;
   thumbnail: string | null;
   duration_minutes: number;
   owner_id: number;
   created_at: string;
   updated_at: string;
-  craft?: Craft | null;
+  category?: Category | null;
   tags?: Tag[];
 }
 
@@ -60,11 +60,11 @@ export interface Project {
   title: string;
   description: string | null;
   status: 'planning' | 'active' | 'complete' | 'archived';
-  formula_id: number | null;
+  craft_id: number | null;
   owner_id: number;
   created_at: string;
   updated_at: string;
-  formula?: { id: number; title: string } | null;
+  craft?: { id: number; title: string } | null;
   tags?: Tag[];
 }
 
@@ -87,19 +87,19 @@ export interface Curiosity {
   url: string;
   description: string | null;
   type: 'link' | 'video' | 'image' | 'article' | null;
-  craft_id: number | null;
+  category_id: number | null;
   thumbnail: string | null;
   owner_id: number;
   created_at: string;
   updated_at: string;
-  craft?: Craft | null;
+  category?: Category | null;
   tags?: Tag[];
 }
 
 export interface Photo {
   id: number;
   owner_id: number;
-  formula_id: number | null;
+  craft_id: number | null;
   project_id: number | null;
   image: string;
   caption: string | null;
@@ -110,7 +110,7 @@ export interface Photo {
 export interface Log {
   id: number;
   owner_id: number;
-  formula_id: number | null;
+  craft_id: number | null;
   project_id: number | null;
   content: string | null;
   duration_minutes: number;
@@ -121,7 +121,7 @@ export interface Log {
 export interface Task {
   id: number;
   owner_id: number;
-  formula_id: number | null;
+  craft_id: number | null;
   project_id: number | null;
   title: string;
   notes: string | null;
@@ -134,7 +134,7 @@ export interface Task {
 export interface JournalEntry {
   id: number;
   owner_id: number;
-  formula_id: number | null;
+  craft_id: number | null;
   project_id: number | null;
   title: string;
   content: string | null;
@@ -168,5 +168,5 @@ export interface StockSummary {
 export interface SearchResult {
   id: number;
   title: string;
-  type: 'formula' | 'technique' | 'project' | 'material' | 'curiosity';
+  type: 'craft' | 'technique' | 'project' | 'material' | 'curiosity';
 }

@@ -3,9 +3,9 @@ import { apiFetch } from '@/lib/api';
 import type { Log, Task, JournalEntry, TechniqueResource, StockEntry, StockSummary } from '@/lib/types';
 
 // --- Logs ---
-export function useLogs(params: { formula_id?: number; project_id?: number }) {
+export function useLogs(params: { craft_id?: number; project_id?: number }) {
   const qs = new URLSearchParams();
-  if (params.formula_id) qs.set('formula_id', String(params.formula_id));
+  if (params.craft_id) qs.set('craft_id', String(params.craft_id));
   if (params.project_id) qs.set('project_id', String(params.project_id));
   return useQuery({
     queryKey: ['logs', params],
@@ -31,9 +31,9 @@ export function useDeleteLog() {
 }
 
 // --- Tasks ---
-export function useTasks(params: { formula_id?: number; project_id?: number }) {
+export function useTasks(params: { craft_id?: number; project_id?: number }) {
   const qs = new URLSearchParams();
-  if (params.formula_id) qs.set('formula_id', String(params.formula_id));
+  if (params.craft_id) qs.set('craft_id', String(params.craft_id));
   if (params.project_id) qs.set('project_id', String(params.project_id));
   return useQuery({
     queryKey: ['tasks', params],
@@ -68,9 +68,9 @@ export function useDeleteTask() {
 }
 
 // --- Journal Entries ---
-export function useJournalEntries(params: { formula_id?: number; project_id?: number }) {
+export function useJournalEntries(params: { craft_id?: number; project_id?: number }) {
   const qs = new URLSearchParams();
-  if (params.formula_id) qs.set('formula_id', String(params.formula_id));
+  if (params.craft_id) qs.set('craft_id', String(params.craft_id));
   if (params.project_id) qs.set('project_id', String(params.project_id));
   return useQuery({
     queryKey: ['journal-entries', params],
@@ -131,8 +131,8 @@ export function useDeleteTechniqueResource() {
   });
 }
 
-// --- Formula/Project Techniques ---
-export function useEntityTechniques(entityType: 'formulas' | 'projects', entityId: number) {
+// --- Craft/Project Techniques ---
+export function useEntityTechniques(entityType: 'crafts' | 'projects', entityId: number) {
   return useQuery({
     queryKey: [entityType, entityId, 'techniques'],
     queryFn: () => apiFetch<{ items: Array<{ id: number; technique_id: number; sort_order: number; notes: string | null; title: string; content: string | null }> }>(`/${entityType}/${entityId}/techniques`),
@@ -143,7 +143,7 @@ export function useEntityTechniques(entityType: 'formulas' | 'projects', entityI
 export function useAddEntityTechnique() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ entityType, entityId, data }: { entityType: 'formulas' | 'projects'; entityId: number; data: Record<string, unknown> }) =>
+    mutationFn: ({ entityType, entityId, data }: { entityType: 'crafts' | 'projects'; entityId: number; data: Record<string, unknown> }) =>
       apiFetch(`/${entityType}/${entityId}/techniques`, { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: (_, { entityType, entityId }) => qc.invalidateQueries({ queryKey: [entityType, entityId, 'techniques'] }),
   });
@@ -152,14 +152,14 @@ export function useAddEntityTechnique() {
 export function useRemoveEntityTechnique() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ entityType, entityId, techniqueId }: { entityType: 'formulas' | 'projects'; entityId: number; techniqueId: number }) =>
+    mutationFn: ({ entityType, entityId, techniqueId }: { entityType: 'crafts' | 'projects'; entityId: number; techniqueId: number }) =>
       apiFetch(`/${entityType}/${entityId}/techniques/${techniqueId}`, { method: 'DELETE' }),
     onSuccess: (_, { entityType, entityId }) => qc.invalidateQueries({ queryKey: [entityType, entityId, 'techniques'] }),
   });
 }
 
-// --- Formula/Project Materials ---
-export function useEntityMaterials(entityType: 'formulas' | 'projects', entityId: number) {
+// --- Craft/Project Materials ---
+export function useEntityMaterials(entityType: 'crafts' | 'projects', entityId: number) {
   return useQuery({
     queryKey: [entityType, entityId, 'materials'],
     queryFn: () => apiFetch<{ items: Array<{ id: number; material_id: number; quantity: number; unit: string | null; notes: string | null; name: string }> }>(`/${entityType}/${entityId}/materials`),
@@ -170,7 +170,7 @@ export function useEntityMaterials(entityType: 'formulas' | 'projects', entityId
 export function useAddEntityMaterial() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ entityType, entityId, data }: { entityType: 'formulas' | 'projects'; entityId: number; data: Record<string, unknown> }) =>
+    mutationFn: ({ entityType, entityId, data }: { entityType: 'crafts' | 'projects'; entityId: number; data: Record<string, unknown> }) =>
       apiFetch(`/${entityType}/${entityId}/materials`, { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: (_, { entityType, entityId }) => qc.invalidateQueries({ queryKey: [entityType, entityId, 'materials'] }),
   });
@@ -179,7 +179,7 @@ export function useAddEntityMaterial() {
 export function useRemoveEntityMaterial() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ entityType, entityId, materialId }: { entityType: 'formulas' | 'projects'; entityId: number; materialId: number }) =>
+    mutationFn: ({ entityType, entityId, materialId }: { entityType: 'crafts' | 'projects'; entityId: number; materialId: number }) =>
       apiFetch(`/${entityType}/${entityId}/materials/${materialId}`, { method: 'DELETE' }),
     onSuccess: (_, { entityType, entityId }) => qc.invalidateQueries({ queryKey: [entityType, entityId, 'materials'] }),
   });
@@ -215,9 +215,9 @@ export function useAddStock() {
 }
 
 // --- Photos ---
-export function usePhotos(params: { formula_id?: number; project_id?: number }) {
+export function usePhotos(params: { craft_id?: number; project_id?: number }) {
   const qs = new URLSearchParams();
-  if (params.formula_id) qs.set('formula_id', String(params.formula_id));
+  if (params.craft_id) qs.set('craft_id', String(params.craft_id));
   if (params.project_id) qs.set('project_id', String(params.project_id));
   return useQuery({
     queryKey: ['photos', params],

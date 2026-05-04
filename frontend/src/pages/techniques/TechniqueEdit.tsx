@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTechnique, useUpdateTechnique } from '@/hooks/useTechniques';
-import { CraftSelect } from '@/components/shared/CraftSelect';
+import { CategorySelect } from '@/components/shared/CategorySelect';
 import { ApiError } from '@/lib/api';
 
 export function TechniqueEdit() {
@@ -12,19 +12,27 @@ export function TechniqueEdit() {
   const navigate = useNavigate();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [craftId, setCraftId] = useState<number | null>(null);
+  const [categoryId, setCategoryId] = useState<number | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  useEffect(() => { if (technique) { setTitle(technique.title); setContent(technique.content || ''); setCraftId(technique.craft_id); } }, [technique]);
+  useEffect(() => {
+    if (technique) {
+      setTitle(technique.title);
+      setContent(technique.content || '');
+      setCategoryId(technique.category_id);
+    }
+  }, [technique]);
   if (isLoading) return <p className="text-text-muted">Loading...</p>;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErrors({});
     try {
-      await updateTechnique.mutateAsync({ id: techniqueId, data: { title, content: content || undefined, craft_id: craftId } });
+      await updateTechnique.mutateAsync({ id: techniqueId, data: { title, content: content || undefined, category_id: categoryId } });
       navigate(`/techniques/${techniqueId}`);
-    } catch (err) { if (err instanceof ApiError && err.details) setErrors(err.details); }
+    } catch (err) {
+      if (err instanceof ApiError && err.details) setErrors(err.details);
+    }
   }
 
   return (
@@ -41,8 +49,8 @@ export function TechniqueEdit() {
           <textarea value={content} onChange={e => setContent(e.target.value)} rows={8} className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none resize-y font-mono text-sm" />
         </div>
         <div>
-          <label className="block text-sm text-text-secondary mb-1">Craft</label>
-          <CraftSelect value={craftId} onChange={setCraftId} />
+          <label className="block text-sm text-text-secondary mb-1">Category</label>
+          <CategorySelect categoryId={categoryId} onCategoryChange={setCategoryId} />
         </div>
         <div className="flex gap-3">
           <button type="submit" disabled={updateTechnique.isPending} className="px-4 py-2 bg-accent text-white rounded-lg font-medium hover:bg-accent-light transition-colors disabled:opacity-50">Save Changes</button>

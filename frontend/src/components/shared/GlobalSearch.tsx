@@ -4,7 +4,7 @@ import { apiFetch } from '@/lib/api';
 import type { SearchResult } from '@/lib/types';
 
 const TYPE_PATHS: Record<string, string> = {
-  formula: '/formulas',
+  craft: '/crafts',
   technique: '/techniques',
   project: '/projects',
   material: '/materials',
@@ -12,7 +12,7 @@ const TYPE_PATHS: Record<string, string> = {
 };
 
 const TYPE_GLYPHS: Record<string, string> = {
-  formula: '◉',
+  craft: '◉',
   technique: '✦',
   project: '▦',
   material: '◈',

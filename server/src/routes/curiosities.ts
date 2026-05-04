@@ -6,7 +6,7 @@ const createSchema = z.object({
   url: z.string().url(),
   description: z.string().optional(),
   type: z.enum(['link', 'video', 'image', 'article']).optional(),
-  craft_id: z.number().int().positive().nullable().optional(),
+  category_id: z.number().int().positive().nullable().optional(),
 });
 
 const updateSchema = z.object({
@@ -14,21 +14,21 @@ const updateSchema = z.object({
   url: z.string().url().optional(),
   description: z.string().optional(),
   type: z.enum(['link', 'video', 'image', 'article']).optional(),
-  craft_id: z.number().int().positive().nullable().optional(),
+  category_id: z.number().int().positive().nullable().optional(),
 });
 
 const router = createCrudRouter({
   table: 'curiosities',
   searchColumns: ['title', 'description', 'url'],
-  filterColumns: ['type', 'craft_id'],
+  filterColumns: ['type', 'category_id'],
   sortColumns: ['title', 'created_at', 'updated_at'],
   createSchema,
   updateSchema,
   expandConfig: {
-    craft: {
+    category: {
       type: 'one',
-      query: 'SELECT id, name FROM crafts WHERE id = ?',
-      key: 'craft_id',
+      query: 'SELECT id, name FROM categories WHERE id = ?',
+      key: 'category_id',
     },
     tags: {
       type: 'many',

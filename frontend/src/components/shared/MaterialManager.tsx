@@ -3,7 +3,7 @@ import { useEntityMaterials, useAddEntityMaterial, useRemoveEntityMaterial } fro
 import { useMaterials } from '@/hooks/useMaterials';
 
 interface MaterialManagerProps {
-  entityType: 'formulas' | 'projects';
+  entityType: 'crafts' | 'projects';
   entityId: number;
 }
 

@@ -4,27 +4,27 @@ import { createCrudRouter } from './crud.js';
 const createSchema = z.object({
   title: z.string().min(1).max(200),
   content: z.string().optional(),
-  craft_id: z.number().int().positive().nullable().optional(),
+  category_id: z.number().int().positive().nullable().optional(),
 });
 
 const updateSchema = z.object({
   title: z.string().min(1).max(200).optional(),
   content: z.string().optional(),
-  craft_id: z.number().int().positive().nullable().optional(),
+  category_id: z.number().int().positive().nullable().optional(),
 });
 
 const router = createCrudRouter({
   table: 'techniques',
   searchColumns: ['title', 'content'],
-  filterColumns: ['craft_id'],
+  filterColumns: ['category_id'],
   sortColumns: ['title', 'created_at', 'updated_at'],
   createSchema,
   updateSchema,
   expandConfig: {
-    craft: {
+    category: {
       type: 'one',
-      query: 'SELECT id, name FROM crafts WHERE id = ?',
-      key: 'craft_id',
+      query: 'SELECT id, name FROM categories WHERE id = ?',
+      key: 'category_id',
     },
     tags: {
       type: 'many',

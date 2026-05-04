@@ -6,12 +6,12 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
 interface JournalSectionProps {
-  formulaId?: number;
+  craftId?: number;
   projectId?: number;
 }
 
-export function JournalSection({ formulaId, projectId }: JournalSectionProps) {
-  const { data, isLoading } = useJournalEntries({ formula_id: formulaId, project_id: projectId });
+export function JournalSection({ craftId, projectId }: JournalSectionProps) {
+  const { data, isLoading } = useJournalEntries({ craft_id: craftId, project_id: projectId });
   const createEntry = useCreateJournalEntry();
   const deleteEntry = useDeleteJournalEntry();
   const [showForm, setShowForm] = useState(false);
@@ -24,7 +24,7 @@ export function JournalSection({ formulaId, projectId }: JournalSectionProps) {
     await createEntry.mutateAsync({
       title,
       content: content || undefined,
-      formula_id: formulaId || null,
+      craft_id: craftId || null,
       project_id: projectId || null,
     });
     setTitle('');

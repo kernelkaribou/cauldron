@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTechniques } from '@/hooks/useTechniques';
-import { useCrafts } from '@/hooks/useCrafts';
+import { useCategories } from '@/hooks/useCategories';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { ErrorBanner } from '@/components/shared/ErrorBanner';
 import { formatDate } from '@/lib/utils';
@@ -9,9 +9,9 @@ import { formatDate } from '@/lib/utils';
 export function TechniqueList() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
-  const [craftId, setCraftId] = useState<number | undefined>();
-  const { data, isLoading, error, refetch } = useTechniques(page, { craft_id: craftId, search: search || undefined });
-  const { data: crafts } = useCrafts();
+  const [categoryId, setCategoryId] = useState<number | undefined>();
+  const { data, isLoading, error, refetch } = useTechniques(page, { category_id: categoryId, search: search || undefined });
+  const { data: categories } = useCategories();
 
   return (
     <div>
@@ -21,9 +21,9 @@ export function TechniqueList() {
       </div>
       <div className="flex flex-wrap gap-3 mb-6">
         <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} placeholder="Search techniques..." className="px-3 py-2 bg-page border border-border rounded-lg text-text-primary text-sm focus:border-accent focus:outline-none w-64" />
-        <select value={craftId ?? ''} onChange={e => { setCraftId(e.target.value ? Number(e.target.value) : undefined); setPage(1); }} className="px-3 py-2 bg-page border border-border rounded-lg text-text-primary text-sm focus:border-accent focus:outline-none">
-          <option value="">All crafts</option>
-          {crafts?.items.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+        <select value={categoryId ?? ''} onChange={e => { setCategoryId(e.target.value ? Number(e.target.value) : undefined); setPage(1); }} className="px-3 py-2 bg-page border border-border rounded-lg text-text-primary text-sm focus:border-accent focus:outline-none">
+          <option value="">All categories</option>
+          {categories?.items.map(category => <option key={category.id} value={category.id}>{category.name}</option>)}
         </select>
       </div>
       {error && <ErrorBanner message={(error as Error).message} onRetry={() => refetch()} />}
@@ -35,12 +35,12 @@ export function TechniqueList() {
             {data.items.map(technique => (
               <Link key={technique.id} to={`/techniques/${technique.id}`} className="block p-4 bg-card border border-border rounded-xl hover:border-accent hover:-translate-y-0.5 transition-all">
                 <h3 className="font-medium text-text-primary mb-1">{technique.title}</h3>
-                {technique.craft && <p className="text-xs text-accent-light mb-2">{technique.craft.name}</p>}
+                {technique.category && <p className="text-xs text-accent-light mb-2">{technique.category.name}</p>}
                 {technique.content && <p className="text-sm text-text-secondary line-clamp-2 mb-2">{technique.content}</p>}
                 <p className="text-xs text-text-muted">{formatDate(technique.created_at)}</p>
                 {technique.tags && technique.tags.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-2">
-                    {technique.tags.map(t => <span key={t.id} className="px-1.5 py-0.5 bg-accent-bg text-accent-light text-xs rounded">{t.name}</span>)}
+                    {technique.tags.map(tag => <span key={tag.id} className="px-1.5 py-0.5 bg-accent-bg text-accent-light text-xs rounded">{tag.name}</span>)}
                   </div>
                 )}
               </Link>

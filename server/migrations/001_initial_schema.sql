@@ -11,7 +11,7 @@ CREATE TABLE users (
   updated_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE crafts (
+CREATE TABLE categories (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   owner_id INTEGER NOT NULL REFERENCES users(id),
@@ -31,7 +31,7 @@ CREATE TABLE techniques (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   title TEXT NOT NULL,
   content TEXT,
-  craft_id INTEGER REFERENCES crafts(id) ON DELETE SET NULL,
+  category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
   owner_id INTEGER NOT NULL REFERENCES users(id),
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT DEFAULT CURRENT_TIMESTAMP
@@ -58,11 +58,11 @@ CREATE TABLE materials (
   updated_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE formulas (
+CREATE TABLE crafts (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   title TEXT NOT NULL,
   description TEXT,
-  craft_id INTEGER REFERENCES crafts(id) ON DELETE SET NULL,
+  category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
   thumbnail TEXT,
   duration_minutes INTEGER DEFAULT 0,
   owner_id INTEGER NOT NULL REFERENCES users(id),
@@ -70,23 +70,23 @@ CREATE TABLE formulas (
   updated_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE formula_techniques (
+CREATE TABLE craft_techniques (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  formula_id INTEGER NOT NULL REFERENCES formulas(id) ON DELETE CASCADE,
+  craft_id INTEGER NOT NULL REFERENCES crafts(id) ON DELETE CASCADE,
   technique_id INTEGER NOT NULL REFERENCES techniques(id) ON DELETE CASCADE,
   sort_order INTEGER DEFAULT 0,
   notes TEXT,
-  UNIQUE(formula_id, technique_id)
+  UNIQUE(craft_id, technique_id)
 );
 
-CREATE TABLE formula_materials (
+CREATE TABLE craft_materials (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  formula_id INTEGER NOT NULL REFERENCES formulas(id) ON DELETE CASCADE,
+  craft_id INTEGER NOT NULL REFERENCES crafts(id) ON DELETE CASCADE,
   material_id INTEGER NOT NULL REFERENCES materials(id) ON DELETE CASCADE,
   quantity REAL DEFAULT 0,
   unit TEXT,
   notes TEXT,
-  UNIQUE(formula_id, material_id)
+  UNIQUE(craft_id, material_id)
 );
 
 CREATE TABLE projects (
@@ -94,7 +94,7 @@ CREATE TABLE projects (
   title TEXT NOT NULL,
   description TEXT,
   status TEXT NOT NULL DEFAULT 'planning' CHECK(status IN ('planning','active','complete','archived')),
-  formula_id INTEGER REFERENCES formulas(id) ON DELETE SET NULL,
+  craft_id INTEGER REFERENCES crafts(id) ON DELETE SET NULL,
   owner_id INTEGER NOT NULL REFERENCES users(id),
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT DEFAULT CURRENT_TIMESTAMP
@@ -139,7 +139,7 @@ CREATE TABLE curiosities (
   url TEXT NOT NULL,
   description TEXT,
   type TEXT CHECK(type IN ('link','video','image','article')),
-  craft_id INTEGER REFERENCES crafts(id) ON DELETE SET NULL,
+  category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
   thumbnail TEXT,
   owner_id INTEGER NOT NULL REFERENCES users(id),
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
@@ -150,7 +150,7 @@ CREATE TABLE curiosities (
 CREATE TABLE photos (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   owner_id INTEGER NOT NULL REFERENCES users(id),
-  formula_id INTEGER REFERENCES formulas(id) ON DELETE CASCADE,
+  craft_id INTEGER REFERENCES crafts(id) ON DELETE CASCADE,
   project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE,
   image TEXT NOT NULL,
   caption TEXT,
@@ -161,7 +161,7 @@ CREATE TABLE photos (
 CREATE TABLE logs (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   owner_id INTEGER NOT NULL REFERENCES users(id),
-  formula_id INTEGER REFERENCES formulas(id) ON DELETE CASCADE,
+  craft_id INTEGER REFERENCES crafts(id) ON DELETE CASCADE,
   project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE,
   content TEXT,
   duration_minutes INTEGER DEFAULT 0,
@@ -172,7 +172,7 @@ CREATE TABLE logs (
 CREATE TABLE tasks (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   owner_id INTEGER NOT NULL REFERENCES users(id),
-  formula_id INTEGER REFERENCES formulas(id) ON DELETE CASCADE,
+  craft_id INTEGER REFERENCES crafts(id) ON DELETE CASCADE,
   project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
   notes TEXT,
@@ -185,7 +185,7 @@ CREATE TABLE tasks (
 CREATE TABLE journal_entries (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   owner_id INTEGER NOT NULL REFERENCES users(id),
-  formula_id INTEGER REFERENCES formulas(id) ON DELETE CASCADE,
+  craft_id INTEGER REFERENCES crafts(id) ON DELETE CASCADE,
   project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
   content TEXT,
@@ -194,10 +194,10 @@ CREATE TABLE journal_entries (
 );
 
 -- Tag junction tables
-CREATE TABLE formula_tags (
-  formula_id INTEGER NOT NULL REFERENCES formulas(id) ON DELETE CASCADE,
+CREATE TABLE craft_tags (
+  craft_id INTEGER NOT NULL REFERENCES crafts(id) ON DELETE CASCADE,
   tag_id INTEGER NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
-  PRIMARY KEY (formula_id, tag_id)
+  PRIMARY KEY (craft_id, tag_id)
 );
 
 CREATE TABLE technique_tags (
@@ -226,21 +226,21 @@ CREATE TABLE curiosity_tags (
 
 -- Indexes for common queries
 CREATE INDEX idx_techniques_owner ON techniques(owner_id);
-CREATE INDEX idx_techniques_craft ON techniques(craft_id);
-CREATE INDEX idx_formulas_owner ON formulas(owner_id);
-CREATE INDEX idx_formulas_craft ON formulas(craft_id);
+CREATE INDEX idx_techniques_category ON techniques(category_id);
+CREATE INDEX idx_crafts_owner ON crafts(owner_id);
+CREATE INDEX idx_crafts_category ON crafts(category_id);
 CREATE INDEX idx_projects_owner ON projects(owner_id);
 CREATE INDEX idx_projects_status ON projects(status);
-CREATE INDEX idx_projects_formula ON projects(formula_id);
+CREATE INDEX idx_projects_craft ON projects(craft_id);
 CREATE INDEX idx_materials_owner ON materials(owner_id);
 CREATE INDEX idx_curiosities_owner ON curiosities(owner_id);
-CREATE INDEX idx_curiosities_craft ON curiosities(craft_id);
+CREATE INDEX idx_curiosities_category ON curiosities(category_id);
 CREATE INDEX idx_material_stock_material ON material_stock(material_id);
-CREATE INDEX idx_photos_formula ON photos(formula_id);
+CREATE INDEX idx_photos_craft ON photos(craft_id);
 CREATE INDEX idx_photos_project ON photos(project_id);
-CREATE INDEX idx_logs_formula ON logs(formula_id);
+CREATE INDEX idx_logs_craft ON logs(craft_id);
 CREATE INDEX idx_logs_project ON logs(project_id);
-CREATE INDEX idx_tasks_formula ON tasks(formula_id);
+CREATE INDEX idx_tasks_craft ON tasks(craft_id);
 CREATE INDEX idx_tasks_project ON tasks(project_id);
-CREATE INDEX idx_journal_formula ON journal_entries(formula_id);
+CREATE INDEX idx_journal_craft ON journal_entries(craft_id);
 CREATE INDEX idx_journal_project ON journal_entries(project_id);

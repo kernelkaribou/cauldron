@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCreateCuriosity } from '@/hooks/useCuriosities';
-import { CraftSelect } from '@/components/shared/CraftSelect';
+import { CategorySelect } from '@/components/shared/CategorySelect';
 import { ApiError } from '@/lib/api';
 
 export function CuriosityNew() {
@@ -9,7 +9,7 @@ export function CuriosityNew() {
   const [type, setType] = useState<string>('link');
   const [description, setDescription] = useState('');
   const [url, setUrl] = useState('');
-  const [craftId, setCraftId] = useState<number | null>(null);
+  const [categoryId, setCategoryId] = useState<number | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const createCuriosity = useCreateCuriosity();
   const navigate = useNavigate();
@@ -18,14 +18,14 @@ export function CuriosityNew() {
     e.preventDefault();
     setErrors({});
     try {
-      const cur = await createCuriosity.mutateAsync({
+      const curiosity = await createCuriosity.mutateAsync({
         title,
         type,
         description: description || undefined,
         url,
-        craft_id: craftId,
+        category_id: categoryId,
       });
-      navigate(`/curiosities/${cur.id}`);
+      navigate(`/curiosities/${curiosity.id}`);
     } catch (err) { if (err instanceof ApiError && err.details) setErrors(err.details); }
   }
 
@@ -57,8 +57,8 @@ export function CuriosityNew() {
           <textarea value={description} onChange={e => setDescription(e.target.value)} rows={4} className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none resize-y" />
         </div>
         <div>
-          <label className="block text-sm text-text-secondary mb-1">Craft</label>
-          <CraftSelect value={craftId} onChange={setCraftId} />
+          <label className="block text-sm text-text-secondary mb-1">Category</label>
+          <CategorySelect categoryId={categoryId} onCategoryChange={setCategoryId} />
         </div>
         <button type="submit" disabled={createCuriosity.isPending} className="px-4 py-2 bg-accent text-white rounded-lg font-medium hover:bg-accent-light transition-colors disabled:opacity-50">
           {createCuriosity.isPending ? 'Creating...' : 'Create Curiosity'}

@@ -2,17 +2,38 @@ import { z } from 'zod';
 import { createCrudRouter } from './crud.js';
 
 const createSchema = z.object({
-  name: z.string().min(1).max(100),
+  title: z.string().min(1).max(200),
+  description: z.string().optional(),
+  category_id: z.number().int().positive().nullable().optional(),
+  duration_minutes: z.number().int().min(0).optional(),
 });
 
 const updateSchema = z.object({
-  name: z.string().min(1).max(100),
+  title: z.string().min(1).max(200).optional(),
+  description: z.string().optional(),
+  category_id: z.number().int().positive().nullable().optional(),
+  duration_minutes: z.number().int().min(0).optional(),
 });
 
-export default createCrudRouter({
+const router = createCrudRouter({
   table: 'crafts',
-  searchColumns: ['name'],
-  sortColumns: ['name', 'created_at'],
+  searchColumns: ['title', 'description'],
+  filterColumns: ['category_id'],
+  sortColumns: ['title', 'created_at', 'updated_at'],
   createSchema,
   updateSchema,
+  expandConfig: {
+    category: {
+      type: 'one',
+      query: 'SELECT id, name FROM categories WHERE id = ?',
+      key: 'category_id',
+    },
+    tags: {
+      type: 'many',
+      query: 'SELECT t.id, t.name FROM tags t JOIN craft_tags ct ON t.id = ct.tag_id WHERE ct.craft_id = ?',
+      key: 'id',
+    },
+  },
 });
+
+export default router;

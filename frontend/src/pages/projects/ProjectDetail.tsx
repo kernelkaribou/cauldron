@@ -43,7 +43,7 @@ export function ProjectDetail() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl font-semibold text-text-primary">{project.title}</h1>
-          {project.formula && <Link to={`/formulas/${project.formula.id}`} className="text-sm text-accent-light hover:text-accent">From: {project.formula.title}</Link>}
+          {project.craft && <Link to={`/crafts/${project.craft.id}`} className="text-sm text-accent-light hover:text-accent">From: {project.craft.title}</Link>}
         </div>
         <div className="flex gap-2">
           <Link to={`/projects/${projectId}/edit`} className="px-3 py-1.5 border border-border rounded-lg text-sm text-text-secondary hover:border-accent hover:text-accent transition-colors">Edit</Link>

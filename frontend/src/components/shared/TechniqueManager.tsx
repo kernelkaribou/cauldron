@@ -3,7 +3,7 @@ import { useEntityTechniques, useAddEntityTechnique, useRemoveEntityTechnique } 
 import { useTechniques } from '@/hooks/useTechniques';
 
 interface TechniqueManagerProps {
-  entityType: 'formulas' | 'projects';
+  entityType: 'crafts' | 'projects';
   entityId: number;
 }
 

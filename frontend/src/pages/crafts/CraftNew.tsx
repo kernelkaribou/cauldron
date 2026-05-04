@@ -1,29 +1,29 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useCreateFormula } from '@/hooks/useFormulas';
-import { CraftSelect } from '@/components/shared/CraftSelect';
+import { useCreateCraft } from '@/hooks/useCrafts';
+import { CategorySelect } from '@/components/shared/CategorySelect';
 import { ApiError } from '@/lib/api';
 
-export function FormulaNew() {
+export function CraftNew() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [craftId, setCraftId] = useState<number | null>(null);
+  const [categoryId, setCategoryId] = useState<number | null>(null);
   const [duration, setDuration] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const createFormula = useCreateFormula();
+  const createCraft = useCreateCraft();
   const navigate = useNavigate();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErrors({});
     try {
-      const formula = await createFormula.mutateAsync({
+      const craft = await createCraft.mutateAsync({
         title,
         description: description || undefined,
-        craft_id: craftId,
+        category_id: categoryId,
         duration_minutes: duration ? parseInt(duration) : undefined,
       });
-      navigate(`/formulas/${formula.id}`);
+      navigate(`/crafts/${craft.id}`);
     } catch (err) {
       if (err instanceof ApiError && err.details) setErrors(err.details);
     }
@@ -31,7 +31,7 @@ export function FormulaNew() {
 
   return (
     <div className="max-w-xl">
-      <h1 className="text-xl font-semibold text-text-primary mb-6">New Formula</h1>
+      <h1 className="text-xl font-semibold text-text-primary mb-6">New Craft</h1>
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
         <div>
           <label className="block text-sm text-text-secondary mb-1">Title</label>
@@ -43,15 +43,15 @@ export function FormulaNew() {
           <textarea value={description} onChange={e => setDescription(e.target.value)} rows={4} className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none resize-y" />
         </div>
         <div>
-          <label className="block text-sm text-text-secondary mb-1">Craft</label>
-          <CraftSelect value={craftId} onChange={setCraftId} />
+          <label className="block text-sm text-text-secondary mb-1">Category</label>
+          <CategorySelect categoryId={categoryId} onCategoryChange={setCategoryId} />
         </div>
         <div>
           <label className="block text-sm text-text-secondary mb-1">Estimated Duration (minutes)</label>
           <input type="number" value={duration} onChange={e => setDuration(e.target.value)} min="0" className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none" />
         </div>
-        <button type="submit" disabled={createFormula.isPending} className="px-4 py-2 bg-accent text-white rounded-lg font-medium hover:bg-accent-light transition-colors disabled:opacity-50">
-          {createFormula.isPending ? 'Creating...' : 'Create Formula'}
+        <button type="submit" disabled={createCraft.isPending} className="px-4 py-2 bg-accent text-white rounded-lg font-medium hover:bg-accent-light transition-colors disabled:opacity-50">
+          {createCraft.isPending ? 'Creating...' : 'Create Craft'}
         </button>
       </form>
     </div>

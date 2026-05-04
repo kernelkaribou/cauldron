@@ -1,13 +1,13 @@
 import { Link } from 'react-router-dom';
-import { useFormulas } from '@/hooks/useFormulas';
+import { useCrafts } from '@/hooks/useCrafts';
 import { useProjects } from '@/hooks/useProjects';
 import { useCuriosities } from '@/hooks/useCuriosities';
 import { STATUS_CONFIG } from '@/lib/theme';
 import { formatDate } from '@/lib/utils';
-import type { Formula, Project, Curiosity } from '@/lib/types';
+import type { Craft, Project, Curiosity } from '@/lib/types';
 
 export function Dashboard() {
-  const { data: recentFormulas } = useFormulas(1, {});
+  const { data: recentCrafts } = useCrafts(1, {});
   const { data: activeProjects } = useProjects(1, {});
   const { data: recentCuriosities } = useCuriosities(1, {});
 
@@ -40,19 +40,19 @@ export function Dashboard() {
           </div>
         </div>
 
-        {/* Recent Formulas */}
+        {/* Recent Crafts */}
         <div className="bg-card border border-border rounded-xl p-4">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-medium text-text-secondary">Recent Formulas</h2>
-            <Link to="/formulas" className="text-xs text-accent-light hover:text-accent">View all</Link>
+            <h2 className="text-sm font-medium text-text-secondary">Recent Crafts</h2>
+            <Link to="/crafts" className="text-xs text-accent-light hover:text-accent">View all</Link>
           </div>
-          {(!recentFormulas || recentFormulas.items.length === 0) && <p className="text-xs text-text-muted">No formulas yet.</p>}
+          {(!recentCrafts || recentCrafts.items.length === 0) && <p className="text-xs text-text-muted">No crafts yet.</p>}
           <div className="space-y-2">
-            {recentFormulas?.items.slice(0, 5).map((formula: Formula) => (
-              <Link key={formula.id} to={`/formulas/${formula.id}`} className="block p-2 bg-page rounded-lg hover:border-accent transition-colors">
+            {recentCrafts?.items.slice(0, 5).map((craft: Craft) => (
+              <Link key={craft.id} to={`/crafts/${craft.id}`} className="block p-2 bg-page rounded-lg hover:border-accent transition-colors">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-text-primary truncate">{formula.title}</span>
-                  <span className="text-xs text-text-muted">{formatDate(formula.created_at)}</span>
+                  <span className="text-sm text-text-primary truncate">{craft.title}</span>
+                  <span className="text-xs text-text-muted">{formatDate(craft.created_at)}</span>
                 </div>
               </Link>
             ))}

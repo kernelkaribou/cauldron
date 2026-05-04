@@ -6,10 +6,10 @@ export const STATUS_CONFIG = {
 } as const;
 
 export const NAV_ITEMS = [
-  { path: '/', label: 'Home', glyph: '\u2302' },
-  { path: '/formulas', label: 'Formulas', glyph: '\u25C9' },
-  { path: '/techniques', label: 'Techniques', glyph: '\u2726' },
-  { path: '/projects', label: 'Projects', glyph: '\u25A6' },
-  { path: '/materials', label: 'Materials', glyph: '\u25C8' },
-  { path: '/curiosities', label: 'Curiosities', glyph: '\u2605' },
+  { path: '/', label: 'Home', glyph: '⌂' },
+  { path: '/crafts', label: 'Crafts', glyph: '◉' },
+  { path: '/techniques', label: 'Techniques', glyph: '✦' },
+  { path: '/projects', label: 'Projects', glyph: '▦' },
+  { path: '/materials', label: 'Materials', glyph: '◈' },
+  { path: '/curiosities', label: 'Curiosities', glyph: '★' },
 ] as const;

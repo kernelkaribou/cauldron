@@ -4,10 +4,10 @@ import cookieParser from 'cookie-parser';
 import { authMiddleware, requireAdmin } from './auth/middleware.js';
 import { errorHandler } from './middleware/errors.js';
 import authRoutes from './routes/auth.js';
+import categoriesRoutes from './routes/categories.js';
 import craftsRoutes from './routes/crafts.js';
 import tagsRoutes from './routes/tags.js';
 import techniquesRoutes from './routes/techniques.js';
-import formulasRoutes from './routes/formulas.js';
 import projectsRoutes from './routes/projects.js';
 import materialsRoutes from './routes/materials.js';
 import curiositiesRoutes from './routes/curiosities.js';
@@ -32,10 +32,10 @@ app.get('/api/health', (_req, res) => {
 
 app.use('/api/auth', authRoutes);
 
+app.use('/api/categories', authMiddleware, categoriesRoutes);
 app.use('/api/crafts', authMiddleware, craftsRoutes);
 app.use('/api/tags', authMiddleware, tagsRoutes);
 app.use('/api/techniques', authMiddleware, techniquesRoutes);
-app.use('/api/formulas', authMiddleware, formulasRoutes);
 app.use('/api/projects', authMiddleware, projectsRoutes);
 app.use('/api/materials', authMiddleware, materialsRoutes);
 app.use('/api/curiosities', authMiddleware, curiositiesRoutes);

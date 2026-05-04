@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCuriosity, useUpdateCuriosity } from '@/hooks/useCuriosities';
-import { CraftSelect } from '@/components/shared/CraftSelect';
+import { CategorySelect } from '@/components/shared/CategorySelect';
 import { ApiError } from '@/lib/api';
 
 export function CuriosityEdit() {
@@ -14,7 +14,7 @@ export function CuriosityEdit() {
   const [type, setType] = useState('link');
   const [description, setDescription] = useState('');
   const [url, setUrl] = useState('');
-  const [craftId, setCraftId] = useState<number | null>(null);
+  const [categoryId, setCategoryId] = useState<number | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -23,7 +23,7 @@ export function CuriosityEdit() {
       setType(curiosity.type || 'link');
       setDescription(curiosity.description || '');
       setUrl(curiosity.url);
-      setCraftId(curiosity.craft_id || null);
+      setCategoryId(curiosity.category_id || null);
     }
   }, [curiosity]);
 
@@ -35,7 +35,7 @@ export function CuriosityEdit() {
     try {
       await updateCuriosity.mutateAsync({
         id: curiosityId,
-        data: { title, type, description: description || undefined, url, craft_id: craftId },
+        data: { title, type, description: description || undefined, url, category_id: categoryId },
       });
       navigate(`/curiosities/${curiosityId}`);
     } catch (err) { if (err instanceof ApiError && err.details) setErrors(err.details); }
@@ -69,8 +69,8 @@ export function CuriosityEdit() {
           <textarea value={description} onChange={e => setDescription(e.target.value)} rows={4} className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none resize-y" />
         </div>
         <div>
-          <label className="block text-sm text-text-secondary mb-1">Craft</label>
-          <CraftSelect value={craftId} onChange={setCraftId} />
+          <label className="block text-sm text-text-secondary mb-1">Category</label>
+          <CategorySelect categoryId={categoryId} onCategoryChange={setCategoryId} />
         </div>
         <div className="flex gap-3">
           <button type="submit" disabled={updateCuriosity.isPending} className="px-4 py-2 bg-accent text-white rounded-lg font-medium hover:bg-accent-light transition-colors disabled:opacity-50">Save Changes</button>

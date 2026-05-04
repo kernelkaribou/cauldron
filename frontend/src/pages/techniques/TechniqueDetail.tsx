@@ -31,7 +31,7 @@ export function TechniqueDetail() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl font-semibold text-text-primary">{technique.title}</h1>
-          {technique.craft && <p className="text-sm text-accent-light">{technique.craft.name}</p>}
+          {technique.category && <p className="text-sm text-accent-light">{technique.category.name}</p>}
         </div>
         <div className="flex gap-2">
           <Link to={`/techniques/${techniqueId}/edit`} className="px-3 py-1.5 border border-border rounded-lg text-sm text-text-secondary hover:border-accent hover:text-accent transition-colors">Edit</Link>

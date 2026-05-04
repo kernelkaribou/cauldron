@@ -40,7 +40,7 @@ export function ProjectList() {
                     <h3 className="font-medium text-text-primary">{project.title}</h3>
                     <span className={`px-2 py-0.5 rounded text-xs ${sc.color} ${sc.bg}`}>{sc.label}</span>
                   </div>
-                  {project.formula && <p className="text-xs text-text-secondary mb-1">From: {project.formula.title}</p>}
+                  {project.craft && <p className="text-xs text-text-secondary mb-1">From: {project.craft.title}</p>}
                   <p className="text-xs text-text-muted">{formatDate(project.created_at)}</p>
                 </Link>
               );

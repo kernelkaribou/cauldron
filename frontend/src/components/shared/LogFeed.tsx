@@ -4,12 +4,12 @@ import { formatDate } from '@/lib/utils';
 import type { Log } from '@/lib/types';
 
 interface LogFeedProps {
-  formulaId?: number;
+  craftId?: number;
   projectId?: number;
 }
 
-export function LogFeed({ formulaId, projectId }: LogFeedProps) {
-  const { data, isLoading } = useLogs({ formula_id: formulaId, project_id: projectId });
+export function LogFeed({ craftId, projectId }: LogFeedProps) {
+  const { data, isLoading } = useLogs({ craft_id: craftId, project_id: projectId });
   const createLog = useCreateLog();
   const deleteLog = useDeleteLog();
   const [showForm, setShowForm] = useState(false);
@@ -23,7 +23,7 @@ export function LogFeed({ formulaId, projectId }: LogFeedProps) {
       content: content || undefined,
       duration_minutes: duration ? parseInt(duration) : 0,
       date,
-      formula_id: formulaId || null,
+      craft_id: craftId || null,
       project_id: projectId || null,
     });
     setContent('');

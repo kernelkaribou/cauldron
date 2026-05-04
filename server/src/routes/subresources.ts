@@ -6,17 +6,17 @@ import { validate } from '../middleware/validate.js';
 
 const router = Router();
 
-// --- Formula Techniques ---
-router.get('/formulas/:id/techniques', (req: Request, res: Response) => {
+// --- Craft Techniques ---
+router.get('/crafts/:id/techniques', (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const formula = db.prepare('SELECT id FROM formulas WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!formula) { res.status(404).json({ error: 'Formula not found' }); return; }
+  const craft = db.prepare('SELECT id FROM crafts WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
+  if (!craft) { res.status(404).json({ error: 'Craft not found' }); return; }
 
   const items = db.prepare(`
     SELECT ft.id, ft.technique_id, ft.sort_order, ft.notes, t.title, t.content
-    FROM formula_techniques ft JOIN techniques t ON ft.technique_id = t.id
-    WHERE ft.formula_id = ? ORDER BY ft.sort_order
+    FROM craft_techniques ft JOIN techniques t ON ft.technique_id = t.id
+    WHERE ft.craft_id = ? ORDER BY ft.sort_order
   `).all(req.params.id);
   res.json({ items });
 });
@@ -27,45 +27,45 @@ const addTechniqueSchema = z.object({
   notes: z.string().max(1000).optional(),
 });
 
-router.post('/formulas/:id/techniques', validate(addTechniqueSchema), (req: Request, res: Response) => {
+router.post('/crafts/:id/techniques', validate(addTechniqueSchema), (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const formula = db.prepare('SELECT id FROM formulas WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!formula) { res.status(404).json({ error: 'Formula not found' }); return; }
+  const craft = db.prepare('SELECT id FROM crafts WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
+  if (!craft) { res.status(404).json({ error: 'Craft not found' }); return; }
 
   const { technique_id, sort_order, notes } = req.body;
   try {
-    db.prepare('INSERT INTO formula_techniques (formula_id, technique_id, sort_order, notes) VALUES (?, ?, ?, ?)')
+    db.prepare('INSERT INTO craft_techniques (craft_id, technique_id, sort_order, notes) VALUES (?, ?, ?, ?)')
       .run(req.params.id, technique_id, sort_order || 0, notes || null);
   } catch {
-    res.status(409).json({ error: 'Technique already attached to this formula' });
+    res.status(409).json({ error: 'Technique already attached to this craft' });
     return;
   }
   res.status(201).json({ message: 'Technique added' });
 });
 
-router.delete('/formulas/:id/techniques/:techniqueId', (req: Request, res: Response) => {
+router.delete('/crafts/:id/techniques/:techniqueId', (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const formula = db.prepare('SELECT id FROM formulas WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!formula) { res.status(404).json({ error: 'Formula not found' }); return; }
+  const craft = db.prepare('SELECT id FROM crafts WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
+  if (!craft) { res.status(404).json({ error: 'Craft not found' }); return; }
 
-  db.prepare('DELETE FROM formula_techniques WHERE formula_id = ? AND technique_id = ?')
+  db.prepare('DELETE FROM craft_techniques WHERE craft_id = ? AND technique_id = ?')
     .run(req.params.id, req.params.techniqueId);
   res.status(204).send();
 });
 
-// --- Formula Materials ---
-router.get('/formulas/:id/materials', (req: Request, res: Response) => {
+// --- Craft Materials ---
+router.get('/crafts/:id/materials', (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const formula = db.prepare('SELECT id FROM formulas WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!formula) { res.status(404).json({ error: 'Formula not found' }); return; }
+  const craft = db.prepare('SELECT id FROM crafts WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
+  if (!craft) { res.status(404).json({ error: 'Craft not found' }); return; }
 
   const items = db.prepare(`
     SELECT fm.id, fm.material_id, fm.quantity, fm.unit, fm.notes, m.name
-    FROM formula_materials fm JOIN materials m ON fm.material_id = m.id
-    WHERE fm.formula_id = ? ORDER BY fm.id
+    FROM craft_materials fm JOIN materials m ON fm.material_id = m.id
+    WHERE fm.craft_id = ? ORDER BY fm.id
   `).all(req.params.id);
   res.json({ items });
 });
@@ -77,30 +77,30 @@ const addMaterialSchema = z.object({
   notes: z.string().max(1000).optional(),
 });
 
-router.post('/formulas/:id/materials', validate(addMaterialSchema), (req: Request, res: Response) => {
+router.post('/crafts/:id/materials', validate(addMaterialSchema), (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const formula = db.prepare('SELECT id FROM formulas WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!formula) { res.status(404).json({ error: 'Formula not found' }); return; }
+  const craft = db.prepare('SELECT id FROM crafts WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
+  if (!craft) { res.status(404).json({ error: 'Craft not found' }); return; }
 
   const { material_id, quantity, unit, notes } = req.body;
   try {
-    db.prepare('INSERT INTO formula_materials (formula_id, material_id, quantity, unit, notes) VALUES (?, ?, ?, ?, ?)')
+    db.prepare('INSERT INTO craft_materials (craft_id, material_id, quantity, unit, notes) VALUES (?, ?, ?, ?, ?)')
       .run(req.params.id, material_id, quantity || 0, unit || null, notes || null);
   } catch {
-    res.status(409).json({ error: 'Material already attached to this formula' });
+    res.status(409).json({ error: 'Material already attached to this craft' });
     return;
   }
   res.status(201).json({ message: 'Material added' });
 });
 
-router.delete('/formulas/:id/materials/:materialId', (req: Request, res: Response) => {
+router.delete('/crafts/:id/materials/:materialId', (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const formula = db.prepare('SELECT id FROM formulas WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!formula) { res.status(404).json({ error: 'Formula not found' }); return; }
+  const craft = db.prepare('SELECT id FROM crafts WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
+  if (!craft) { res.status(404).json({ error: 'Craft not found' }); return; }
 
-  db.prepare('DELETE FROM formula_materials WHERE formula_id = ? AND material_id = ?')
+  db.prepare('DELETE FROM craft_materials WHERE craft_id = ? AND material_id = ?')
     .run(req.params.id, req.params.materialId);
   res.status(204).send();
 });
@@ -304,11 +304,11 @@ router.post('/materials/:id/stock', validate(addStockSchema), (req: Request, res
 router.get('/logs', (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const { formula_id, project_id } = req.query;
+  const { craft_id, project_id } = req.query;
 
   let sql = 'SELECT * FROM logs WHERE owner_id = ?';
   const params: any[] = [owner];
-  if (formula_id) { sql += ' AND formula_id = ?'; params.push(formula_id); }
+  if (craft_id) { sql += ' AND craft_id = ?'; params.push(craft_id); }
   else if (project_id) { sql += ' AND project_id = ?'; params.push(project_id); }
   sql += ' ORDER BY date DESC, created_at DESC';
 
@@ -319,18 +319,18 @@ const logSchema = z.object({
   content: z.string().optional(),
   duration_minutes: z.number().int().min(0).optional(),
   date: z.string().min(1),
-  formula_id: z.number().int().positive().nullable().optional(),
+  craft_id: z.number().int().positive().nullable().optional(),
   project_id: z.number().int().positive().nullable().optional(),
 });
 
 router.post('/logs', validate(logSchema), (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const { content, duration_minutes, date, formula_id, project_id } = req.body;
+  const { content, duration_minutes, date, craft_id, project_id } = req.body;
 
   const result = db.prepare(
-    'INSERT INTO logs (owner_id, formula_id, project_id, content, duration_minutes, date) VALUES (?, ?, ?, ?, ?, ?)'
-  ).run(owner, formula_id || null, project_id || null, content || null, duration_minutes || 0, date);
+    'INSERT INTO logs (owner_id, craft_id, project_id, content, duration_minutes, date) VALUES (?, ?, ?, ?, ?, ?)'
+  ).run(owner, craft_id || null, project_id || null, content || null, duration_minutes || 0, date);
 
   res.status(201).json(db.prepare('SELECT * FROM logs WHERE id = ?').get(result.lastInsertRowid));
 });
@@ -362,11 +362,11 @@ router.delete('/logs/:id', (req: Request, res: Response) => {
 router.get('/tasks', (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const { formula_id, project_id } = req.query;
+  const { craft_id, project_id } = req.query;
 
   let sql = 'SELECT * FROM tasks WHERE owner_id = ?';
   const params: any[] = [owner];
-  if (formula_id) { sql += ' AND formula_id = ?'; params.push(formula_id); }
+  if (craft_id) { sql += ' AND craft_id = ?'; params.push(craft_id); }
   else if (project_id) { sql += ' AND project_id = ?'; params.push(project_id); }
   sql += ' ORDER BY sort_order ASC, created_at ASC';
 
@@ -379,18 +379,18 @@ const taskSchema = z.object({
   done: z.number().int().min(0).max(1).optional(),
   due_date: z.string().nullable().optional(),
   sort_order: z.number().int().min(0).optional(),
-  formula_id: z.number().int().positive().nullable().optional(),
+  craft_id: z.number().int().positive().nullable().optional(),
   project_id: z.number().int().positive().nullable().optional(),
 });
 
 router.post('/tasks', validate(taskSchema), (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const { title, notes, done, due_date, sort_order, formula_id, project_id } = req.body;
+  const { title, notes, done, due_date, sort_order, craft_id, project_id } = req.body;
 
   const result = db.prepare(
-    'INSERT INTO tasks (owner_id, formula_id, project_id, title, notes, done, due_date, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
-  ).run(owner, formula_id || null, project_id || null, title, notes || null, done || 0, due_date || null, sort_order || 0);
+    'INSERT INTO tasks (owner_id, craft_id, project_id, title, notes, done, due_date, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+  ).run(owner, craft_id || null, project_id || null, title, notes || null, done || 0, due_date || null, sort_order || 0);
 
   res.status(201).json(db.prepare('SELECT * FROM tasks WHERE id = ?').get(result.lastInsertRowid));
 });
@@ -422,11 +422,11 @@ router.delete('/tasks/:id', (req: Request, res: Response) => {
 router.get('/journal-entries', (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const { formula_id, project_id } = req.query;
+  const { craft_id, project_id } = req.query;
 
   let sql = 'SELECT * FROM journal_entries WHERE owner_id = ?';
   const params: any[] = [owner];
-  if (formula_id) { sql += ' AND formula_id = ?'; params.push(formula_id); }
+  if (craft_id) { sql += ' AND craft_id = ?'; params.push(craft_id); }
   else if (project_id) { sql += ' AND project_id = ?'; params.push(project_id); }
   sql += ' ORDER BY created_at DESC';
 
@@ -436,18 +436,18 @@ router.get('/journal-entries', (req: Request, res: Response) => {
 const journalSchema = z.object({
   title: z.string().min(1).max(200),
   content: z.string().optional(),
-  formula_id: z.number().int().positive().nullable().optional(),
+  craft_id: z.number().int().positive().nullable().optional(),
   project_id: z.number().int().positive().nullable().optional(),
 });
 
 router.post('/journal-entries', validate(journalSchema), (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const { title, content, formula_id, project_id } = req.body;
+  const { title, content, craft_id, project_id } = req.body;
 
   const result = db.prepare(
-    'INSERT INTO journal_entries (owner_id, formula_id, project_id, title, content) VALUES (?, ?, ?, ?, ?)'
-  ).run(owner, formula_id || null, project_id || null, title, content || null);
+    'INSERT INTO journal_entries (owner_id, craft_id, project_id, title, content) VALUES (?, ?, ?, ?, ?)'
+  ).run(owner, craft_id || null, project_id || null, title, content || null);
 
   res.status(201).json(db.prepare('SELECT * FROM journal_entries WHERE id = ?').get(result.lastInsertRowid));
 });
@@ -515,39 +515,39 @@ function createTagRoutes(entityTable: string, junctionTable: string, fkColumn: s
   });
 }
 
-createTagRoutes('formulas', 'formula_tags', 'formula_id');
+createTagRoutes('crafts', 'craft_tags', 'craft_id');
 createTagRoutes('techniques', 'technique_tags', 'technique_id');
 createTagRoutes('projects', 'project_tags', 'project_id');
 createTagRoutes('materials', 'material_tags', 'material_id');
 createTagRoutes('curiosities', 'curiosity_tags', 'curiosity_id');
 
-router.post('/projects/from-formula', validate(z.object({
-  formula_id: z.number().int().positive(),
+router.post('/projects/from-craft', validate(z.object({
+  craft_id: z.number().int().positive(),
   title: z.string().min(1).max(200),
   description: z.string().optional(),
 })), (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const { formula_id, title, description } = req.body;
+  const { craft_id, title, description } = req.body;
 
-  const formula = db.prepare('SELECT id FROM formulas WHERE id = ? AND owner_id = ?').get(formula_id, owner);
-  if (!formula) { res.status(404).json({ error: 'Formula not found' }); return; }
+  const craft = db.prepare('SELECT id FROM crafts WHERE id = ? AND owner_id = ?').get(craft_id, owner);
+  if (!craft) { res.status(404).json({ error: 'Craft not found' }); return; }
 
   const createProject = db.transaction(() => {
     const result = db.prepare(
-      'INSERT INTO projects (title, description, status, formula_id, owner_id) VALUES (?, ?, ?, ?, ?)'
-    ).run(title, description || null, 'planning', formula_id, owner);
+      'INSERT INTO projects (title, description, status, craft_id, owner_id) VALUES (?, ?, ?, ?, ?)'
+    ).run(title, description || null, 'planning', craft_id, owner);
 
     const projectId = result.lastInsertRowid;
 
-    const formulaTechniques = db.prepare('SELECT technique_id, sort_order, notes FROM formula_techniques WHERE formula_id = ?').all(formula_id) as any[];
-    for (const ft of formulaTechniques) {
+    const craftTechniques = db.prepare('SELECT technique_id, sort_order, notes FROM craft_techniques WHERE craft_id = ?').all(craft_id) as any[];
+    for (const ft of craftTechniques) {
       db.prepare('INSERT INTO project_techniques (project_id, technique_id, sort_order, notes) VALUES (?, ?, ?, ?)')
         .run(projectId, ft.technique_id, ft.sort_order, ft.notes);
     }
 
-    const formulaMaterials = db.prepare('SELECT material_id, quantity, unit, notes FROM formula_materials WHERE formula_id = ?').all(formula_id) as any[];
-    for (const fm of formulaMaterials) {
+    const craftMaterials = db.prepare('SELECT material_id, quantity, unit, notes FROM craft_materials WHERE craft_id = ?').all(craft_id) as any[];
+    for (const fm of craftMaterials) {
       db.prepare('INSERT INTO project_materials (project_id, material_id, quantity, unit, notes) VALUES (?, ?, ?, ?, ?)')
         .run(projectId, fm.material_id, fm.quantity, fm.unit, fm.notes);
     }

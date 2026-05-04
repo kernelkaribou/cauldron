@@ -7,10 +7,10 @@ import { Login } from '@/pages/Login';
 import { SetupWizard } from '@/pages/SetupWizard';
 import { Dashboard } from '@/pages/Dashboard';
 import { NotFound } from '@/pages/NotFound';
-import { FormulaList } from '@/pages/formulas/FormulaList';
-import { FormulaNew } from '@/pages/formulas/FormulaNew';
-import { FormulaDetail } from '@/pages/formulas/FormulaDetail';
-import { FormulaEdit } from '@/pages/formulas/FormulaEdit';
+import { CraftList } from '@/pages/crafts/CraftList';
+import { CraftNew } from '@/pages/crafts/CraftNew';
+import { CraftDetail } from '@/pages/crafts/CraftDetail';
+import { CraftEdit } from '@/pages/crafts/CraftEdit';
 import { TechniqueList } from '@/pages/techniques/TechniqueList';
 import { TechniqueNew } from '@/pages/techniques/TechniqueNew';
 import { TechniqueDetail } from '@/pages/techniques/TechniqueDetail';
@@ -50,10 +50,10 @@ function App() {
             <Route element={<AuthGuard />}>
               <Route element={<AppLayout />}>
                 <Route path="/" element={<Dashboard />} />
-                <Route path="/formulas" element={<FormulaList />} />
-                <Route path="/formulas/new" element={<FormulaNew />} />
-                <Route path="/formulas/:id" element={<FormulaDetail />} />
-                <Route path="/formulas/:id/edit" element={<FormulaEdit />} />
+                <Route path="/crafts" element={<CraftList />} />
+                <Route path="/crafts/new" element={<CraftNew />} />
+                <Route path="/crafts/:id" element={<CraftDetail />} />
+                <Route path="/crafts/:id/edit" element={<CraftEdit />} />
                 <Route path="/techniques" element={<TechniqueList />} />
                 <Route path="/techniques/new" element={<TechniqueNew />} />
                 <Route path="/techniques/:id" element={<TechniqueDetail />} />

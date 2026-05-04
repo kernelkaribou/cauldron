@@ -2,9 +2,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api';
 import type { Technique, PaginatedResponse } from '@/lib/types';
 
-export function useTechniques(page = 1, filters?: { craft_id?: number; search?: string; tag_id?: number }) {
-  const params = new URLSearchParams({ page: String(page), expand: 'craft,tags' });
-  if (filters?.craft_id) params.set('craft_id', String(filters.craft_id));
+export function useTechniques(page = 1, filters?: { category_id?: number; search?: string; tag_id?: number }) {
+  const params = new URLSearchParams({ page: String(page), expand: 'category,tags' });
+  if (filters?.category_id) params.set('category_id', String(filters.category_id));
   if (filters?.search) params.set('search', filters.search);
   if (filters?.tag_id) params.set('tag_id', String(filters.tag_id));
 
@@ -17,7 +17,7 @@ export function useTechniques(page = 1, filters?: { craft_id?: number; search?: 
 export function useTechnique(id: number) {
   return useQuery({
     queryKey: ['techniques', id],
-    queryFn: () => apiFetch<Technique>(`/techniques/${id}?expand=craft,tags`),
+    queryFn: () => apiFetch<Technique>(`/techniques/${id}?expand=category,tags`),
     enabled: !!id,
   });
 }

@@ -3,7 +3,7 @@ import { apiFetch } from '@/lib/api';
 import type { Project, PaginatedResponse } from '@/lib/types';
 
 export function useProjects(page = 1, filters?: { status?: string; search?: string; tag_id?: number }) {
-  const params = new URLSearchParams({ page: String(page), expand: 'formula,tags' });
+  const params = new URLSearchParams({ page: String(page), expand: 'craft,tags' });
   if (filters?.status) params.set('status', filters.status);
   if (filters?.search) params.set('search', filters.search);
   if (filters?.tag_id) params.set('tag_id', String(filters.tag_id));
@@ -17,7 +17,7 @@ export function useProjects(page = 1, filters?: { status?: string; search?: stri
 export function useProject(id: number) {
   return useQuery({
     queryKey: ['projects', id],
-    queryFn: () => apiFetch<Project>(`/projects/${id}?expand=formula,tags`),
+    queryFn: () => apiFetch<Project>(`/projects/${id}?expand=craft,tags`),
     enabled: !!id,
   });
 }
@@ -31,11 +31,11 @@ export function useCreateProject() {
   });
 }
 
-export function useCreateProjectFromFormula() {
+export function useCreateProjectFromCraft() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: { formula_id: number; title: string; description?: string }) =>
-      apiFetch<Project>('/projects/from-formula', { method: 'POST', body: JSON.stringify(data) }),
+    mutationFn: (data: { craft_id: number; title: string; description?: string }) =>
+      apiFetch<Project>('/projects/from-craft', { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['projects'] }),
   });
 }

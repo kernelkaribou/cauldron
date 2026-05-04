@@ -30,7 +30,7 @@ export function CuriosityDetail() {
           <h1 className="text-xl font-semibold text-text-primary">{curiosity.title}</h1>
           <div className="flex items-center gap-2 text-sm text-text-secondary mt-1">
             {curiosity.type && <span className="px-2 py-0.5 bg-accent-bg text-accent-light text-xs rounded">{curiosity.type}</span>}
-            {curiosity.craft && <span>{curiosity.craft.name}</span>}
+            {curiosity.category && <span>{curiosity.category.name}</span>}
           </div>
         </div>
         <div className="flex gap-2">

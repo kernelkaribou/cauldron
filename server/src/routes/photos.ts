@@ -47,18 +47,18 @@ async function generateThumbnails(sourcePath: string, destDir: string): Promise<
   }
 }
 
-// List photos (filtered by formula_id or project_id)
+// List photos (filtered by craft_id or project_id)
 router.get('/', (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const { formula_id, project_id } = req.query;
+  const { craft_id, project_id } = req.query;
 
   let sql = 'SELECT * FROM photos WHERE owner_id = ?';
   const params: any[] = [owner];
 
-  if (formula_id) {
-    sql += ' AND formula_id = ?';
-    params.push(formula_id);
+  if (craft_id) {
+    sql += ' AND craft_id = ?';
+    params.push(craft_id);
   } else if (project_id) {
     sql += ' AND project_id = ?';
     params.push(project_id);
@@ -78,19 +78,19 @@ router.post('/', upload.single('image'), async (req: Request, res: Response) => 
 
   const db = getDb();
   const owner = ownerId(req);
-  const { formula_id, project_id, caption } = req.body;
+  const { craft_id, project_id, caption } = req.body;
 
-  if (!formula_id && !project_id) {
+  if (!craft_id && !project_id) {
     fs.unlinkSync(req.file.path);
-    res.status(400).json({ error: 'formula_id or project_id is required' });
+    res.status(400).json({ error: 'craft_id or project_id is required' });
     return;
   }
 
-  if (formula_id) {
-    const formula = db.prepare('SELECT id FROM formulas WHERE id = ? AND owner_id = ?').get(formula_id, owner);
-    if (!formula) {
+  if (craft_id) {
+    const craft = db.prepare('SELECT id FROM crafts WHERE id = ? AND owner_id = ?').get(craft_id, owner);
+    if (!craft) {
       fs.unlinkSync(req.file.path);
-      res.status(404).json({ error: 'Formula not found' });
+      res.status(404).json({ error: 'Craft not found' });
       return;
     }
   }
@@ -105,8 +105,8 @@ router.post('/', upload.single('image'), async (req: Request, res: Response) => 
   }
 
   const result = db.prepare(
-    'INSERT INTO photos (owner_id, formula_id, project_id, image, caption) VALUES (?, ?, ?, ?, ?)'
-  ).run(owner, formula_id || null, project_id || null, '', caption || null);
+    'INSERT INTO photos (owner_id, craft_id, project_id, image, caption) VALUES (?, ?, ?, ?, ?)'
+  ).run(owner, craft_id || null, project_id || null, '', caption || null);
 
   const photoId = result.lastInsertRowid;
 
