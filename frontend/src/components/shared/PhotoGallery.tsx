@@ -1,15 +1,17 @@
 import { useState, useRef } from 'react';
-import { usePhotos, useUploadPhoto, useDeletePhoto } from '@/hooks/useSubResources';
+import { usePhotos, useUploadPhoto, useDeletePhoto, useSetCoverPhoto } from '@/hooks/useSubResources';
+import type { Photo } from '@/lib/types';
 
 interface PhotoGalleryProps {
-  craftId?: number;
-  projectId?: number;
+  entityType: 'project' | 'craft' | 'technique' | 'material' | 'log';
+  entityId: number;
 }
 
-export function PhotoGallery({ craftId, projectId }: PhotoGalleryProps) {
-  const { data, isLoading } = usePhotos({ craft_id: craftId, project_id: projectId });
+export function PhotoGallery({ entityType, entityId }: PhotoGalleryProps) {
+  const { data, isLoading } = usePhotos({ entity_type: entityType, entity_id: entityId });
   const uploadPhoto = useUploadPhoto();
   const deletePhoto = useDeletePhoto();
+  const setCover = useSetCoverPhoto();
   const fileRef = useRef<HTMLInputElement>(null);
   const [caption, setCaption] = useState('');
   const [viewImage, setViewImage] = useState<string | null>(null);
@@ -20,8 +22,8 @@ export function PhotoGallery({ craftId, projectId }: PhotoGalleryProps) {
     const formData = new FormData();
     formData.append('image', file);
     if (caption) formData.append('caption', caption);
-    if (craftId) formData.append('craft_id', String(craftId));
-    if (projectId) formData.append('project_id', String(projectId));
+    formData.append('entity_type', entityType);
+    formData.append('entity_id', String(entityId));
     await uploadPhoto.mutateAsync(formData);
     setCaption('');
     if (fileRef.current) fileRef.current.value = '';
@@ -42,25 +44,35 @@ export function PhotoGallery({ craftId, projectId }: PhotoGalleryProps) {
       {isLoading && <p className="text-xs text-text-muted">Loading...</p>}
       {data?.items.length === 0 && !isLoading && <p className="text-xs text-text-muted">No photos yet.</p>}
       <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-        {data?.items.map(photo => (
+        {data?.items.map((photo: Photo) => (
           <div key={photo.id} className="relative group aspect-square">
             <img
-              src={`/api/uploads/${photo.image}`}
+              src={`/api/photos/file/${photo.id}/thumb_400.webp`}
               alt={photo.caption || ''}
-              onClick={() => setViewImage(`/api/uploads/${photo.image}`)}
-              className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={() => setViewImage(`/api/photos/file/${photo.id}/${photo.image}`)}
+              className={`w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity ${photo.is_cover ? 'ring-2 ring-accent' : ''}`}
             />
-            <button
-              onClick={() => deletePhoto.mutate(photo.id)}
-              className="absolute top-1 right-1 w-5 h-5 bg-black/60 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-            >×</button>
+            <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              {!photo.is_cover && (
+                <button
+                  onClick={() => setCover.mutate(photo.id)}
+                  title="Set as cover"
+                  className="w-5 h-5 bg-black/60 text-white rounded-full text-xs flex items-center justify-center"
+                >★</button>
+              )}
+              <button
+                onClick={() => deletePhoto.mutate(photo.id)}
+                className="w-5 h-5 bg-black/60 text-white rounded-full text-xs flex items-center justify-center"
+              >×</button>
+            </div>
+            {photo.is_cover && <span className="absolute bottom-1 left-1 bg-accent text-white text-[10px] px-1 rounded">Cover</span>}
           </div>
         ))}
       </div>
 
       {viewImage && (
         <div onClick={() => setViewImage(null)} className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 cursor-pointer">
-          <img src={viewImage} className="max-w-full max-h-full object-contain rounded-lg" />
+          <img src={viewImage} alt="Full size" className="max-w-full max-h-full object-contain rounded-lg" />
         </div>
       )}
     </div>

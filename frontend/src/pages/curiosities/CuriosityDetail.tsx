@@ -2,6 +2,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useCuriosity, useDeleteCuriosity } from '@/hooks/useCuriosities';
 import { ErrorBanner } from '@/components/shared/ErrorBanner';
 import { TagSelect } from '@/components/shared/TagSelect';
+import { NotesSection } from '@/components/shared/NotesSection';
 import { formatDate } from '@/lib/utils';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -50,6 +51,7 @@ export function CuriosityDetail() {
               <p className="text-text-primary whitespace-pre-wrap">{curiosity.description}</p>
             </div>
           )}
+          <NotesSection entityType="curiosity" entityId={curiosityId} />
           <div className="p-4 bg-card border border-border rounded-xl">
             <p className="text-sm text-text-secondary">Created: {formatDate(curiosity.created_at)}</p>
           </div>

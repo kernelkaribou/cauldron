@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCreateProject } from '@/hooks/useProjects';
+import { CraftPicker } from '@/components/shared/CraftPicker';
 import { ApiError } from '@/lib/api';
 
 export function ProjectNew() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [dueDate, setDueDate] = useState('');
+  const [crafts, setCrafts] = useState<Array<{ id: number; title: string; quantity: number }>>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const createProject = useCreateProject();
   const navigate = useNavigate();
@@ -13,8 +16,17 @@ export function ProjectNew() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErrors({});
+    if (crafts.length === 0) {
+      setErrors({ crafts: 'At least one craft is required' });
+      return;
+    }
     try {
-      const project = await createProject.mutateAsync({ title, description: description || undefined });
+      const project = await createProject.mutateAsync({
+        title,
+        description: description || undefined,
+        due_date: dueDate || undefined,
+        crafts: crafts.map(c => ({ id: c.id, quantity: c.quantity })),
+      });
       navigate(`/projects/${project.id}`);
     } catch (err) {
       if (err instanceof ApiError && err.details) setErrors(err.details);
@@ -32,9 +44,15 @@ export function ProjectNew() {
         </div>
         <div>
           <label className="block text-sm text-text-secondary mb-1">Description</label>
-          <textarea value={description} onChange={e => setDescription(e.target.value)} rows={4} className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none resize-y" />
+          <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none resize-y" />
         </div>
-        <button type="submit" disabled={createProject.isPending} className="px-4 py-2 bg-accent text-white rounded-lg font-medium hover:bg-accent-light transition-colors disabled:opacity-50">
+        <div>
+          <label className="block text-sm text-text-secondary mb-1">Due Date</label>
+          <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} className="px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none" />
+        </div>
+        <CraftPicker selected={crafts} onChange={setCrafts} />
+        {errors.crafts && <p className="text-xs text-error">{errors.crafts}</p>}
+        <button type="submit" disabled={createProject.isPending || crafts.length === 0} className="px-4 py-2 bg-accent text-white rounded-lg font-medium hover:bg-accent-light transition-colors disabled:opacity-50">
           {createProject.isPending ? 'Creating...' : 'Create Project'}
         </button>
       </form>

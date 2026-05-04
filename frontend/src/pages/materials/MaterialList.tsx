@@ -31,17 +31,18 @@ export function MaterialList() {
       {data && data.items.length > 0 && (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {data.items.map(ing => (
-              <Link key={ing.id} to={`/materials/${ing.id}`} className="block p-4 bg-card border border-border rounded-xl hover:border-accent hover:-translate-y-0.5 transition-all">
-                <h3 className="font-medium text-text-primary mb-1">{ing.name}</h3>
-                <div className="flex items-center gap-2 text-xs text-text-muted">
-                  {ing.unit && <span>{ing.unit}</span>}
-                  {ing.reusable ? <span className="text-accent-light">Reusable</span> : null}
-                  <span>{formatDate(ing.created_at)}</span>
+            {data.items.map(material => (
+              <Link key={material.id} to={`/materials/${material.id}`} className="block p-4 bg-card border border-border rounded-xl hover:border-accent hover:-translate-y-0.5 transition-all">
+                <h3 className="font-medium text-text-primary mb-1">{material.name}</h3>
+                <div className="flex items-center gap-2 text-xs text-text-muted flex-wrap">
+                  {material.unit && <span>{material.unit}</span>}
+                  {material.price > 0 && <span>${material.price.toFixed(2)}</span>}
+                  {material.reusable ? <span className="text-accent-light">Reusable</span> : null}
+                  <span>{formatDate(material.created_at)}</span>
                 </div>
-                {ing.tags && ing.tags.length > 0 && (
+                {material.tags && material.tags.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-2">
-                    {ing.tags.map(t => <span key={t.id} className="px-1.5 py-0.5 bg-accent-bg text-accent-light text-xs rounded">{t.name}</span>)}
+                    {material.tags.map(tag => <span key={tag.id} className="px-1.5 py-0.5 bg-accent-bg text-accent-light text-xs rounded">{tag.name}</span>)}
                   </div>
                 )}
               </Link>

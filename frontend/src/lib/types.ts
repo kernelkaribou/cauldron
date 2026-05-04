@@ -25,6 +25,7 @@ export interface Technique {
   title: string;
   content: string | null;
   category_id: number | null;
+  difficulty: 'beginner' | 'intermediate' | 'advanced' | null;
   owner_id: number;
   created_at: string;
   updated_at: string;
@@ -73,16 +74,24 @@ export interface Craft {
   materials?: CraftMaterial[];
 }
 
+export interface ProjectCraft {
+  id: number;
+  craft_id: number;
+  quantity: number;
+  sort_order: number;
+  title?: string;
+}
+
 export interface Project {
   id: number;
   title: string;
   description: string | null;
-  status: 'planning' | 'active' | 'complete' | 'archived';
-  craft_id: number | null;
+  status: 'planning' | 'active' | 'complete' | 'paused';
+  due_date: string | null;
   owner_id: number;
   created_at: string;
   updated_at: string;
-  craft?: { id: number; title: string } | null;
+  crafts?: ProjectCraft[];
   tags?: Tag[];
 }
 
@@ -92,11 +101,21 @@ export interface Material {
   description: string | null;
   unit: string | null;
   reusable: number;
-  preferred_links: string;
+  price: number;
   owner_id: number;
   created_at: string;
   updated_at: string;
   tags?: Tag[];
+}
+
+export interface MaterialVendor {
+  id: number;
+  material_id: number;
+  name: string;
+  url: string | null;
+  notes: string | null;
+  owner_id: number;
+  created_at: string;
 }
 
 export interface Curiosity {
@@ -117,11 +136,12 @@ export interface Curiosity {
 export interface Photo {
   id: number;
   owner_id: number;
-  craft_id: number | null;
-  project_id: number | null;
+  entity_type: 'project' | 'craft' | 'technique' | 'material' | 'log';
+  entity_id: number;
   image: string;
   caption: string | null;
   sort_order: number;
+  is_cover: number;
   created_at: string;
 }
 
@@ -132,6 +152,7 @@ export interface Log {
   project_id: number | null;
   content: string | null;
   duration_minutes: number;
+  links: string;
   date: string;
   created_at: string;
 }
@@ -139,8 +160,7 @@ export interface Log {
 export interface Task {
   id: number;
   owner_id: number;
-  craft_id: number | null;
-  project_id: number | null;
+  project_id: number;
   title: string;
   notes: string | null;
   done: number;
@@ -149,11 +169,11 @@ export interface Task {
   created_at: string;
 }
 
-export interface JournalEntry {
+export interface Note {
   id: number;
   owner_id: number;
-  craft_id: number | null;
-  project_id: number | null;
+  entity_type: 'project' | 'craft' | 'technique' | 'material' | 'curiosity';
+  entity_id: number;
   title: string;
   content: string | null;
   created_at: string;

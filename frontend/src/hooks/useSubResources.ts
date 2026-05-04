@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api';
-import type { Log, Task, JournalEntry, TechniqueResource, StockEntry, StockSummary } from '@/lib/types';
+import type { Log, Task, Note, TechniqueResource, StockEntry, StockSummary, Photo, MaterialVendor } from '@/lib/types';
 
 // --- Logs ---
 export function useLogs(params: { craft_id?: number; project_id?: number }) {
@@ -31,20 +31,19 @@ export function useDeleteLog() {
 }
 
 // --- Tasks ---
-export function useTasks(params: { craft_id?: number; project_id?: number }) {
-  const qs = new URLSearchParams();
-  if (params.craft_id) qs.set('craft_id', String(params.craft_id));
-  if (params.project_id) qs.set('project_id', String(params.project_id));
+export function useTasks(params: { project_id: number }) {
+  const qs = new URLSearchParams({ project_id: String(params.project_id) });
   return useQuery({
     queryKey: ['tasks', params],
     queryFn: () => apiFetch<{ items: Task[] }>(`/tasks?${qs}`),
+    enabled: !!params.project_id,
   });
 }
 
 export function useCreateTask() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: Record<string, unknown>) =>
+    mutationFn: (data: { title: string; project_id: number; notes?: string; due_date?: string }) =>
       apiFetch<Task>('/tasks', { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks'] }),
   });
@@ -67,40 +66,39 @@ export function useDeleteTask() {
   });
 }
 
-// --- Journal Entries ---
-export function useJournalEntries(params: { craft_id?: number; project_id?: number }) {
-  const qs = new URLSearchParams();
-  if (params.craft_id) qs.set('craft_id', String(params.craft_id));
-  if (params.project_id) qs.set('project_id', String(params.project_id));
+// --- Notes ---
+export function useNotes(params: { entity_type: string; entity_id: number }) {
+  const qs = new URLSearchParams({ entity_type: params.entity_type, entity_id: String(params.entity_id) });
   return useQuery({
-    queryKey: ['journal-entries', params],
-    queryFn: () => apiFetch<{ items: JournalEntry[] }>(`/journal-entries?${qs}`),
+    queryKey: ['notes', params],
+    queryFn: () => apiFetch<{ items: Note[] }>(`/notes?${qs}`),
+    enabled: !!params.entity_id,
   });
 }
 
-export function useCreateJournalEntry() {
+export function useCreateNote() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: Record<string, unknown>) =>
-      apiFetch<JournalEntry>('/journal-entries', { method: 'POST', body: JSON.stringify(data) }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['journal-entries'] }),
+    mutationFn: (data: { entity_type: string; entity_id: number; title: string; content?: string }) =>
+      apiFetch<Note>('/notes', { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['notes'] }),
   });
 }
 
-export function useUpdateJournalEntry() {
+export function useUpdateNote() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Record<string, unknown> }) =>
-      apiFetch<JournalEntry>(`/journal-entries/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['journal-entries'] }),
+    mutationFn: ({ id, data }: { id: number; data: { title?: string; content?: string } }) =>
+      apiFetch<Note>(`/notes/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['notes'] }),
   });
 }
 
-export function useDeleteJournalEntry() {
+export function useDeleteNote() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: number) => apiFetch(`/journal-entries/${id}`, { method: 'DELETE' }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['journal-entries'] }),
+    mutationFn: (id: number) => apiFetch(`/notes/${id}`, { method: 'DELETE' }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['notes'] }),
   });
 }
 
@@ -222,14 +220,49 @@ export function useAddStock() {
   });
 }
 
+// --- Material Vendors ---
+export function useVendors(materialId: number) {
+  return useQuery({
+    queryKey: ['vendors', materialId],
+    queryFn: () => apiFetch<{ items: MaterialVendor[] }>(`/materials/${materialId}/vendors`),
+    enabled: !!materialId,
+  });
+}
+
+export function useAddVendor() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ materialId, data }: { materialId: number; data: { name: string; url?: string; notes?: string } }) =>
+      apiFetch<MaterialVendor>(`/materials/${materialId}/vendors`, { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: (_, { materialId }) => qc.invalidateQueries({ queryKey: ['vendors', materialId] }),
+  });
+}
+
+export function useUpdateVendor() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ materialId, vendorId, data }: { materialId: number; vendorId: number; data: { name?: string; url?: string; notes?: string } }) =>
+      apiFetch<MaterialVendor>(`/materials/${materialId}/vendors/${vendorId}`, { method: 'PUT', body: JSON.stringify(data) }),
+    onSuccess: (_, { materialId }) => qc.invalidateQueries({ queryKey: ['vendors', materialId] }),
+  });
+}
+
+export function useDeleteVendor() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ materialId, vendorId }: { materialId: number; vendorId: number }) =>
+      apiFetch(`/materials/${materialId}/vendors/${vendorId}`, { method: 'DELETE' }),
+    onSuccess: (_, { materialId }) => qc.invalidateQueries({ queryKey: ['vendors', materialId] }),
+  });
+}
+
 // --- Photos ---
-export function usePhotos(params: { craft_id?: number; project_id?: number }) {
-  const qs = new URLSearchParams();
-  if (params.craft_id) qs.set('craft_id', String(params.craft_id));
-  if (params.project_id) qs.set('project_id', String(params.project_id));
+export function usePhotos(params: { entity_type: string; entity_id: number }) {
+  const qs = new URLSearchParams({ entity_type: params.entity_type, entity_id: String(params.entity_id) });
   return useQuery({
     queryKey: ['photos', params],
-    queryFn: () => apiFetch<{ items: Array<{ id: number; image: string; thumbnail?: string; caption: string | null; sort_order: number; created_at: string }> }>(`/photos?${qs}`),
+    queryFn: () => apiFetch<{ items: Photo[] }>(`/photos?${qs}`),
+    enabled: !!params.entity_id,
   });
 }
 
@@ -241,6 +274,14 @@ export function useUploadPhoto() {
       if (!res.ok) throw new Error('Upload failed');
       return res.json();
     },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['photos'] }),
+  });
+}
+
+export function useSetCoverPhoto() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => apiFetch(`/photos/${id}/cover`, { method: 'PUT' }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['photos'] }),
   });
 }

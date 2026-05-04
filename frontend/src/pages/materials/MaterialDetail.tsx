@@ -3,6 +3,9 @@ import { useMaterial, useDeleteMaterial } from '@/hooks/useMaterials';
 import { ErrorBanner } from '@/components/shared/ErrorBanner';
 import { TagSelect } from '@/components/shared/TagSelect';
 import { StockFeed } from '@/components/shared/StockFeed';
+import { VendorSection } from '@/components/shared/VendorSection';
+import { PhotoGallery } from '@/components/shared/PhotoGallery';
+import { NotesSection } from '@/components/shared/NotesSection';
 import { formatDate } from '@/lib/utils';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -31,6 +34,7 @@ export function MaterialDetail() {
           <h1 className="text-xl font-semibold text-text-primary">{material.name}</h1>
           <div className="flex items-center gap-2 text-sm text-text-secondary">
             {material.unit && <span>Unit: {material.unit}</span>}
+            {material.price > 0 && <span>${material.price.toFixed(2)}</span>}
             {material.reusable ? <span className="text-accent-light">Reusable</span> : null}
           </div>
         </div>
@@ -48,6 +52,8 @@ export function MaterialDetail() {
               <p className="text-text-primary whitespace-pre-wrap">{material.description}</p>
             </div>
           )}
+          <PhotoGallery entityType="material" entityId={materialId} />
+          <NotesSection entityType="material" entityId={materialId} />
           <div className="p-4 bg-card border border-border rounded-xl">
             <p className="text-sm text-text-secondary">Created: {formatDate(material.created_at)}</p>
           </div>
@@ -57,6 +63,7 @@ export function MaterialDetail() {
             <h2 className="text-sm font-medium text-text-secondary mb-3">Tags</h2>
             <TagSelect entityType="materials" entityId={materialId} tags={material.tags || []} onUpdate={() => qc.invalidateQueries({ queryKey: ['materials', materialId] })} />
           </div>
+          <VendorSection materialId={materialId} />
           <StockFeed materialId={materialId} />
         </div>
       </div>

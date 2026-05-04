@@ -3,12 +3,11 @@ import { useTasks, useCreateTask, useUpdateTask, useDeleteTask } from '@/hooks/u
 import type { Task } from '@/lib/types';
 
 interface TaskListProps {
-  craftId?: number;
-  projectId?: number;
+  projectId: number;
 }
 
-export function TaskList({ craftId, projectId }: TaskListProps) {
-  const { data, isLoading } = useTasks({ craft_id: craftId, project_id: projectId });
+export function TaskList({ projectId }: TaskListProps) {
+  const { data, isLoading } = useTasks({ project_id: projectId });
   const createTask = useCreateTask();
   const updateTask = useUpdateTask();
   const deleteTask = useDeleteTask();
@@ -19,8 +18,7 @@ export function TaskList({ craftId, projectId }: TaskListProps) {
     if (!newTitle.trim()) return;
     await createTask.mutateAsync({
       title: newTitle,
-      craft_id: craftId || null,
-      project_id: projectId || null,
+      project_id: projectId,
     });
     setNewTitle('');
   }

@@ -7,7 +7,7 @@ import { MaterialManager } from '@/components/shared/MaterialManager';
 import { PhotoGallery } from '@/components/shared/PhotoGallery';
 import { LogFeed } from '@/components/shared/LogFeed';
 import { TaskList } from '@/components/shared/TaskList';
-import { JournalSection } from '@/components/shared/JournalSection';
+import { NotesSection } from '@/components/shared/NotesSection';
 import { STATUS_CONFIG } from '@/lib/theme';
 import { formatDate } from '@/lib/utils';
 import { useQueryClient } from '@tanstack/react-query';
@@ -43,7 +43,16 @@ export function ProjectDetail() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl font-semibold text-text-primary">{project.title}</h1>
-          {project.craft && <Link to={`/crafts/${project.craft.id}`} className="text-sm text-accent-light hover:text-accent">From: {project.craft.title}</Link>}
+          {project.crafts && project.crafts.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-1">
+              {project.crafts.map(c => (
+                <Link key={c.craft_id} to={`/crafts/${c.craft_id}`} className="text-sm text-accent-light hover:text-accent">
+                  {c.title || `Craft #${c.craft_id}`}{c.quantity > 1 ? ` ×${c.quantity}` : ''}
+                </Link>
+              ))}
+            </div>
+          )}
+          {project.due_date && <p className="text-xs text-text-muted mt-1">Due: {formatDate(project.due_date)}</p>}
         </div>
         <div className="flex gap-2">
           <Link to={`/projects/${projectId}/edit`} className="px-3 py-1.5 border border-border rounded-lg text-sm text-text-secondary hover:border-accent hover:text-accent transition-colors">Edit</Link>
@@ -76,9 +85,9 @@ export function ProjectDetail() {
 
           <TechniqueManager entityType="projects" entityId={projectId} />
           <MaterialManager entityType="projects" entityId={projectId} />
-          <PhotoGallery projectId={projectId} />
+          <PhotoGallery entityType="project" entityId={projectId} />
           <LogFeed projectId={projectId} />
-          <JournalSection projectId={projectId} />
+          <NotesSection entityType="project" entityId={projectId} />
 
           <div className="p-4 bg-card border border-border rounded-xl">
             <p className="text-sm text-text-secondary">Created: {formatDate(project.created_at)}</p>

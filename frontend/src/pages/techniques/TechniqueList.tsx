@@ -35,7 +35,10 @@ export function TechniqueList() {
             {data.items.map(technique => (
               <Link key={technique.id} to={`/techniques/${technique.id}`} className="block p-4 bg-card border border-border rounded-xl hover:border-accent hover:-translate-y-0.5 transition-all">
                 <h3 className="font-medium text-text-primary mb-1">{technique.title}</h3>
-                {technique.category && <p className="text-xs text-accent-light mb-2">{technique.category.name}</p>}
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                  {technique.category && <p className="text-xs text-accent-light">{technique.category.name}</p>}
+                  {technique.difficulty && <span className="px-1.5 py-0.5 bg-page border border-border text-text-secondary text-xs rounded capitalize">{technique.difficulty}</span>}
+                </div>
                 {technique.content && <p className="text-sm text-text-secondary line-clamp-2 mb-2">{technique.content}</p>}
                 <p className="text-xs text-text-muted">{formatDate(technique.created_at)}</p>
                 {technique.tags && technique.tags.length > 0 && (

@@ -7,6 +7,7 @@ export function MaterialNew() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [unit, setUnit] = useState('');
+  const [price, setPrice] = useState('');
   const [reusable, setReusable] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const createMaterial = useCreateMaterial();
@@ -16,9 +17,17 @@ export function MaterialNew() {
     e.preventDefault();
     setErrors({});
     try {
-      const ing = await createMaterial.mutateAsync({ name, description: description || undefined, unit: unit || undefined, reusable: reusable ? 1 : 0 });
-      navigate(`/materials/${ing.id}`);
-    } catch (err) { if (err instanceof ApiError && err.details) setErrors(err.details); }
+      const material = await createMaterial.mutateAsync({
+        name,
+        description: description || undefined,
+        unit: unit || undefined,
+        price: price ? parseFloat(price) : 0,
+        reusable: reusable ? 1 : 0,
+      });
+      navigate(`/materials/${material.id}`);
+    } catch (err) {
+      if (err instanceof ApiError && err.details) setErrors(err.details);
+    }
   }
 
   return (
@@ -37,6 +46,10 @@ export function MaterialNew() {
         <div>
           <label className="block text-sm text-text-secondary mb-1">Unit of Measure</label>
           <input value={unit} onChange={e => setUnit(e.target.value)} placeholder="e.g., oz, yards, pieces" className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none" />
+        </div>
+        <div>
+          <label className="block text-sm text-text-secondary mb-1">Price</label>
+          <input type="number" min="0" step="0.01" value={price} onChange={e => setPrice(e.target.value)} placeholder="0.00" className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none" />
         </div>
         <label className="flex items-center gap-2 text-sm text-text-secondary">
           <input type="checkbox" checked={reusable} onChange={e => setReusable(e.target.checked)} className="rounded" />

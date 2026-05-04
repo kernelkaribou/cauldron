@@ -3,6 +3,8 @@ import { useTechnique, useDeleteTechnique } from '@/hooks/useTechniques';
 import { ErrorBanner } from '@/components/shared/ErrorBanner';
 import { TagSelect } from '@/components/shared/TagSelect';
 import { ResourceManager } from '@/components/shared/ResourceManager';
+import { PhotoGallery } from '@/components/shared/PhotoGallery';
+import { NotesSection } from '@/components/shared/NotesSection';
 import { formatDate } from '@/lib/utils';
 import { useQueryClient } from '@tanstack/react-query';
 import ReactMarkdown from 'react-markdown';
@@ -31,7 +33,10 @@ export function TechniqueDetail() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl font-semibold text-text-primary">{technique.title}</h1>
-          {technique.category && <p className="text-sm text-accent-light">{technique.category.name}</p>}
+          <div className="flex items-center gap-2 text-sm text-text-secondary mt-1">
+            {technique.category && <p className="text-accent-light">{technique.category.name}</p>}
+            {technique.difficulty && <span className="px-2 py-0.5 bg-page border border-border text-xs rounded capitalize">{technique.difficulty}</span>}
+          </div>
         </div>
         <div className="flex gap-2">
           <Link to={`/techniques/${techniqueId}/edit`} className="px-3 py-1.5 border border-border rounded-lg text-sm text-text-secondary hover:border-accent hover:text-accent transition-colors">Edit</Link>
@@ -45,6 +50,8 @@ export function TechniqueDetail() {
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{technique.content}</ReactMarkdown>
             </div>
           )}
+          <PhotoGallery entityType="technique" entityId={techniqueId} />
+          <NotesSection entityType="technique" entityId={techniqueId} />
           <div className="p-4 bg-card border border-border rounded-xl">
             <p className="text-sm text-text-secondary">Created: {formatDate(technique.created_at)}</p>
           </div>

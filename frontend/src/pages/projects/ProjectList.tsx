@@ -4,7 +4,7 @@ import { useProjects } from '@/hooks/useProjects';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { ErrorBanner } from '@/components/shared/ErrorBanner';
 import { STATUS_CONFIG } from '@/lib/theme';
-import { formatDate } from '@/lib/utils';
+import { formatDate, pluralize } from '@/lib/utils';
 import type { Project } from '@/lib/types';
 
 export function ProjectList() {
@@ -34,13 +34,16 @@ export function ProjectList() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {data.items.map((project: Project) => {
               const sc = STATUS_CONFIG[project.status];
+              const craftCount = project.crafts?.length || 0;
+
               return (
                 <Link key={project.id} to={`/projects/${project.id}`} className="block p-4 bg-card border border-border rounded-xl hover:border-accent hover:-translate-y-0.5 transition-all">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="font-medium text-text-primary">{project.title}</h3>
                     <span className={`px-2 py-0.5 rounded text-xs ${sc.color} ${sc.bg}`}>{sc.label}</span>
                   </div>
-                  {project.craft && <p className="text-xs text-text-secondary mb-1">From: {project.craft.title}</p>}
+                  {craftCount > 0 && <p className="text-xs text-text-secondary mb-1">{craftCount} {pluralize(craftCount, 'craft')}</p>}
+                  {project.due_date && <p className="text-xs text-text-secondary mb-1">Due: {formatDate(project.due_date)}</p>}
                   <p className="text-xs text-text-muted">{formatDate(project.created_at)}</p>
                 </Link>
               );

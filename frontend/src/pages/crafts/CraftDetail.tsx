@@ -8,8 +8,7 @@ import { TechniqueManager } from '@/components/shared/TechniqueManager';
 import { MaterialManager } from '@/components/shared/MaterialManager';
 import { PhotoGallery } from '@/components/shared/PhotoGallery';
 import { LogFeed } from '@/components/shared/LogFeed';
-import { TaskList } from '@/components/shared/TaskList';
-import { JournalSection } from '@/components/shared/JournalSection';
+import { NotesSection } from '@/components/shared/NotesSection';
 import { formatDate, formatDuration } from '@/lib/utils';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -92,9 +91,9 @@ export function CraftDetail() {
 
           <TechniqueManager entityType="crafts" entityId={craftId} />
           <MaterialManager entityType="crafts" entityId={craftId} />
-          <PhotoGallery craftId={craftId} />
+          <PhotoGallery entityType="craft" entityId={craftId} />
           <LogFeed craftId={craftId} />
-          <JournalSection craftId={craftId} />
+          <NotesSection entityType="craft" entityId={craftId} />
 
           <div className="p-4 bg-card border border-border rounded-xl">
             <div className="flex items-center gap-4 text-sm text-text-secondary">
@@ -131,7 +130,6 @@ export function CraftDetail() {
               )}
             </div>
           </div>
-          <TaskList craftId={craftId} />
         </div>
       </div>
     </div>

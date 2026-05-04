@@ -3,7 +3,7 @@ import { apiFetch } from '@/lib/api';
 import type { Project, PaginatedResponse } from '@/lib/types';
 
 export function useProjects(page = 1, filters?: { status?: string; search?: string; tag_id?: number }) {
-  const params = new URLSearchParams({ page: String(page), expand: 'craft,tags' });
+  const params = new URLSearchParams({ page: String(page), expand: 'crafts,tags' });
   if (filters?.status) params.set('status', filters.status);
   if (filters?.search) params.set('search', filters.search);
   if (filters?.tag_id) params.set('tag_id', String(filters.tag_id));
@@ -17,7 +17,7 @@ export function useProjects(page = 1, filters?: { status?: string; search?: stri
 export function useProject(id: number) {
   return useQuery({
     queryKey: ['projects', id],
-    queryFn: () => apiFetch<Project>(`/projects/${id}?expand=craft,tags`),
+    queryFn: () => apiFetch<Project>(`/projects/${id}?expand=crafts,tags`),
     enabled: !!id,
   });
 }
@@ -25,7 +25,7 @@ export function useProject(id: number) {
 export function useCreateProject() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: Record<string, unknown>) =>
+    mutationFn: (data: { title: string; description?: string; status?: string; due_date?: string; crafts: Array<{ id: number; quantity?: number }> }) =>
       apiFetch<Project>('/projects', { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['projects'] }),
   });
