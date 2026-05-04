@@ -46,7 +46,7 @@ export function TaskList({ projectId }: TaskListProps) {
             </button>
             <span className={`flex-1 text-sm ${task.done ? 'text-text-muted line-through' : 'text-text-primary'}`}>{task.title}</span>
             {task.due_date && <span className="text-xs text-text-muted">{task.due_date}</span>}
-            <button onClick={() => deleteTask.mutate(task.id)} className="text-xs text-text-muted hover:text-error opacity-0 group-hover:opacity-100 transition-opacity">×</button>
+            <button onClick={() => { if (confirm('Delete this task?')) deleteTask.mutate(task.id); }} className="text-xs text-text-muted hover:text-error opacity-0 group-hover:opacity-100 transition-opacity">×</button>
           </div>
         ))}
       </div>

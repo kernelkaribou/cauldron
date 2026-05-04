@@ -136,7 +136,7 @@ export interface Curiosity {
 export interface Photo {
   id: number;
   owner_id: number;
-  entity_type: 'project' | 'craft' | 'technique' | 'material' | 'log';
+  entity_type: 'project' | 'craft' | 'technique' | 'material' | 'curiosity' | 'log';
   entity_id: number;
   image: string;
   caption: string | null;

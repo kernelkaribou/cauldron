@@ -171,7 +171,7 @@ export function MaterialManager({ entityType, entityId }: MaterialManagerProps) 
             {canRemove ? (
               <button
                 type="button"
-                onClick={() => removeMaterial.mutate({ entityType, entityId, materialId: item.material_id })}
+                onClick={() => { if (confirm('Remove this material?')) removeMaterial.mutate({ entityType, entityId, materialId: item.material_id }); }}
                 className="text-xs text-text-muted opacity-0 transition-opacity hover:text-error group-hover:opacity-100"
               >
                 ×

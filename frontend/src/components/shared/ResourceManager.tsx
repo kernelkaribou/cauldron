@@ -52,7 +52,7 @@ export function ResourceManager({ techniqueId }: ResourceManagerProps) {
               <a href={res.url} target="_blank" rel="noopener noreferrer" className="text-sm text-accent-light hover:text-accent truncate block">{res.title}</a>
               {res.type && <span className="text-xs text-text-muted">{res.type}</span>}
             </div>
-            <button onClick={() => deleteResource.mutate({ techniqueId, resourceId: res.id })} className="text-xs text-text-muted hover:text-error opacity-0 group-hover:opacity-100 transition-opacity ml-2">×</button>
+            <button onClick={() => { if (confirm('Remove this resource?')) deleteResource.mutate({ techniqueId, resourceId: res.id }); }} className="text-xs text-text-muted hover:text-error opacity-0 group-hover:opacity-100 transition-opacity ml-2">×</button>
           </div>
         ))}
       </div>

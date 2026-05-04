@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { useLogs, useCreateLog, useDeleteLog } from '@/hooks/useSubResources';
+import { useState, useRef } from 'react';
+import { useLogs, useCreateLog, useDeleteLog, usePhotos, useUploadPhoto, useDeletePhoto } from '@/hooks/useSubResources';
 import { formatDate } from '@/lib/utils';
-import type { Log } from '@/lib/types';
+import type { Log, Photo } from '@/lib/types';
 
 interface LogFeedProps {
   craftId?: number;
@@ -13,6 +13,43 @@ function parseLinks(links: string) {
     .split(/[\s,]+/)
     .map(link => link.trim())
     .filter(Boolean);
+}
+
+function LogPhotos({ logId }: { logId: number }) {
+  const { data } = usePhotos({ entity_type: 'log', entity_id: logId });
+  const uploadPhoto = useUploadPhoto();
+  const deletePhoto = useDeletePhoto();
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  async function handleUpload() {
+    const file = fileRef.current?.files?.[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('entity_type', 'log');
+    formData.append('entity_id', String(logId));
+    await uploadPhoto.mutateAsync(formData);
+    if (fileRef.current) fileRef.current.value = '';
+  }
+
+  return (
+    <div className="mt-2">
+      {data?.items && data.items.length > 0 && (
+        <div className="flex flex-wrap gap-1 mb-1">
+          {data.items.map((photo: Photo) => (
+            <div key={photo.id} className="relative group w-12 h-12">
+              <img src={`/api/photos/file/${photo.id}/thumb_200.webp`} alt="" className="w-full h-full object-cover rounded" />
+              <button onClick={() => { if (confirm('Delete this photo?')) deletePhoto.mutate(photo.id); }} className="absolute -top-1 -right-1 w-4 h-4 bg-black/60 text-white rounded-full text-[10px] opacity-0 group-hover:opacity-100 flex items-center justify-center">×</button>
+            </div>
+          ))}
+        </div>
+      )}
+      <label className="inline-flex items-center gap-1 text-[10px] text-text-muted hover:text-accent-light cursor-pointer">
+        <input ref={fileRef} type="file" accept="image/*" onChange={handleUpload} className="hidden" />
+        📷 Add photo
+      </label>
+    </div>
+  );
 }
 
 export function LogFeed({ craftId, projectId }: LogFeedProps) {
@@ -87,8 +124,9 @@ export function LogFeed({ craftId, projectId }: LogFeedProps) {
                     ))}
                   </div>
                 )}
+                <LogPhotos logId={log.id} />
               </div>
-              <button onClick={() => deleteLog.mutate(log.id)} className="text-xs text-text-muted hover:text-error ml-2">×</button>
+              <button onClick={() => { if (confirm('Delete this log entry?')) deleteLog.mutate(log.id); }} className="text-xs text-text-muted hover:text-error ml-2">×</button>
             </div>
           );
         })}

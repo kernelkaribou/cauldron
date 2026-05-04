@@ -181,7 +181,7 @@ CREATE TABLE notes (
 CREATE TABLE photos (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   owner_id INTEGER NOT NULL REFERENCES users(id),
-  entity_type TEXT NOT NULL CHECK(entity_type IN ('project','craft','technique','material','log')),
+  entity_type TEXT NOT NULL CHECK(entity_type IN ('project','craft','technique','material','curiosity','log')),
   entity_id INTEGER NOT NULL,
   image TEXT NOT NULL,
   caption TEXT,

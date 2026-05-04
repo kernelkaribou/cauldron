@@ -108,7 +108,7 @@ export function TechniqueManager({ entityType, entityId }: TechniqueManagerProps
               {canRemove ? (
                 <button
                   type="button"
-                  onClick={() => removeTechnique.mutate({ entityType, entityId, techniqueId: technique.technique_id })}
+                  onClick={() => { if (confirm('Remove this technique?')) removeTechnique.mutate({ entityType, entityId, techniqueId: technique.technique_id }); }}
                   className="ml-2 text-xs text-text-muted hover:text-error"
                 >
                   ×

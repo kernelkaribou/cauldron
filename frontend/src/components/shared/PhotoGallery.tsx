@@ -3,7 +3,7 @@ import { usePhotos, useUploadPhoto, useDeletePhoto, useSetCoverPhoto } from '@/h
 import type { Photo } from '@/lib/types';
 
 interface PhotoGalleryProps {
-  entityType: 'project' | 'craft' | 'technique' | 'material' | 'log';
+  entityType: 'project' | 'craft' | 'technique' | 'material' | 'curiosity' | 'log';
   entityId: number;
 }
 
@@ -61,7 +61,7 @@ export function PhotoGallery({ entityType, entityId }: PhotoGalleryProps) {
                 >★</button>
               )}
               <button
-                onClick={() => deletePhoto.mutate(photo.id)}
+                onClick={() => { if (confirm('Delete this photo?')) deletePhoto.mutate(photo.id); }}
                 className="w-5 h-5 bg-black/60 text-white rounded-full text-xs flex items-center justify-center"
               >×</button>
             </div>

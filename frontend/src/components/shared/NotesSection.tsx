@@ -56,7 +56,7 @@ export function NotesSection({ entityType, entityId }: NotesSectionProps) {
               <button onClick={() => setExpanded(expanded === note.id ? null : note.id)} className="text-sm font-medium text-text-primary hover:text-accent text-left flex-1">{note.title}</button>
               <div className="flex items-center gap-2 ml-2">
                 <span className="text-xs text-text-muted">{formatDate(note.created_at)}</span>
-                <button onClick={() => deleteNote.mutate(note.id)} className="text-xs text-text-muted hover:text-error">×</button>
+                <button onClick={() => { if (confirm('Delete this note?')) deleteNote.mutate(note.id); }} className="text-xs text-text-muted hover:text-error">×</button>
               </div>
             </div>
             {expanded === note.id && note.content && (

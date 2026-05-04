@@ -54,7 +54,7 @@ export function VendorSection({ materialId }: VendorSectionProps) {
               </p>
               {vendor.notes && <p className="text-xs text-text-muted mt-0.5">{vendor.notes}</p>}
             </div>
-            <button onClick={() => deleteVendor.mutate({ materialId, vendorId: vendor.id })} className="text-xs text-text-muted hover:text-error ml-2">×</button>
+            <button onClick={() => { if (confirm('Remove this vendor?')) deleteVendor.mutate({ materialId, vendorId: vendor.id }); }} className="text-xs text-text-muted hover:text-error ml-2">×</button>
           </div>
         ))}
       </div>

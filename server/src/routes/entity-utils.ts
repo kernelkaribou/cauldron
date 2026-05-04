@@ -5,7 +5,7 @@ import path from 'path';
 export const noteEntityTypes = ['project', 'craft', 'technique', 'material', 'curiosity'] as const;
 export type NoteEntityType = (typeof noteEntityTypes)[number];
 
-export const photoEntityTypes = ['project', 'craft', 'technique', 'material', 'log'] as const;
+export const photoEntityTypes = ['project', 'craft', 'technique', 'material', 'curiosity', 'log'] as const;
 export type PhotoEntityType = (typeof photoEntityTypes)[number];
 
 type OwnedEntityType = NoteEntityType | PhotoEntityType;
