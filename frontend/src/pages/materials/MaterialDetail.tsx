@@ -64,7 +64,7 @@ export function MaterialDetail() {
             <TagSelect entityType="materials" entityId={materialId} tags={material.tags || []} onUpdate={() => qc.invalidateQueries({ queryKey: ['materials', materialId] })} />
           </div>
           <VendorSection materialId={materialId} />
-          <StockFeed materialId={materialId} />
+          <StockFeed materialId={materialId} unit={material.unit} />
         </div>
       </div>
     </div>

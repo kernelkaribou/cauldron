@@ -5,9 +5,10 @@ import type { StockEntry } from '@/lib/types';
 
 interface StockFeedProps {
   materialId: number;
+  unit?: string | null;
 }
 
-export function StockFeed({ materialId }: StockFeedProps) {
+export function StockFeed({ materialId, unit }: StockFeedProps) {
   const { data: stockData, isLoading } = useStock(materialId);
   const { data: summary } = useStockSummary(materialId);
   const addStock = useAddStock();
@@ -52,7 +53,7 @@ export function StockFeed({ materialId }: StockFeedProps) {
       {summary && (
         <div className="grid grid-cols-2 gap-2 mb-3">
           <div className="p-2 bg-page rounded text-center">
-            <p className="text-lg font-semibold text-text-primary">{summary.on_hand}</p>
+            <p className="text-lg font-semibold text-text-primary">{summary.on_hand}{unit ? ` ${unit}` : ''}</p>
             <p className="text-xs text-text-muted">On Hand</p>
           </div>
           <div className="p-2 bg-page rounded text-center">
@@ -88,7 +89,7 @@ export function StockFeed({ materialId }: StockFeedProps) {
           <div key={entry.id} className="flex items-center justify-between p-2 bg-page rounded-lg text-sm">
             <div className="flex items-center gap-2">
               <span className={`text-xs font-medium ${typeColors[entry.type] || ''}`}>{entry.type}</span>
-              <span className="text-text-primary">{entry.quantity}{entry.unit_cost > 0 ? ` @ $${entry.unit_cost}` : ''}</span>
+              <span className="text-text-primary">{entry.quantity}{unit ? ` ${unit}` : ''}{entry.unit_cost > 0 ? ` @ $${entry.unit_cost}` : ''}</span>
             </div>
             <span className="text-xs text-text-muted">{formatDate(entry.date)}</span>
           </div>
