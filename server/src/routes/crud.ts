@@ -22,6 +22,14 @@ interface ExpandDef {
   key: string;
 }
 
+const tagEntityTypeByTable: Partial<Record<string, string>> = {
+  crafts: 'craft',
+  techniques: 'technique',
+  projects: 'project',
+  materials: 'material',
+  curiosities: 'curiosity',
+};
+
 function buildListQuery(
   table: string,
   req: Request,
@@ -52,13 +60,11 @@ function buildListQuery(
     }
   }
 
-  // Tag filter via junction table
   const tagId = req.query.tag_id;
-  if (tagId) {
-    const junction = `${table.replace(/s$/, '')}_tags`;
-    const fk = `${table.replace(/s$/, '')}_id`;
-    conditions.push(`${table}.id IN (SELECT ${fk} FROM ${junction} WHERE tag_id = ?)`);
-    params.push(tagId);
+  const tagEntityType = tagEntityTypeByTable[table];
+  if (tagId && tagEntityType) {
+    conditions.push(`${table}.id IN (SELECT entity_id FROM entity_tags WHERE entity_type = ? AND tag_id = ?)`);
+    params.push(tagEntityType, tagId);
   }
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';

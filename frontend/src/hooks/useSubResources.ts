@@ -145,7 +145,9 @@ export function useAddEntityTechnique() {
   return useMutation({
     mutationFn: ({ entityType, entityId, data }: { entityType: 'crafts' | 'projects'; entityId: number; data: Record<string, unknown> }) =>
       apiFetch(`/${entityType}/${entityId}/techniques`, { method: 'POST', body: JSON.stringify(data) }),
-    onSuccess: (_, { entityType, entityId }) => qc.invalidateQueries({ queryKey: [entityType, entityId, 'techniques'] }),
+    onSuccess: (_, { entityType, entityId }) => {
+      qc.invalidateQueries({ queryKey: [entityType, entityId] });
+    },
   });
 }
 
@@ -154,7 +156,9 @@ export function useRemoveEntityTechnique() {
   return useMutation({
     mutationFn: ({ entityType, entityId, techniqueId }: { entityType: 'crafts' | 'projects'; entityId: number; techniqueId: number }) =>
       apiFetch(`/${entityType}/${entityId}/techniques/${techniqueId}`, { method: 'DELETE' }),
-    onSuccess: (_, { entityType, entityId }) => qc.invalidateQueries({ queryKey: [entityType, entityId, 'techniques'] }),
+    onSuccess: (_, { entityType, entityId }) => {
+      qc.invalidateQueries({ queryKey: [entityType, entityId] });
+    },
   });
 }
 
@@ -172,7 +176,9 @@ export function useAddEntityMaterial() {
   return useMutation({
     mutationFn: ({ entityType, entityId, data }: { entityType: 'crafts' | 'projects'; entityId: number; data: Record<string, unknown> }) =>
       apiFetch(`/${entityType}/${entityId}/materials`, { method: 'POST', body: JSON.stringify(data) }),
-    onSuccess: (_, { entityType, entityId }) => qc.invalidateQueries({ queryKey: [entityType, entityId, 'materials'] }),
+    onSuccess: (_, { entityType, entityId }) => {
+      qc.invalidateQueries({ queryKey: [entityType, entityId] });
+    },
   });
 }
 
@@ -181,7 +187,9 @@ export function useRemoveEntityMaterial() {
   return useMutation({
     mutationFn: ({ entityType, entityId, materialId }: { entityType: 'crafts' | 'projects'; entityId: number; materialId: number }) =>
       apiFetch(`/${entityType}/${entityId}/materials/${materialId}`, { method: 'DELETE' }),
-    onSuccess: (_, { entityType, entityId }) => qc.invalidateQueries({ queryKey: [entityType, entityId, 'materials'] }),
+    onSuccess: (_, { entityType, entityId }) => {
+      qc.invalidateQueries({ queryKey: [entityType, entityId] });
+    },
   });
 }
 

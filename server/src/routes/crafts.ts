@@ -93,7 +93,7 @@ function applyCraftExpansions(items: any[], requested: Set<string>): void {
 
   const db = getDb();
   const categoryStmt = db.prepare('SELECT id, name FROM categories WHERE id = ?');
-  const tagStmt = db.prepare('SELECT t.id, t.name FROM tags t JOIN craft_tags ct ON t.id = ct.tag_id WHERE ct.craft_id = ?');
+  const tagStmt = db.prepare("SELECT t.id, t.name FROM tags t JOIN entity_tags et ON t.id = et.tag_id WHERE et.entity_type = 'craft' AND et.entity_id = ?");
   const techniqueStmt = db.prepare(`
     SELECT ct.technique_id, t.title, t.content, ct.sort_order, ct.notes
     FROM craft_techniques ct
@@ -142,7 +142,7 @@ function buildListQuery(req: Request): { sql: string; countSql: string; params: 
   }
 
   if (req.query.tag_id) {
-    conditions.push('crafts.id IN (SELECT craft_id FROM craft_tags WHERE tag_id = ?)');
+    conditions.push("crafts.id IN (SELECT entity_id FROM entity_tags WHERE entity_type = 'craft' AND tag_id = ?)");
     params.push(req.query.tag_id);
   }
 

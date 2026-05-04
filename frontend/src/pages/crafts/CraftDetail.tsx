@@ -1,6 +1,7 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useCraft, useDeleteCraft } from '@/hooks/useCrafts';
 import { useCreateProjectFromCraft } from '@/hooks/useProjects';
+import { useAggregatedTags, type AggregatedTag } from '@/hooks/useTags';
 import { ErrorBanner } from '@/components/shared/ErrorBanner';
 import { TagSelect } from '@/components/shared/TagSelect';
 import { TechniqueManager } from '@/components/shared/TechniqueManager';
@@ -12,10 +13,25 @@ import { JournalSection } from '@/components/shared/JournalSection';
 import { formatDate, formatDuration } from '@/lib/utils';
 import { useQueryClient } from '@tanstack/react-query';
 
+function getInheritedSourceLabel(sources: AggregatedTag['sources']) {
+  const inheritedSources = sources.filter(source => source !== 'craft');
+
+  if (inheritedSources.includes('technique') && inheritedSources.includes('material')) {
+    return 'from techniques & materials';
+  }
+
+  if (inheritedSources.includes('technique')) {
+    return 'from techniques';
+  }
+
+  return 'from materials';
+}
+
 export function CraftDetail() {
   const { id } = useParams();
   const craftId = Number(id);
   const { data: craft, isLoading, error, refetch } = useCraft(craftId);
+  const { data: aggregatedTags, isLoading: isLoadingAggregatedTags, error: aggregatedTagsError } = useAggregatedTags(craftId);
   const deleteCraft = useDeleteCraft();
   const createProject = useCreateProjectFromCraft();
   const navigate = useNavigate();
@@ -25,6 +41,10 @@ export function CraftDetail() {
   if (error) return <ErrorBanner message={(error as Error).message} onRetry={() => refetch()} />;
   if (!craft) return <p className="text-text-muted">Craft not found</p>;
 
+  const relatedTags = (aggregatedTags?.items || []).filter(tag =>
+    !tag.sources.includes('craft') && tag.sources.some(source => source === 'technique' || source === 'material'),
+  );
+
   async function handleDelete() {
     if (!confirm('Delete this craft?')) return;
     await deleteCraft.mutateAsync(craftId);
@@ -32,9 +52,11 @@ export function CraftDetail() {
   }
 
   async function handleStartProject() {
+    if (!craft) return;
+
     const project = await createProject.mutateAsync({
       craft_id: craftId,
-      title: `${craft!.title} - Project`,
+      title: `${craft.title} - Project`,
     });
     navigate(`/projects/${project.id}`);
   }
@@ -86,6 +108,28 @@ export function CraftDetail() {
           <div className="p-4 bg-card border border-border rounded-xl">
             <h2 className="text-sm font-medium text-text-secondary mb-3">Tags</h2>
             <TagSelect entityType="crafts" entityId={craftId} tags={craft.tags || []} onUpdate={() => qc.invalidateQueries({ queryKey: ['crafts', craftId] })} />
+
+            <div className="mt-4 border-t border-border pt-4">
+              <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-text-muted">From Techniques & Materials</h3>
+              {aggregatedTagsError ? (
+                <p className="text-xs text-error">Unable to load related tags.</p>
+              ) : isLoadingAggregatedTags ? (
+                <p className="text-xs text-text-muted">Loading related tags...</p>
+              ) : relatedTags.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5">
+                  {relatedTags.map(tag => (
+                    <span key={tag.id} className="inline-flex items-center gap-1.5 rounded-full border border-border bg-page px-2 py-0.5 text-xs text-text-muted">
+                      <span className="text-text-secondary">{tag.name}</span>
+                      <span className="rounded-full bg-card px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-text-muted">
+                        {getInheritedSourceLabel(tag.sources)}
+                      </span>
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-text-muted">No related tags from techniques or materials.</p>
+              )}
+            </div>
           </div>
           <TaskList craftId={craftId} />
         </div>

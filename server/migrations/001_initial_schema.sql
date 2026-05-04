@@ -193,36 +193,16 @@ CREATE TABLE journal_entries (
   updated_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
--- Tag junction tables
-CREATE TABLE craft_tags (
-  craft_id INTEGER NOT NULL REFERENCES crafts(id) ON DELETE CASCADE,
+-- Tag junction table
+CREATE TABLE entity_tags (
+  entity_type TEXT NOT NULL CHECK(entity_type IN ('craft','technique','project','material','curiosity')),
+  entity_id INTEGER NOT NULL,
   tag_id INTEGER NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
-  PRIMARY KEY (craft_id, tag_id)
+  PRIMARY KEY (entity_type, entity_id, tag_id)
 );
 
-CREATE TABLE technique_tags (
-  technique_id INTEGER NOT NULL REFERENCES techniques(id) ON DELETE CASCADE,
-  tag_id INTEGER NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
-  PRIMARY KEY (technique_id, tag_id)
-);
-
-CREATE TABLE project_tags (
-  project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
-  tag_id INTEGER NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
-  PRIMARY KEY (project_id, tag_id)
-);
-
-CREATE TABLE material_tags (
-  material_id INTEGER NOT NULL REFERENCES materials(id) ON DELETE CASCADE,
-  tag_id INTEGER NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
-  PRIMARY KEY (material_id, tag_id)
-);
-
-CREATE TABLE curiosity_tags (
-  curiosity_id INTEGER NOT NULL REFERENCES curiosities(id) ON DELETE CASCADE,
-  tag_id INTEGER NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
-  PRIMARY KEY (curiosity_id, tag_id)
-);
+CREATE INDEX idx_entity_tags_entity ON entity_tags(entity_type, entity_id);
+CREATE INDEX idx_entity_tags_tag ON entity_tags(tag_id);
 
 -- Indexes for common queries
 CREATE INDEX idx_techniques_owner ON techniques(owner_id);

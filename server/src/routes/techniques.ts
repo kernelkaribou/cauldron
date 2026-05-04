@@ -28,7 +28,7 @@ const router = createCrudRouter({
     },
     tags: {
       type: 'many',
-      query: 'SELECT t.id, t.name FROM tags t JOIN technique_tags tt ON t.id = tt.tag_id WHERE tt.technique_id = ?',
+      query: "SELECT t.id, t.name FROM tags t JOIN entity_tags et ON t.id = et.tag_id WHERE et.entity_type = 'technique' AND et.entity_id = ?",
       key: 'id',
     },
   },

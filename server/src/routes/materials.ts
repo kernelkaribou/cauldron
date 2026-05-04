@@ -27,7 +27,7 @@ const router = createCrudRouter({
   expandConfig: {
     tags: {
       type: 'many',
-      query: 'SELECT t.id, t.name FROM tags t JOIN material_tags mt ON t.id = mt.tag_id WHERE mt.material_id = ?',
+      query: "SELECT t.id, t.name FROM tags t JOIN entity_tags et ON t.id = et.tag_id WHERE et.entity_type = 'material' AND et.entity_id = ?",
       key: 'id',
     },
   },

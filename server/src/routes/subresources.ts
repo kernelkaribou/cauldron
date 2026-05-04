@@ -5,6 +5,20 @@ import { ownerId } from '../middleware/owner.js';
 import { validate } from '../middleware/validate.js';
 
 const router = Router();
+const taggableEntityTypeSchema = z.enum(['crafts', 'techniques', 'projects', 'materials', 'curiosities']);
+type TaggableEntityType = z.infer<typeof taggableEntityTypeSchema>;
+
+const tagEntityConfig: Record<TaggableEntityType, {
+  table: string;
+  entityType: 'craft' | 'technique' | 'project' | 'material' | 'curiosity';
+  notFound: string;
+}> = {
+  crafts: { table: 'crafts', entityType: 'craft', notFound: 'Craft not found' },
+  techniques: { table: 'techniques', entityType: 'technique', notFound: 'Technique not found' },
+  projects: { table: 'projects', entityType: 'project', notFound: 'Project not found' },
+  materials: { table: 'materials', entityType: 'material', notFound: 'Material not found' },
+  curiosities: { table: 'curiosities', entityType: 'curiosity', notFound: 'Curiosity not found' },
+};
 
 // --- Craft Techniques ---
 router.get('/crafts/:id/techniques', (req: Request, res: Response) => {
@@ -499,49 +513,118 @@ router.delete('/journal-entries/:id', (req: Request, res: Response) => {
 });
 
 const tagActionSchema = z.object({ tag_id: z.number().int().positive() });
+type AggregatedTagSource = 'craft' | 'technique' | 'material';
 
-function createTagRoutes(entityTable: string, junctionTable: string, fkColumn: string) {
-  router.get(`/${entityTable}/:id/tags`, (req: Request, res: Response) => {
-    const db = getDb();
-    const owner = ownerId(req);
-    const entity = db.prepare(`SELECT id FROM ${entityTable} WHERE id = ? AND owner_id = ?`).get(req.params.id, owner);
-    if (!entity) { res.status(404).json({ error: 'Not found' }); return; }
+function getTagEntityContext(req: Request, res: Response) {
+  const parsedEntityType = taggableEntityTypeSchema.safeParse(req.params.entityType);
+  if (!parsedEntityType.success) {
+    res.status(400).json({ error: 'Invalid entity type' });
+    return null;
+  }
 
-    const tags = db.prepare(`SELECT t.* FROM tags t JOIN ${junctionTable} jt ON t.id = jt.tag_id WHERE jt.${fkColumn} = ?`).all(req.params.id);
-    res.json({ items: tags });
-  });
+  const db = getDb();
+  const owner = ownerId(req);
+  const config = tagEntityConfig[parsedEntityType.data];
+  const entity = db.prepare(`SELECT id FROM ${config.table} WHERE id = ? AND owner_id = ?`).get(req.params.id, owner);
+  if (!entity) {
+    res.status(404).json({ error: config.notFound });
+    return null;
+  }
 
-  router.post(`/${entityTable}/:id/tags`, validate(tagActionSchema), (req: Request, res: Response) => {
-    const db = getDb();
-    const owner = ownerId(req);
-    const entity = db.prepare(`SELECT id FROM ${entityTable} WHERE id = ? AND owner_id = ?`).get(req.params.id, owner);
-    if (!entity) { res.status(404).json({ error: 'Not found' }); return; }
-
-    try {
-      db.prepare(`INSERT INTO ${junctionTable} (${fkColumn}, tag_id) VALUES (?, ?)`).run(req.params.id, req.body.tag_id);
-    } catch {
-      res.status(409).json({ error: 'Tag already attached' });
-      return;
-    }
-    res.status(201).json({ message: 'Tag added' });
-  });
-
-  router.delete(`/${entityTable}/:id/tags/:tagId`, (req: Request, res: Response) => {
-    const db = getDb();
-    const owner = ownerId(req);
-    const entity = db.prepare(`SELECT id FROM ${entityTable} WHERE id = ? AND owner_id = ?`).get(req.params.id, owner);
-    if (!entity) { res.status(404).json({ error: 'Not found' }); return; }
-
-    db.prepare(`DELETE FROM ${junctionTable} WHERE ${fkColumn} = ? AND tag_id = ?`).run(req.params.id, req.params.tagId);
-    res.status(204).send();
-  });
+  return { db, config };
 }
 
-createTagRoutes('crafts', 'craft_tags', 'craft_id');
-createTagRoutes('techniques', 'technique_tags', 'technique_id');
-createTagRoutes('projects', 'project_tags', 'project_id');
-createTagRoutes('materials', 'material_tags', 'material_id');
-createTagRoutes('curiosities', 'curiosity_tags', 'curiosity_id');
+router.get('/crafts/:id/all-tags', (req: Request, res: Response) => {
+  const db = getDb();
+  const owner = ownerId(req);
+  const craftId = Number(req.params.id);
+  const craft = db.prepare('SELECT id FROM crafts WHERE id = ? AND owner_id = ?').get(craftId, owner);
+  if (!craft) { res.status(404).json({ error: 'Craft not found' }); return; }
+
+  type TagRow = { id: number; name: string };
+  type AggregatedTag = TagRow & { sources: Set<AggregatedTagSource> };
+
+  const craftTags = db.prepare(
+    "SELECT t.id, t.name FROM tags t JOIN entity_tags et ON t.id = et.tag_id WHERE et.entity_type = 'craft' AND et.entity_id = ?"
+  ).all(craftId) as TagRow[];
+
+  const techniqueIds = (db.prepare('SELECT technique_id FROM craft_techniques WHERE craft_id = ?').all(craftId) as Array<{ technique_id: number }>)
+    .map(({ technique_id }) => technique_id);
+  const materialIds = (db.prepare('SELECT material_id FROM craft_materials WHERE craft_id = ?').all(craftId) as Array<{ material_id: number }>)
+    .map(({ material_id }) => material_id);
+
+  const loadEntityTags = (entityType: 'technique' | 'material', entityIds: number[]): TagRow[] => {
+    if (entityIds.length === 0) return [];
+    const placeholders = entityIds.map(() => '?').join(', ');
+    return db.prepare(
+      `SELECT t.id, t.name FROM tags t JOIN entity_tags et ON t.id = et.tag_id WHERE et.entity_type = ? AND et.entity_id IN (${placeholders})`
+    ).all(entityType, ...entityIds) as TagRow[];
+  };
+
+  const aggregated = new Map<number, AggregatedTag>();
+  const addTags = (tags: TagRow[], source: AggregatedTagSource) => {
+    for (const tag of tags) {
+      const existing = aggregated.get(tag.id);
+      if (existing) {
+        existing.sources.add(source);
+      } else {
+        aggregated.set(tag.id, { ...tag, sources: new Set([source]) });
+      }
+    }
+  };
+
+  addTags(craftTags, 'craft');
+  addTags(loadEntityTags('technique', techniqueIds), 'technique');
+  addTags(loadEntityTags('material', materialIds), 'material');
+
+  res.json({
+    items: Array.from(aggregated.values()).map(({ sources, ...tag }) => ({
+      ...tag,
+      sources: Array.from(sources),
+    })),
+  });
+});
+
+router.get('/:entityType/:id/tags', (req: Request, res: Response) => {
+  const context = getTagEntityContext(req, res);
+  if (!context) return;
+
+  const tags = context.db.prepare(
+    'SELECT t.* FROM tags t JOIN entity_tags et ON t.id = et.tag_id WHERE et.entity_type = ? AND et.entity_id = ?'
+  ).all(context.config.entityType, req.params.id);
+
+  res.json({ items: tags });
+});
+
+router.post('/:entityType/:id/tags', validate(tagActionSchema), (req: Request, res: Response) => {
+  const context = getTagEntityContext(req, res);
+  if (!context) return;
+
+  try {
+    context.db.prepare('INSERT INTO entity_tags (entity_type, entity_id, tag_id) VALUES (?, ?, ?)')
+      .run(context.config.entityType, req.params.id, req.body.tag_id);
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('FOREIGN KEY constraint failed')) {
+      res.status(400).json({ error: 'Tag not found' });
+      return;
+    }
+
+    res.status(409).json({ error: 'Tag already attached' });
+    return;
+  }
+
+  res.status(201).json({ message: 'Tag added' });
+});
+
+router.delete('/:entityType/:id/tags/:tagId', (req: Request, res: Response) => {
+  const context = getTagEntityContext(req, res);
+  if (!context) return;
+
+  context.db.prepare('DELETE FROM entity_tags WHERE entity_type = ? AND entity_id = ? AND tag_id = ?')
+    .run(context.config.entityType, req.params.id, req.params.tagId);
+
+  res.status(204).send();
+});
 
 router.post('/projects/from-craft', validate(z.object({
   craft_id: z.number().int().positive(),
