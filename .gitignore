@@ -1,0 +1,27 @@
+# Temp
+tmp/
+.venv/
+
+# Dependencies
+node_modules/
+
+# Build output
+frontend/dist/
+server/dist/
+
+# Data
+data/
+
+# Environment
+.env
+.env.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

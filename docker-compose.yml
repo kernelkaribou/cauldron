@@ -1,0 +1,18 @@
+services:
+  cauldron:
+    build: .
+    ports:
+      - "8090:8090"
+    volumes:
+      - cauldron_data:/data
+    environment:
+      - PORT=8090
+      - DATA_DIR=/data
+    restart: unless-stopped
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  cauldron_data:

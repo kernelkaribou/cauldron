@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+@theme {
+  --color-page: #1a1a2e;
+  --color-card: #16213e;
+  --color-deep: #0d1117;
+  --color-border: #2a2a4a;
+  --color-accent: #a78bfa;
+  --color-accent-light: #c4b5fd;
+  --color-accent-bg: #2a1a4e;
+  --color-text-primary: #e0e0e0;
+  --color-text-secondary: #b0b0c0;
+  --color-text-muted: #888888;
+  --color-error: #f87171;
+  --color-error-bg: #3d1a1a;
+  --color-success: #6ee7b7;
+  --color-success-bg: #1a3a2e;
+  --color-warning: #f59e0b;
+  --color-warning-bg: #3d2e0a;
+  --color-status-gathering: #f59e0b;
+  --color-status-gathering-bg: #3d2e0a;
+  --color-status-brewing: #a78bfa;
+  --color-status-brewing-bg: #2a1a4e;
+  --color-status-bottled: #6ee7b7;
+  --color-status-bottled-bg: #1a3a2e;
+  --color-status-spilled: #f87171;
+  --color-status-spilled-bg: #3d1a1a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--color-page);
+  color: var(--color-text-primary);
+  min-height: 100vh;
+}
+
+a {
+  color: var(--color-accent-light);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--color-accent);
+}
