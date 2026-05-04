@@ -57,8 +57,10 @@ volumes:
 |----------|---------|-------------|
 | `PORT` | `8090` | HTTP port |
 | `DATA_DIR` | `/data` | Persistent data directory (SQLite DB, uploads, JWT secret) |
+| `PUID` | `1000` | User ID the server process runs as |
+| `PGID` | `1000` | Group ID the server process runs as |
 | `JWT_SECRET` | auto-generated | Secret for signing auth tokens. If not set, a random secret is generated and persisted to `DATA_DIR/jwt_secret` — stable across restarts as long as the volume is retained |
-| `AUTH_PROXY_HEADER` | — | Trust this header for auth proxy (e.g., `Remote-User`) |
+| `AUTH_PROXY_HEADER` | — | Trust this header for auth proxy (e.g., `Remote-User`). Only use behind a trusted reverse proxy that strips this header from client requests |
 
 ## Architecture
 
