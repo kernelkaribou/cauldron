@@ -41,7 +41,6 @@ services:
     volumes:
       - cauldron_data:/data
     environment:
-      - NODE_ENV=production
       # Optional: set a fixed JWT secret (auto-generated if omitted)
       # - JWT_SECRET=your-secret-here
       # Optional: trust proxy auth header (e.g., Authelia/Authentik)
@@ -60,7 +59,7 @@ volumes:
 | `DATA_DIR` | `/data` | Persistent data directory (SQLite DB, uploads, JWT secret) |
 | `JWT_SECRET` | auto-generated | Secret for signing auth tokens |
 | `AUTH_PROXY_HEADER` | — | Trust this header for auth proxy (e.g., `Remote-User`) |
-| `NODE_ENV` | `production` | Set to `production` for secure cookies |
+| `NODE_ENV` | `production` | Already set in the image; no need to override |
 
 ## Architecture
 
