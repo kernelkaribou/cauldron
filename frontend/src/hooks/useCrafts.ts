@@ -81,52 +81,6 @@ function getBaseCraftData(data: CraftPayload) {
   return base;
 }
 
-async function replaceCraftTechniques(craftId: number, techniques: CraftTechniqueInput[]) {
-  const existing = await apiFetch<{ items: CraftTechnique[] }>(`/crafts/${craftId}/techniques`);
-
-  await Promise.all(
-    existing.items.map(item => apiFetch(`/crafts/${craftId}/techniques/${item.technique_id}`, { method: 'DELETE' })),
-  );
-
-  for (const technique of techniques) {
-    await apiFetch(`/crafts/${craftId}/techniques`, {
-      method: 'POST',
-      body: JSON.stringify({
-        technique_id: technique.id,
-        sort_order: technique.sort_order ?? 0,
-        notes: technique.notes,
-      }),
-    });
-  }
-}
-
-async function replaceCraftMaterials(craftId: number, materials: CraftMaterialInput[]) {
-  const existing = await apiFetch<{ items: CraftMaterial[] }>(`/crafts/${craftId}/materials`);
-
-  await Promise.all(
-    existing.items.map(item => apiFetch(`/crafts/${craftId}/materials/${item.material_id}`, { method: 'DELETE' })),
-  );
-
-  for (const material of materials) {
-    await apiFetch(`/crafts/${craftId}/materials`, {
-      method: 'POST',
-      body: JSON.stringify({
-        material_id: material.id,
-        quantity: material.quantity ?? 0,
-        unit: material.unit,
-        notes: material.notes,
-      }),
-    });
-  }
-}
-
-async function syncCraftRelations(craftId: number, data: Pick<CraftPayload, 'techniques' | 'materials'>) {
-  await Promise.all([
-    data.techniques ? replaceCraftTechniques(craftId, data.techniques) : Promise.resolve(),
-    data.materials ? replaceCraftMaterials(craftId, data.materials) : Promise.resolve(),
-  ]);
-}
-
 export function useCraft(id: number, expand: CraftExpand[] = ['category', 'tags']) {
   const expandKey = [...new Set(expand)].sort().join(',');
   const requested = (expandKey ? expandKey.split(',') : ['category', 'tags']) as CraftExpand[];
@@ -144,10 +98,13 @@ export function useCreateCraft() {
     mutationFn: async (data: CraftPayload) => {
       const craft = await apiFetch<Craft>('/crafts', {
         method: 'POST',
-        body: JSON.stringify(getBaseCraftData(data)),
+        body: JSON.stringify({
+          ...getBaseCraftData(data),
+          techniques: data.techniques || [],
+          materials: data.materials || [],
+        }),
       });
 
-      await syncCraftRelations(craft.id, data);
       return fetchCraftByExpand(craft.id, ['category', 'tags', 'techniques', 'materials']);
     },
     onSuccess: craft => {
@@ -161,15 +118,15 @@ export function useUpdateCraft() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, data }: { id: number; data: CraftPayload }) => {
-      const baseData = getBaseCraftData(data);
-      if (Object.keys(baseData).length > 0) {
-        await apiFetch<Craft>(`/crafts/${id}`, {
-          method: 'PUT',
-          body: JSON.stringify(baseData),
-        });
-      }
+      const payload: Record<string, unknown> = getBaseCraftData(data);
+      if (data.techniques) payload.techniques = data.techniques;
+      if (data.materials) payload.materials = data.materials;
 
-      await syncCraftRelations(id, data);
+      await apiFetch<Craft>(`/crafts/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(payload),
+      });
+
       return fetchCraftByExpand(id, ['category', 'tags', 'techniques', 'materials']);
     },
     onSuccess: (_, { id }) => {
