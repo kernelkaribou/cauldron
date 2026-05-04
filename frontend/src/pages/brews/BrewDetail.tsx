@@ -2,6 +2,12 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useBrew, useDeleteBrew, useUpdateBrew } from '@/hooks/useBrews';
 import { ErrorBanner } from '@/components/shared/ErrorBanner';
 import { TagSelect } from '@/components/shared/TagSelect';
+import { SpellManager } from '@/components/shared/SpellManager';
+import { IngredientManager } from '@/components/shared/IngredientManager';
+import { PhotoGallery } from '@/components/shared/PhotoGallery';
+import { LogFeed } from '@/components/shared/LogFeed';
+import { TaskList } from '@/components/shared/TaskList';
+import { JournalSection } from '@/components/shared/JournalSection';
 import { STATUS_CONFIG } from '@/lib/theme';
 import { formatDate } from '@/lib/utils';
 import { useQueryClient } from '@tanstack/react-query';
@@ -68,6 +74,12 @@ export function BrewDetail() {
             </div>
           )}
 
+          <SpellManager entityType="brews" entityId={brewId} />
+          <IngredientManager entityType="brews" entityId={brewId} />
+          <PhotoGallery brewId={brewId} />
+          <LogFeed brewId={brewId} />
+          <JournalSection brewId={brewId} />
+
           <div className="p-4 bg-card border border-border rounded-xl">
             <p className="text-sm text-text-secondary">Created: {formatDate(brew.created_at)}</p>
           </div>
@@ -78,6 +90,7 @@ export function BrewDetail() {
             <h2 className="text-sm font-medium text-text-secondary mb-3">Tags</h2>
             <TagSelect entityType="brews" entityId={brewId} tags={brew.tags || []} onUpdate={() => qc.invalidateQueries({ queryKey: ['brews', brewId] })} />
           </div>
+          <TaskList brewId={brewId} />
         </div>
       </div>
     </div>

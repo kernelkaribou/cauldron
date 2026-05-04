@@ -3,6 +3,12 @@ import { useRecipe, useDeleteRecipe } from '@/hooks/useRecipes';
 import { useCreateBrewFromRecipe } from '@/hooks/useBrews';
 import { ErrorBanner } from '@/components/shared/ErrorBanner';
 import { TagSelect } from '@/components/shared/TagSelect';
+import { SpellManager } from '@/components/shared/SpellManager';
+import { IngredientManager } from '@/components/shared/IngredientManager';
+import { PhotoGallery } from '@/components/shared/PhotoGallery';
+import { LogFeed } from '@/components/shared/LogFeed';
+import { TaskList } from '@/components/shared/TaskList';
+import { JournalSection } from '@/components/shared/JournalSection';
 import { formatDate, formatDuration } from '@/lib/utils';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -62,6 +68,12 @@ export function RecipeDetail() {
             </div>
           )}
 
+          <SpellManager entityType="recipes" entityId={recipeId} />
+          <IngredientManager entityType="recipes" entityId={recipeId} />
+          <PhotoGallery recipeId={recipeId} />
+          <LogFeed recipeId={recipeId} />
+          <JournalSection recipeId={recipeId} />
+
           <div className="p-4 bg-card border border-border rounded-xl">
             <div className="flex items-center gap-4 text-sm text-text-secondary">
               {recipe.duration_minutes > 0 && <span>Duration: {formatDuration(recipe.duration_minutes)}</span>}
@@ -75,6 +87,7 @@ export function RecipeDetail() {
             <h2 className="text-sm font-medium text-text-secondary mb-3">Tags</h2>
             <TagSelect entityType="recipes" entityId={recipeId} tags={recipe.tags || []} onUpdate={() => qc.invalidateQueries({ queryKey: ['recipes', recipeId] })} />
           </div>
+          <TaskList recipeId={recipeId} />
         </div>
       </div>
     </div>

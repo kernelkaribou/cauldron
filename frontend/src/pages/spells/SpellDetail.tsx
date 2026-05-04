@@ -2,8 +2,11 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useSpell, useDeleteSpell } from '@/hooks/useSpells';
 import { ErrorBanner } from '@/components/shared/ErrorBanner';
 import { TagSelect } from '@/components/shared/TagSelect';
+import { ResourceManager } from '@/components/shared/ResourceManager';
 import { formatDate } from '@/lib/utils';
 import { useQueryClient } from '@tanstack/react-query';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 export function SpellDetail() {
   const { id } = useParams();
@@ -38,9 +41,8 @@ export function SpellDetail() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           {spell.content && (
-            <div className="p-4 bg-card border border-border rounded-xl">
-              <h2 className="text-sm font-medium text-text-secondary mb-2">Content</h2>
-              <div className="text-text-primary whitespace-pre-wrap">{spell.content}</div>
+            <div className="p-4 bg-card border border-border rounded-xl prose prose-invert max-w-none">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{spell.content}</ReactMarkdown>
             </div>
           )}
           <div className="p-4 bg-card border border-border rounded-xl">
@@ -52,6 +54,7 @@ export function SpellDetail() {
             <h2 className="text-sm font-medium text-text-secondary mb-3">Tags</h2>
             <TagSelect entityType="spells" entityId={spellId} tags={spell.tags || []} onUpdate={() => qc.invalidateQueries({ queryKey: ['spells', spellId] })} />
           </div>
+          <ResourceManager spellId={spellId} />
         </div>
       </div>
     </div>

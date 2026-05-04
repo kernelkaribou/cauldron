@@ -2,6 +2,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useIngredient, useDeleteIngredient } from '@/hooks/useIngredients';
 import { ErrorBanner } from '@/components/shared/ErrorBanner';
 import { TagSelect } from '@/components/shared/TagSelect';
+import { StockFeed } from '@/components/shared/StockFeed';
 import { formatDate } from '@/lib/utils';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -56,6 +57,7 @@ export function IngredientDetail() {
             <h2 className="text-sm font-medium text-text-secondary mb-3">Tags</h2>
             <TagSelect entityType="ingredients" entityId={ingredientId} tags={ingredient.tags || []} onUpdate={() => qc.invalidateQueries({ queryKey: ['ingredients', ingredientId] })} />
           </div>
+          <StockFeed ingredientId={ingredientId} />
         </div>
       </div>
     </div>
