@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiFetch, ApiError } from '@/lib/api';
 
@@ -8,7 +8,19 @@ export function SetupWizard() {
   const [name, setName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [checking, setChecking] = useState(true);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    apiFetch('/auth/setup-status')
+      .then((data) => {
+        if (!data.needsSetup) navigate('/login', { replace: true });
+        else setChecking(false);
+      })
+      .catch(() => setChecking(false));
+  }, [navigate]);
+
+  if (checking) return null;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
