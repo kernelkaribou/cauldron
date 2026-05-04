@@ -14,7 +14,7 @@ export function SetupWizard() {
   useEffect(() => {
     apiFetch('/auth/setup-status')
       .then((data) => {
-        if (!data.needsSetup) navigate('/login', { replace: true });
+        if (!(data as { needsSetup: boolean }).needsSetup) navigate('/login', { replace: true });
         else setChecking(false);
       })
       .catch(() => setChecking(false));

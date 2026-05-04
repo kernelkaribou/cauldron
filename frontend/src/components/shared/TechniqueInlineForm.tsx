@@ -15,8 +15,8 @@ export function TechniqueInlineForm({ onCreated, onCancel }: TechniqueInlineForm
   const [errors, setErrors] = useState<Record<string, string>>({});
   const createTechnique = useCreateTechnique();
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleSave() {
+    if (!title.trim()) return;
     setErrors({});
 
     try {
@@ -37,7 +37,7 @@ export function TechniqueInlineForm({ onCreated, onCancel }: TechniqueInlineForm
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 rounded-xl border border-border bg-page p-4">
+    <div className="space-y-4 rounded-xl border border-border bg-page p-4">
       <div>
         <label className="mb-1 block text-sm text-text-secondary">Title</label>
         <input
@@ -68,7 +68,8 @@ export function TechniqueInlineForm({ onCreated, onCancel }: TechniqueInlineForm
 
       <div className="flex flex-wrap gap-2">
         <button
-          type="submit"
+          type="button"
+          onClick={handleSave}
           disabled={createTechnique.isPending || !title.trim()}
           className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-light disabled:opacity-50"
         >
@@ -82,6 +83,6 @@ export function TechniqueInlineForm({ onCreated, onCancel }: TechniqueInlineForm
           Cancel
         </button>
       </div>
-    </form>
+    </div>
   );
 }

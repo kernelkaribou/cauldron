@@ -15,8 +15,8 @@ export function MaterialInlineForm({ onCreated, onCancel }: MaterialInlineFormPr
   const [errors, setErrors] = useState<Record<string, string>>({});
   const createMaterial = useCreateMaterial();
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleSave() {
+    if (!name.trim()) return;
     setErrors({});
 
     try {
@@ -38,7 +38,7 @@ export function MaterialInlineForm({ onCreated, onCancel }: MaterialInlineFormPr
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 rounded-xl border border-border bg-page p-4">
+    <div className="space-y-4 rounded-xl border border-border bg-page p-4">
       <div>
         <label className="mb-1 block text-sm text-text-secondary">Name</label>
         <input
@@ -84,7 +84,8 @@ export function MaterialInlineForm({ onCreated, onCancel }: MaterialInlineFormPr
 
       <div className="flex flex-wrap gap-2">
         <button
-          type="submit"
+          type="button"
+          onClick={handleSave}
           disabled={createMaterial.isPending || !name.trim()}
           className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-light disabled:opacity-50"
         >
@@ -98,6 +99,6 @@ export function MaterialInlineForm({ onCreated, onCancel }: MaterialInlineFormPr
           Cancel
         </button>
       </div>
-    </form>
+    </div>
   );
 }
