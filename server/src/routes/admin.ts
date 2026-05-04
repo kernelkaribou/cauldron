@@ -16,14 +16,50 @@ const createUserSchema = z.object({
 });
 
 const updateUserSchema = z.object({
-  role: z.enum(['admin', 'user']),
+  role: z.enum(['admin', 'user']).optional(),
+  name: z.string().min(1).max(100).optional(),
 });
+
+const setPasswordSchema = z.object({
+  password: z.string().min(8),
+});
+
+interface UserRow {
+  id: number;
+  email: string;
+  name: string;
+  role: string;
+  password_hash: string;
+  avatar: string | null;
+  created_at: string;
+}
+
+function formatUser(user: UserRow) {
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role,
+    avatar: user.avatar,
+    has_password: user.password_hash !== 'proxy-auth-no-password',
+    created_at: user.created_at,
+  };
+}
+
+function isLastAdmin(db: ReturnType<typeof getDb>, userId: number): boolean {
+  const { count } = db.prepare(
+    "SELECT COUNT(*) as count FROM users WHERE role = 'admin' AND id != ?"
+  ).get(userId) as { count: number };
+  return count === 0;
+}
 
 // List users (admin only)
 router.get('/users', requireAdmin, (_req: Request, res: Response) => {
   const db = getDb();
-  const users = db.prepare('SELECT id, email, name, role, avatar, created_at FROM users').all();
-  res.json({ items: users });
+  const users = db.prepare(
+    'SELECT id, email, name, role, password_hash, avatar, created_at FROM users ORDER BY created_at ASC'
+  ).all() as UserRow[];
+  res.json({ items: users.map(formatUser) });
 });
 
 // Create user (admin only)
@@ -42,45 +78,111 @@ router.post('/users', requireAdmin, validate(createUserSchema), async (req: Requ
     'INSERT INTO users (email, password_hash, name, role) VALUES (?, ?, ?, ?)'
   ).run(email, passwordHash, name, role || 'user');
 
-  const user = db.prepare('SELECT id, email, name, role, created_at FROM users WHERE id = ?')
-    .get(result.lastInsertRowid);
-  res.status(201).json(user);
+  const user = db.prepare(
+    'SELECT id, email, name, role, password_hash, avatar, created_at FROM users WHERE id = ?'
+  ).get(result.lastInsertRowid) as UserRow;
+  res.status(201).json(formatUser(user));
 });
 
-// Update user role (admin only)
+// Update user (admin only)
 router.patch('/users/:id', requireAdmin, validate(updateUserSchema), (req: Request, res: Response) => {
   const db = getDb();
-  const { role } = req.body;
   const userId = parseInt(req.params.id as string);
+  const caller = ownerId(req);
 
-  const user = db.prepare('SELECT id FROM users WHERE id = ?').get(userId);
+  const user = db.prepare('SELECT id, role FROM users WHERE id = ?').get(userId) as { id: number; role: string } | undefined;
   if (!user) {
     res.status(404).json({ error: 'User not found' });
     return;
   }
 
-  db.prepare('UPDATE users SET role = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?').run(role, userId);
-  const updated = db.prepare('SELECT id, email, name, role, created_at FROM users WHERE id = ?').get(userId);
-  res.json(updated);
-});
+  // Prevent demoting the last admin
+  if (req.body.role && req.body.role !== 'admin' && user.role === 'admin') {
+    if (isLastAdmin(db, userId)) {
+      res.status(400).json({ error: 'Cannot demote the last admin' });
+      return;
+    }
+  }
 
-// Delete user (admin only, not self)
-router.delete('/users/:id', requireAdmin, (req: Request, res: Response) => {
-  const db = getDb();
-  const userId = parseInt(req.params.id as string);
-  const owner = ownerId(req);
-
-  if (userId === owner) {
-    res.status(400).json({ error: 'Cannot delete your own account' });
+  const fields = Object.entries(req.body).filter(([, v]) => v !== undefined);
+  if (fields.length === 0) {
+    res.status(400).json({ error: 'No fields to update' });
     return;
   }
 
-  const result = db.prepare('DELETE FROM users WHERE id = ?').run(userId);
-  if (result.changes === 0) {
+  const setClause = fields.map(([key]) => `${key} = ?`).join(', ');
+  const values = fields.map(([, v]) => v);
+  db.prepare(`UPDATE users SET ${setClause}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`).run(...values, userId);
+
+  const updated = db.prepare(
+    'SELECT id, email, name, role, password_hash, avatar, created_at FROM users WHERE id = ?'
+  ).get(userId) as UserRow;
+  res.json(formatUser(updated));
+});
+
+// Set/reset password for a user (admin only)
+router.put('/users/:id/password', requireAdmin, validate(setPasswordSchema), async (req: Request, res: Response) => {
+  const db = getDb();
+  const userId = parseInt(req.params.id as string);
+
+  const user = db.prepare('SELECT id, token_version FROM users WHERE id = ?')
+    .get(userId) as { id: number; token_version: number } | undefined;
+  if (!user) {
     res.status(404).json({ error: 'User not found' });
     return;
   }
 
+  const passwordHash = await hashPassword(req.body.password);
+  db.prepare(
+    'UPDATE users SET password_hash = ?, token_version = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
+  ).run(passwordHash, user.token_version + 1, userId);
+
+  res.json({ message: 'Password updated' });
+});
+
+// Delete user (admin only, not self, not last admin, no owned data)
+router.delete('/users/:id', requireAdmin, (req: Request, res: Response) => {
+  const db = getDb();
+  const userId = parseInt(req.params.id as string);
+  const caller = ownerId(req);
+
+  if (userId === caller) {
+    res.status(400).json({ error: 'Cannot delete your own account' });
+    return;
+  }
+
+  const user = db.prepare('SELECT id, role FROM users WHERE id = ?').get(userId) as { id: number; role: string } | undefined;
+  if (!user) {
+    res.status(404).json({ error: 'User not found' });
+    return;
+  }
+
+  if (user.role === 'admin' && isLastAdmin(db, userId)) {
+    res.status(400).json({ error: 'Cannot delete the last admin' });
+    return;
+  }
+
+  // Check for owned data
+  const tables = ['crafts', 'projects', 'techniques', 'materials', 'curiosities'];
+  const ownedCounts: Record<string, number> = {};
+  let totalOwned = 0;
+  for (const table of tables) {
+    const { count } = db.prepare(`SELECT COUNT(*) as count FROM ${table} WHERE owner_id = ?`).get(userId) as { count: number };
+    if (count > 0) {
+      ownedCounts[table] = count;
+      totalOwned += count;
+    }
+  }
+
+  if (totalOwned > 0) {
+    res.status(409).json({
+      error: 'User has owned data. Reassign or delete their data first.',
+      owned: ownedCounts,
+    });
+    return;
+  }
+
+  db.prepare('DELETE FROM users WHERE id = ?').run(userId);
   res.status(204).send();
 });
 

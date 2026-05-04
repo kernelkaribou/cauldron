@@ -44,6 +44,11 @@ export function AppLayout() {
           <div className="hidden md:block">
             <GlobalSearch />
           </div>
+          {user?.role === 'admin' && (
+            <Link to="/settings/admin" className="text-sm text-text-secondary hover:text-accent transition-colors" title="Admin">
+              ⚙
+            </Link>
+          )}
           <Link to="/settings/profile" className="text-sm text-text-secondary hover:text-text-primary">
             {user?.name}
           </Link>

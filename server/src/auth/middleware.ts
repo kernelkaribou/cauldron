@@ -30,14 +30,18 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction):
       let user = db.prepare('SELECT id, email, name, role, avatar FROM users WHERE email = ?').get(email) as AuthUser | undefined;
 
       if (!user && process.env.AUTH_PROXY_AUTO_CREATE !== 'false') {
+        // First user created via proxy-auth becomes admin (same as setup flow)
+        const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get() as { count: number };
+        const role = userCount.count === 0 ? 'admin' : 'user';
+
         const result = db.prepare(
           'INSERT INTO users (email, password_hash, name, role) VALUES (?, ?, ?, ?)'
-        ).run(email, 'proxy-auth-no-password', email.split('@')[0], 'user');
+        ).run(email, 'proxy-auth-no-password', email.split('@')[0], role);
         user = {
           id: result.lastInsertRowid as number,
           email,
           name: email.split('@')[0],
-          role: 'user',
+          role: role as 'admin' | 'user',
           avatar: null,
         };
       }
