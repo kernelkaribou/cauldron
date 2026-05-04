@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import { authMiddleware } from './auth/middleware.js';
+import { authMiddleware, requireAdmin } from './auth/middleware.js';
 import { errorHandler } from './middleware/errors.js';
 import authRoutes from './routes/auth.js';
 import craftsRoutes from './routes/crafts.js';
@@ -12,6 +12,9 @@ import brewsRoutes from './routes/brews.js';
 import ingredientsRoutes from './routes/ingredients.js';
 import curiositiesRoutes from './routes/curiosities.js';
 import photosRoutes from './routes/photos.js';
+import searchRoutes from './routes/search.js';
+import adminRoutes from './routes/admin.js';
+import subresourcesRoutes from './routes/subresources.js';
 
 export const app = express();
 
@@ -40,6 +43,9 @@ app.use('/api/brews', authMiddleware, brewsRoutes);
 app.use('/api/ingredients', authMiddleware, ingredientsRoutes);
 app.use('/api/curiosities', authMiddleware, curiositiesRoutes);
 app.use('/api/photos', authMiddleware, photosRoutes);
+app.use('/api/search', authMiddleware, searchRoutes);
+app.use('/api/admin', authMiddleware, adminRoutes);
+app.use('/api', authMiddleware, subresourcesRoutes);
 
 // Error handler
 app.use(errorHandler);
