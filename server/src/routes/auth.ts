@@ -121,4 +121,32 @@ router.get('/me', authMiddleware, (req: Request, res: Response) => {
   res.json(req.user);
 });
 
+// Update profile
+router.put('/me', authMiddleware, validate(z.object({
+  name: z.string().min(1).max(100),
+})), (req: Request, res: Response) => {
+  const db = getDb();
+  db.prepare('UPDATE users SET name = ? WHERE id = ?').run(req.body.name, req.user!.id);
+  const user = db.prepare('SELECT id, email, name, role, created_at FROM users WHERE id = ?').get(req.user!.id);
+  res.json(user);
+});
+
+// Change password
+router.post('/change-password', authMiddleware, validate(z.object({
+  current_password: z.string().min(1),
+  new_password: z.string().min(8),
+})), async (req: Request, res: Response) => {
+  const db = getDb();
+  const user = db.prepare('SELECT password_hash FROM users WHERE id = ?')
+    .get(req.user!.id) as { password_hash: string } | undefined;
+  if (!user) { res.status(404).json({ error: 'User not found' }); return; }
+
+  const valid = await verifyPassword(req.body.current_password, user.password_hash);
+  if (!valid) { res.status(401).json({ error: 'Current password is incorrect' }); return; }
+
+  const newHash = await hashPassword(req.body.new_password);
+  db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(newHash, req.user!.id);
+  res.json({ message: 'Password changed' });
+});
+
 export default router;

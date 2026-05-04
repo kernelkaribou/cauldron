@@ -3,6 +3,7 @@ import { Link, NavLink, Outlet } from 'react-router-dom';
 import { useAuthStore } from '@/lib/auth';
 import { NAV_ITEMS } from '@/lib/theme';
 import { MobileNav } from './MobileNav';
+import { GlobalSearch } from '@/components/shared/GlobalSearch';
 
 export function AppLayout() {
   const { user, logout } = useAuthStore();
@@ -40,6 +41,9 @@ export function AppLayout() {
 
         {/* Right section */}
         <div className="ml-auto flex items-center gap-3">
+          <div className="hidden md:block">
+            <GlobalSearch />
+          </div>
           <Link to="/settings/profile" className="text-sm text-text-secondary hover:text-text-primary">
             {user?.name}
           </Link>

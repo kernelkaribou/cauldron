@@ -27,6 +27,8 @@ import { CuriosityList } from '@/pages/curiosities/CuriosityList';
 import { CuriosityNew } from '@/pages/curiosities/CuriosityNew';
 import { CuriosityDetail } from '@/pages/curiosities/CuriosityDetail';
 import { CuriosityEdit } from '@/pages/curiosities/CuriosityEdit';
+import { ProfileSettings } from '@/pages/ProfileSettings';
+import { AdminSettings } from '@/pages/AdminSettings';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -66,8 +68,8 @@ function App() {
                 <Route path="/curiosities/new" element={<CuriosityNew />} />
                 <Route path="/curiosities/:id" element={<CuriosityDetail />} />
                 <Route path="/curiosities/:id/edit" element={<CuriosityEdit />} />
-                <Route path="/settings/profile" element={<Dashboard />} />
-                <Route path="/settings/admin" element={<Dashboard />} />
+                <Route path="/settings/profile" element={<ProfileSettings />} />
+                <Route path="/settings/admin" element={<AdminSettings />} />
               </Route>
             </Route>
             <Route path="/login" element={<Login />} />
