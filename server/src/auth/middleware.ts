@@ -54,8 +54,9 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction):
   if (token) {
     try {
       const payload = verifyToken(token);
-      const user = db.prepare('SELECT id, email, name, role, avatar FROM users WHERE id = ?').get(payload.sub) as AuthUser | undefined;
-      if (user) {
+      const user = db.prepare('SELECT id, email, name, role, avatar, token_version FROM users WHERE id = ?')
+        .get(payload.sub) as (AuthUser & { token_version: number }) | undefined;
+      if (user && user.token_version === (payload.tv ?? 0)) {
         req.user = user;
         return next();
       }

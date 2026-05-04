@@ -3,7 +3,7 @@ import { z } from 'zod';
 import rateLimit from 'express-rate-limit';
 import { getDb } from '../db.js';
 import { hashPassword, verifyPassword } from '../auth/passwords.js';
-import { signToken } from '../auth/tokens.js';
+import { signToken, tokenExpiryMs } from '../auth/tokens.js';
 import { authMiddleware } from '../auth/middleware.js';
 import { validate } from '../middleware/validate.js';
 
@@ -12,6 +12,12 @@ const router = Router();
 const authLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 5,
+  message: { error: 'Too many attempts, please try again later' },
+});
+
+const setupLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 3,
   message: { error: 'Too many attempts, please try again later' },
 });
 
@@ -26,6 +32,24 @@ const loginSchema = z.object({
   password: z.string().min(1, 'Password is required'),
 });
 
+function cookieOptions(maxAge?: number) {
+  return {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict' as const,
+    path: '/',
+    ...(maxAge !== undefined ? { maxAge } : {}),
+  };
+}
+
+function setCookie(res: Response, token: string, maxAge: number) {
+  res.cookie('cauldron_token', token, cookieOptions(maxAge));
+}
+
+function clearAuthCookie(res: Response) {
+  res.clearCookie('cauldron_token', cookieOptions());
+}
+
 // Check if setup is needed (public)
 router.get('/setup-status', (_req: Request, res: Response) => {
   const db = getDb();
@@ -34,7 +58,7 @@ router.get('/setup-status', (_req: Request, res: Response) => {
 });
 
 // Create first admin user (public, self-locking)
-router.post('/setup', validate(setupSchema), async (req: Request, res: Response) => {
+router.post('/setup', setupLimiter, validate(setupSchema), async (req: Request, res: Response) => {
   const db = getDb();
   const { email, password, name } = req.body;
 
@@ -83,8 +107,8 @@ router.post('/login', authLimiter, validate(loginSchema), async (req: Request, r
   const db = getDb();
   const { email, password } = req.body;
 
-  const user = db.prepare('SELECT id, email, password_hash, name, role FROM users WHERE email = ?')
-    .get(email) as { id: number; email: string; password_hash: string; name: string; role: string } | undefined;
+  const user = db.prepare('SELECT id, email, password_hash, name, role, token_version FROM users WHERE email = ?')
+    .get(email) as { id: number; email: string; password_hash: string; name: string; role: string; token_version: number } | undefined;
 
   if (!user) {
     res.status(401).json({ error: 'Invalid email or password' });
@@ -97,22 +121,16 @@ router.post('/login', authLimiter, validate(loginSchema), async (req: Request, r
     return;
   }
 
-  const token = signToken({ sub: user.id, email: user.email, role: user.role });
+  const token = signToken({ sub: user.id, email: user.email, role: user.role, tv: user.token_version });
+  const maxAge = tokenExpiryMs();
 
-  res.cookie('cauldron_token', token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    path: '/',
-  });
-
+  setCookie(res, token, maxAge);
   res.json({ message: 'Logged in' });
 });
 
 // Logout
 router.post('/logout', (_req: Request, res: Response) => {
-  res.clearCookie('cauldron_token', { path: '/' });
+  clearAuthCookie(res);
   res.json({ message: 'Logged out' });
 });
 
@@ -132,20 +150,28 @@ router.put('/me', authMiddleware, validate(z.object({
 });
 
 // Change password
-router.post('/change-password', authMiddleware, validate(z.object({
+router.post('/change-password', authMiddleware, authLimiter, validate(z.object({
   current_password: z.string().min(1),
   new_password: z.string().min(8),
 })), async (req: Request, res: Response) => {
   const db = getDb();
-  const user = db.prepare('SELECT password_hash FROM users WHERE id = ?')
-    .get(req.user!.id) as { password_hash: string } | undefined;
+  const user = db.prepare('SELECT password_hash, token_version FROM users WHERE id = ?')
+    .get(req.user!.id) as { password_hash: string; token_version: number } | undefined;
   if (!user) { res.status(404).json({ error: 'User not found' }); return; }
 
   const valid = await verifyPassword(req.body.current_password, user.password_hash);
   if (!valid) { res.status(401).json({ error: 'Current password is incorrect' }); return; }
 
   const newHash = await hashPassword(req.body.new_password);
-  db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(newHash, req.user!.id);
+  const newVersion = user.token_version + 1;
+  db.prepare('UPDATE users SET password_hash = ?, token_version = ? WHERE id = ?')
+    .run(newHash, newVersion, req.user!.id);
+
+  // Issue new token with updated version, invalidating all old sessions
+  const token = signToken({ sub: req.user!.id, email: req.user!.email, role: req.user!.role, tv: newVersion });
+  const maxAge = tokenExpiryMs();
+  setCookie(res, token, maxAge);
+
   res.json({ message: 'Password changed' });
 });
 

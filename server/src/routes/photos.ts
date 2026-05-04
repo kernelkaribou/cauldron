@@ -121,6 +121,15 @@ router.post('/', upload.single('image'), async (req: Request, res: Response) => 
     return;
   }
 
+  // Validate the image is processable before committing to DB
+  try {
+    await sharp(req.file.path).metadata();
+  } catch {
+    cleanupUpload(req.file.path);
+    res.status(400).json({ error: 'Invalid or corrupt image file' });
+    return;
+  }
+
   const result = db.prepare(
     'INSERT INTO photos (owner_id, entity_type, entity_id, image, caption) VALUES (?, ?, ?, ?, ?)'
   ).run(owner, entity_type, entity_id, '', caption ?? null);
@@ -133,7 +142,16 @@ router.post('/', upload.single('image'), async (req: Request, res: Response) => 
   fs.mkdirSync(destDir, { recursive: true });
   fs.renameSync(req.file.path, destPath);
 
-  await generateThumbnails(destPath, destDir);
+  try {
+    await generateThumbnails(destPath, destDir);
+  } catch {
+    // Thumbnails failed — clean up and remove DB entry
+    db.prepare('DELETE FROM photos WHERE id = ?').run(photoId);
+    removePhotoFiles(photoId);
+    res.status(400).json({ error: 'Failed to process image' });
+    return;
+  }
+
   db.prepare('UPDATE photos SET image = ? WHERE id = ?').run(filename, photoId);
 
   const photo = db.prepare('SELECT * FROM photos WHERE id = ? AND owner_id = ?').get(photoId, owner);
@@ -178,9 +196,46 @@ router.delete('/:id', (req: Request, res: Response) => {
 });
 
 router.get('/file/:photoId/:filename', (req: Request, res: Response) => {
+  const db = getDb();
+  const owner = ownerId(req);
   const photoId = String(req.params.photoId);
   const filename = String(req.params.filename);
-  const filePath = path.join(dataDir(), 'uploads', 'photos', photoId, filename);
+
+  // Validate photoId is numeric
+  if (!/^\d+$/.test(photoId)) {
+    res.status(400).json({ error: 'Invalid photo ID' });
+    return;
+  }
+
+  // Verify ownership
+  const photo = db.prepare('SELECT id, image FROM photos WHERE id = ? AND owner_id = ?')
+    .get(photoId, owner) as { id: number; image: string } | undefined;
+  if (!photo) {
+    res.status(404).json({ error: 'Photo not found' });
+    return;
+  }
+
+  // Whitelist allowed filenames (original + generated thumbnails)
+  const allowedFilenames = new Set([
+    photo.image,
+    'thumb_200.webp',
+    'thumb_400.webp',
+    'thumb_800.webp',
+  ]);
+  if (!allowedFilenames.has(filename)) {
+    res.status(400).json({ error: 'Invalid filename' });
+    return;
+  }
+
+  const filePath = path.resolve(dataDir(), 'uploads', 'photos', String(photo.id), filename);
+  const expectedBase = path.resolve(dataDir(), 'uploads', 'photos', String(photo.id));
+
+  // Path traversal guard
+  if (!filePath.startsWith(expectedBase + path.sep) && filePath !== expectedBase) {
+    res.status(400).json({ error: 'Invalid path' });
+    return;
+  }
+
   if (!fs.existsSync(filePath)) {
     res.status(404).json({ error: 'File not found' });
     return;

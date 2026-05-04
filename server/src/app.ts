@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
 import { authMiddleware, requireAdmin } from './auth/middleware.js';
 import { errorHandler } from './middleware/errors.js';
 import authRoutes from './routes/auth.js';
@@ -17,6 +18,11 @@ import adminRoutes from './routes/admin.js';
 import subresourcesRoutes from './routes/subresources.js';
 
 export const app = express();
+
+app.use(helmet({
+  contentSecurityPolicy: false, // SPA handles its own CSP needs
+  crossOriginEmbedderPolicy: false, // allow loading images
+}));
 
 app.use(cors({
   origin: process.env.NODE_ENV === 'development' ? 'http://localhost:5173' : false,
