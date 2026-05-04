@@ -53,9 +53,12 @@ export function CraftDetail() {
   async function handleStartProject() {
     if (!craft) return;
 
+    const title = prompt('Project title:', `${craft.title} - Project`);
+    if (!title) return;
+
     const project = await createProject.mutateAsync({
       craft_id: craftId,
-      title: `${craft.title} - Project`,
+      title,
     });
     navigate(`/projects/${project.id}`);
   }
