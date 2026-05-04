@@ -1,6 +1,6 @@
-# 🧪 Cauldron
+# Cauldron
 
-A self-hosted hobbyist toolkit for tracking projects, crafts, techniques, and materials. Built with Express, React, and SQLite — designed to run anywhere Docker does.
+A self-hosted hobbyist toolkit for tracking projects, crafts, techniques, and materials.
 
 ## Features
 
@@ -130,3 +130,7 @@ cd frontend && npm install && npm run dev
 ## License
 
 MIT
+
+## Disclaimer
+
+Primarily made by AI using Copilot. This was just an idea for local hobby management and writing this app is not one of them.
