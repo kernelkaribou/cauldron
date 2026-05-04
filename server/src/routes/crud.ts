@@ -1,0 +1,222 @@
+import { Router, Request, Response } from 'express';
+import { ZodSchema } from 'zod';
+import { getDb } from '../db.js';
+import { ownerId } from '../middleware/owner.js';
+import { validate } from '../middleware/validate.js';
+
+interface CrudOptions {
+  table: string;
+  searchColumns?: string[];
+  filterColumns?: string[];
+  sortColumns?: string[];
+  defaultSort?: string;
+  expandConfig?: Record<string, ExpandDef>;
+  createSchema: ZodSchema;
+  updateSchema: ZodSchema;
+}
+
+interface ExpandDef {
+  type: 'one' | 'many';
+  query: string;
+  key: string;
+}
+
+function buildListQuery(
+  table: string,
+  req: Request,
+  options: CrudOptions
+): { sql: string; countSql: string; params: any[] } {
+  const owner = ownerId(req);
+  const conditions: string[] = [`${table}.owner_id = ?`];
+  const params: any[] = [owner];
+
+  // Filters
+  if (options.filterColumns) {
+    for (const col of options.filterColumns) {
+      const val = req.query[col];
+      if (val !== undefined) {
+        conditions.push(`${table}.${col} = ?`);
+        params.push(val);
+      }
+    }
+  }
+
+  // Search
+  const search = req.query.search as string | undefined;
+  if (search && options.searchColumns?.length) {
+    const searchConds = options.searchColumns.map(c => `${table}.${c} LIKE ?`);
+    conditions.push(`(${searchConds.join(' OR ')})`);
+    for (let i = 0; i < options.searchColumns.length; i++) {
+      params.push(`%${search}%`);
+    }
+  }
+
+  // Tag filter via junction table
+  const tagId = req.query.tag_id;
+  if (tagId) {
+    const junction = `${table.replace(/s$/, '')}_tags`;
+    const fk = `${table.replace(/s$/, '')}_id`;
+    conditions.push(`${table}.id IN (SELECT ${fk} FROM ${junction} WHERE tag_id = ?)`);
+    params.push(tagId);
+  }
+
+  const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+  // Sort
+  let orderBy = `${table}.created_at DESC`;
+  const sortParam = req.query.sort as string | undefined;
+  if (sortParam && options.sortColumns) {
+    const desc = sortParam.startsWith('-');
+    const col = desc ? sortParam.slice(1) : sortParam;
+    if (options.sortColumns.includes(col)) {
+      orderBy = `${table}.${col} ${desc ? 'DESC' : 'ASC'}`;
+    }
+  } else if (options.defaultSort) {
+    orderBy = options.defaultSort;
+  }
+
+  // Pagination
+  const page = Math.max(1, parseInt(req.query.page as string) || 1);
+  const perPage = Math.min(100, Math.max(1, parseInt(req.query.per_page as string) || 24));
+  const offset = (page - 1) * perPage;
+
+  const sql = `SELECT ${table}.* FROM ${table} ${where} ORDER BY ${orderBy} LIMIT ? OFFSET ?`;
+  const countSql = `SELECT COUNT(*) as total FROM ${table} ${where}`;
+
+  return { sql, countSql, params };
+}
+
+function applyExpansions(items: any[], req: Request, options: CrudOptions): void {
+  if (!options.expandConfig) return;
+  const expandParam = req.query.expand as string | undefined;
+  if (!expandParam) return;
+
+  const db = getDb();
+  const requested = expandParam.split(',').map(s => s.trim());
+
+  for (const item of items) {
+    for (const key of requested) {
+      const def = options.expandConfig[key];
+      if (!def) continue;
+
+      if (def.type === 'one') {
+        item[key] = db.prepare(def.query).get(item[def.key]) || null;
+      } else {
+        item[key] = db.prepare(def.query).all(item.id);
+      }
+    }
+  }
+}
+
+export function createCrudRouter(options: CrudOptions): Router {
+  const router = Router();
+  const { table } = options;
+
+  // List
+  router.get('/', (req: Request, res: Response) => {
+    const db = getDb();
+    const { sql, countSql, params } = buildListQuery(table, req, options);
+
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const perPage = Math.min(100, Math.max(1, parseInt(req.query.per_page as string) || 24));
+
+    const countParams = [...params];
+    const items = db.prepare(sql).all(...params, perPage, page > 0 ? (page - 1) * perPage : 0) as any[];
+    const { total } = db.prepare(countSql).get(...countParams) as { total: number };
+
+    applyExpansions(items, req, options);
+
+    res.json({
+      items,
+      page,
+      per_page: perPage,
+      total_items: total,
+      total_pages: Math.ceil(total / perPage),
+    });
+  });
+
+  // Get one
+  router.get('/:id', (req: Request, res: Response) => {
+    const db = getDb();
+    const owner = ownerId(req);
+    const item = db.prepare(`SELECT * FROM ${table} WHERE id = ? AND owner_id = ?`)
+      .get(req.params.id, owner) as any;
+
+    if (!item) {
+      res.status(404).json({ error: 'Not found' });
+      return;
+    }
+
+    applyExpansions([item], req, options);
+    res.json(item);
+  });
+
+  // Create
+  router.post('/', validate(options.createSchema), (req: Request, res: Response) => {
+    const db = getDb();
+    const owner = ownerId(req);
+    const data = req.body;
+
+    const columns = Object.keys(data);
+    columns.push('owner_id');
+    const values = Object.values(data);
+    values.push(owner);
+
+    const placeholders = columns.map(() => '?').join(', ');
+    const result = db.prepare(
+      `INSERT INTO ${table} (${columns.join(', ')}) VALUES (${placeholders})`
+    ).run(...values);
+
+    const item = db.prepare(`SELECT * FROM ${table} WHERE id = ?`).get(result.lastInsertRowid);
+    res.status(201).json(item);
+  });
+
+  // Update
+  router.put('/:id', validate(options.updateSchema), (req: Request, res: Response) => {
+    const db = getDb();
+    const owner = ownerId(req);
+    const data = req.body;
+
+    // Verify ownership
+    const existing = db.prepare(`SELECT id FROM ${table} WHERE id = ? AND owner_id = ?`)
+      .get(req.params.id, owner);
+    if (!existing) {
+      res.status(404).json({ error: 'Not found' });
+      return;
+    }
+
+    const columns = Object.keys(data);
+    if (columns.length === 0) {
+      res.status(400).json({ error: 'No fields to update' });
+      return;
+    }
+
+    columns.push('updated_at');
+    const setClauses = columns.map(c => `${c} = ?`).join(', ');
+    const values = [...Object.values(data), new Date().toISOString()];
+
+    db.prepare(`UPDATE ${table} SET ${setClauses} WHERE id = ? AND owner_id = ?`)
+      .run(...values, req.params.id, owner);
+
+    const item = db.prepare(`SELECT * FROM ${table} WHERE id = ?`).get(req.params.id);
+    res.json(item);
+  });
+
+  // Delete
+  router.delete('/:id', (req: Request, res: Response) => {
+    const db = getDb();
+    const owner = ownerId(req);
+
+    const result = db.prepare(`DELETE FROM ${table} WHERE id = ? AND owner_id = ?`)
+      .run(req.params.id, owner);
+
+    if (result.changes === 0) {
+      res.status(404).json({ error: 'Not found' });
+      return;
+    }
+
+    res.status(204).send();
+  });
+
+  return router;
+}

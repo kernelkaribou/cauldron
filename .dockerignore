@@ -1,0 +1,11 @@
+tmp/
+.venv/
+.git/
+.github/
+node_modules/
+server/node_modules/
+frontend/node_modules/
+data/
+*.md
+.env
+.env.local
