@@ -33,20 +33,20 @@ function LogPhotos({ logId }: { logId: number }) {
   }
 
   return (
-    <div className="mt-2">
+    <div className="mt-2 pt-2 border-t border-border/50">
       {data?.items && data.items.length > 0 && (
-        <div className="flex flex-wrap gap-1 mb-1">
+        <div className="flex flex-wrap gap-1.5 mb-2">
           {data.items.map((photo: Photo) => (
-            <div key={photo.id} className="relative group w-12 h-12">
+            <div key={photo.id} className="relative group w-16 h-16">
               <img src={`/api/photos/file/${photo.id}/thumb_200.webp`} alt="" className="w-full h-full object-cover rounded" />
               <button onClick={() => { if (confirm('Delete this photo?')) deletePhoto.mutate(photo.id); }} className="absolute -top-1 -right-1 w-4 h-4 bg-black/60 text-white rounded-full text-[10px] opacity-0 group-hover:opacity-100 flex items-center justify-center">×</button>
             </div>
           ))}
         </div>
       )}
-      <label className="inline-flex items-center gap-1 text-[10px] text-text-muted hover:text-accent-light cursor-pointer">
+      <label className="inline-flex items-center gap-1.5 px-2 py-1 text-xs text-text-muted hover:text-accent-light cursor-pointer rounded border border-border/50 hover:border-accent transition-colors">
         <input ref={fileRef} type="file" accept="image/*" onChange={handleUpload} className="hidden" />
-        📷 Add photo
+        📷 Attach Photo
       </label>
     </div>
   );
