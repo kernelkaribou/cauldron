@@ -32,10 +32,9 @@ export function useDeleteLog() {
 
 // --- Tasks ---
 export function useTasks(params: { project_id: number }) {
-  const qs = new URLSearchParams({ project_id: String(params.project_id) });
   return useQuery({
     queryKey: ['tasks', params],
-    queryFn: () => apiFetch<{ items: Task[] }>(`/tasks?${qs}`),
+    queryFn: () => apiFetch<{ items: Task[] }>(`/tasks?project_id=${params.project_id}`),
     enabled: !!params.project_id,
   });
 }
@@ -129,7 +128,7 @@ export function useDeleteTechniqueResource() {
   });
 }
 
-// --- Craft/Project Techniques ---
+// --- Entity Techniques/Materials (craft or project) ---
 export function useEntityTechniques(entityType: 'crafts' | 'projects', entityId: number) {
   return useQuery({
     queryKey: [entityType, entityId, 'techniques'],
@@ -143,9 +142,7 @@ export function useAddEntityTechnique() {
   return useMutation({
     mutationFn: ({ entityType, entityId, data }: { entityType: 'crafts' | 'projects'; entityId: number; data: Record<string, unknown> }) =>
       apiFetch(`/${entityType}/${entityId}/techniques`, { method: 'POST', body: JSON.stringify(data) }),
-    onSuccess: (_, { entityType, entityId }) => {
-      qc.invalidateQueries({ queryKey: [entityType, entityId] });
-    },
+    onSuccess: (_, { entityType, entityId }) => qc.invalidateQueries({ queryKey: [entityType, entityId] }),
   });
 }
 
@@ -154,13 +151,10 @@ export function useRemoveEntityTechnique() {
   return useMutation({
     mutationFn: ({ entityType, entityId, techniqueId }: { entityType: 'crafts' | 'projects'; entityId: number; techniqueId: number }) =>
       apiFetch(`/${entityType}/${entityId}/techniques/${techniqueId}`, { method: 'DELETE' }),
-    onSuccess: (_, { entityType, entityId }) => {
-      qc.invalidateQueries({ queryKey: [entityType, entityId] });
-    },
+    onSuccess: (_, { entityType, entityId }) => qc.invalidateQueries({ queryKey: [entityType, entityId] }),
   });
 }
 
-// --- Craft/Project Materials ---
 export function useEntityMaterials(entityType: 'crafts' | 'projects', entityId: number) {
   return useQuery({
     queryKey: [entityType, entityId, 'materials'],
@@ -174,9 +168,7 @@ export function useAddEntityMaterial() {
   return useMutation({
     mutationFn: ({ entityType, entityId, data }: { entityType: 'crafts' | 'projects'; entityId: number; data: Record<string, unknown> }) =>
       apiFetch(`/${entityType}/${entityId}/materials`, { method: 'POST', body: JSON.stringify(data) }),
-    onSuccess: (_, { entityType, entityId }) => {
-      qc.invalidateQueries({ queryKey: [entityType, entityId] });
-    },
+    onSuccess: (_, { entityType, entityId }) => qc.invalidateQueries({ queryKey: [entityType, entityId] }),
   });
 }
 
@@ -185,9 +177,7 @@ export function useRemoveEntityMaterial() {
   return useMutation({
     mutationFn: ({ entityType, entityId, materialId }: { entityType: 'crafts' | 'projects'; entityId: number; materialId: number }) =>
       apiFetch(`/${entityType}/${entityId}/materials/${materialId}`, { method: 'DELETE' }),
-    onSuccess: (_, { entityType, entityId }) => {
-      qc.invalidateQueries({ queryKey: [entityType, entityId] });
-    },
+    onSuccess: (_, { entityType, entityId }) => qc.invalidateQueries({ queryKey: [entityType, entityId] }),
   });
 }
 

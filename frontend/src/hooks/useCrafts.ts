@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api';
-import type { Craft, CraftMaterial, CraftTechnique, PaginatedResponse } from '@/lib/types';
+import { createEntityHooks } from './createEntityHooks';
+import type { Craft, CraftMaterial, CraftTechnique } from '@/lib/types';
 
 export interface CraftTechniqueInput {
   mode: 'existing';
@@ -28,18 +29,17 @@ export interface CraftPayload {
 
 type CraftExpand = 'category' | 'tags' | 'techniques' | 'materials';
 
-export function useCrafts(page = 1, filters?: { category_id?: number; search?: string; tag_id?: number }) {
-  const params = new URLSearchParams({ page: String(page), expand: 'category,tags' });
-  if (filters?.category_id) params.set('category_id', String(filters.category_id));
-  if (filters?.search) params.set('search', filters.search);
-  if (filters?.tag_id) params.set('tag_id', String(filters.tag_id));
+const baseHooks = createEntityHooks<Craft>({
+  entityKey: 'crafts',
+  basePath: '/crafts',
+  listExpand: 'category,tags',
+  detailExpand: 'category,tags',
+});
 
-  return useQuery({
-    queryKey: ['crafts', page, filters],
-    queryFn: () => apiFetch<PaginatedResponse<Craft>>(`/crafts?${params}`),
-  });
-}
+export const useCrafts = baseHooks.useList;
+export const useDeleteCraft = baseHooks.useDelete;
 
+// Custom detail hook that also fetches techniques/materials from sub-routes
 async function fetchCraftRelations(craftId: number, expand: CraftExpand[]) {
   const requests: Array<Promise<{ key: 'techniques' | 'materials'; items: CraftTechnique[] | CraftMaterial[] }>> = [];
 
@@ -72,12 +72,10 @@ async function fetchCraftByExpand(id: number, expand: CraftExpand[]) {
 
 function getBaseCraftData(data: CraftPayload) {
   const base: Record<string, unknown> = {};
-
   if (data.title !== undefined) base.title = data.title;
   if (data.description !== undefined) base.description = data.description;
   if (data.category_id !== undefined) base.category_id = data.category_id;
   if (data.duration_minutes !== undefined) base.duration_minutes = data.duration_minutes;
-
   return base;
 }
 
@@ -133,13 +131,5 @@ export function useUpdateCraft() {
       qc.invalidateQueries({ queryKey: ['crafts'] });
       qc.invalidateQueries({ queryKey: ['crafts', id] });
     },
-  });
-}
-
-export function useDeleteCraft() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (id: number) => apiFetch(`/crafts/${id}`, { method: 'DELETE' }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['crafts'] }),
   });
 }
