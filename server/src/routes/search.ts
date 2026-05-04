@@ -25,8 +25,8 @@ router.get('/', (req: Request, res: Response) => {
   ).all(owner, pattern);
 
   const projects = db.prepare(
-    'SELECT id, title, \'project\' as type FROM projects WHERE owner_id = ? AND title LIKE ? LIMIT 5'
-  ).all(owner, pattern);
+    'SELECT id, title, \'project\' as type FROM projects WHERE owner_id = ? AND (title LIKE ? OR description LIKE ?) LIMIT 5'
+  ).all(owner, pattern, pattern);
 
   const materials = db.prepare(
     'SELECT id, name as title, \'material\' as type FROM materials WHERE owner_id = ? AND name LIKE ? LIMIT 5'

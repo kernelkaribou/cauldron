@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { createCrudRouter } from './crud.js';
+import { deleteNotesForEntity } from './entity-utils.js';
 
 const createSchema = z.object({
   title: z.string().min(1).max(200),
@@ -35,6 +36,10 @@ const router = createCrudRouter({
       query: "SELECT t.id, t.name FROM tags t JOIN entity_tags et ON t.id = et.tag_id WHERE et.entity_type = 'curiosity' AND et.entity_id = ?",
       key: 'id',
     },
+  },
+  beforeDelete: (db, id, ownerId) => {
+    deleteNotesForEntity(db, ownerId, 'curiosity', id);
+    return null;
   },
 });
 

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { getDb } from '../db.js';
 import { ownerId } from '../middleware/owner.js';
 import { validate } from '../middleware/validate.js';
+import { deleteNotesForEntity, deletePhotosForEntity } from './entity-utils.js';
 
 const router = Router();
 const sortColumns = new Set(['title', 'created_at', 'updated_at']);
@@ -413,12 +414,22 @@ router.put('/:id', validate(updateSchema), (req: Request, res: Response) => {
 router.delete('/:id', (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const result = db.prepare('DELETE FROM crafts WHERE id = ? AND owner_id = ?').run(req.params.id, owner);
+  const craftId = Number(req.params.id);
+  const existing = db.prepare('SELECT id FROM crafts WHERE id = ? AND owner_id = ?').get(craftId, owner);
 
-  if (result.changes === 0) {
+  if (!existing) {
     res.status(404).json({ error: 'Not found' });
     return;
   }
+
+  const logs = db.prepare('SELECT id FROM logs WHERE owner_id = ? AND craft_id = ?').all(owner, craftId) as Array<{ id: number }>;
+  for (const log of logs) {
+    deletePhotosForEntity(db, owner, 'log', log.id);
+  }
+
+  deletePhotosForEntity(db, owner, 'craft', craftId);
+  deleteNotesForEntity(db, owner, 'craft', craftId);
+  db.prepare('DELETE FROM crafts WHERE id = ? AND owner_id = ?').run(craftId, owner);
 
   res.status(204).send();
 });

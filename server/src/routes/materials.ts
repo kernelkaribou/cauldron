@@ -1,12 +1,13 @@
 import { z } from 'zod';
 import { createCrudRouter } from './crud.js';
+import { deleteNotesForEntity, deletePhotosForEntity } from './entity-utils.js';
 
 const createSchema = z.object({
   name: z.string().min(1).max(200),
   description: z.string().optional(),
   unit: z.string().max(50).optional(),
   reusable: z.number().int().min(0).max(1).optional(),
-  preferred_links: z.string().optional(),
+  price: z.number().min(0).optional(),
 });
 
 const updateSchema = z.object({
@@ -14,14 +15,14 @@ const updateSchema = z.object({
   description: z.string().optional(),
   unit: z.string().max(50).optional(),
   reusable: z.number().int().min(0).max(1).optional(),
-  preferred_links: z.string().optional(),
+  price: z.number().min(0).optional(),
 });
 
 const router = createCrudRouter({
   table: 'materials',
   searchColumns: ['name', 'description'],
   filterColumns: ['reusable'],
-  sortColumns: ['name', 'created_at', 'updated_at'],
+  sortColumns: ['name', 'created_at', 'updated_at', 'price'],
   createSchema,
   updateSchema,
   expandConfig: {
@@ -31,7 +32,7 @@ const router = createCrudRouter({
       key: 'id',
     },
   },
-  beforeDelete: (db, id) => {
+  beforeDelete: (db, id, ownerId) => {
     const craftsWithOnlyThis = db.prepare(`
       SELECT cm.craft_id
       FROM craft_materials cm
@@ -43,6 +44,8 @@ const router = createCrudRouter({
       return 'Cannot delete: this material is the only one on a craft';
     }
 
+    deletePhotosForEntity(db, ownerId, 'material', id);
+    deleteNotesForEntity(db, ownerId, 'material', id);
     return null;
   },
 });

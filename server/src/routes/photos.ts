@@ -3,12 +3,20 @@ import multer from 'multer';
 import sharp from 'sharp';
 import path from 'path';
 import fs from 'fs';
+import { z } from 'zod';
 import { getDb } from '../db.js';
 import { ownerId } from '../middleware/owner.js';
+import {
+  dataDir,
+  getOwnedEntity,
+  getOwnedEntityNotFoundMessage,
+  photoEntityTypes,
+  removePhotoFiles,
+  type PhotoEntityType,
+} from './entity-utils.js';
 
 const router = Router();
-
-const dataDir = () => process.env.DATA_DIR || '/data';
+const photoEntitySchema = z.enum(photoEntityTypes);
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {
@@ -47,27 +55,42 @@ async function generateThumbnails(sourcePath: string, destDir: string): Promise<
   }
 }
 
-// List photos (filtered by craft_id or project_id)
+function cleanupUpload(filePath: string): void {
+  if (fs.existsSync(filePath)) {
+    fs.unlinkSync(filePath);
+  }
+}
+
 router.get('/', (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const { craft_id, project_id } = req.query;
+  const { entity_type, entity_id } = req.query;
+
+  if ((entity_type && !entity_id) || (!entity_type && entity_id)) {
+    res.status(400).json({ error: 'entity_type and entity_id must be provided together' });
+    return;
+  }
 
   let sql = 'SELECT * FROM photos WHERE owner_id = ?';
   const params: any[] = [owner];
 
-  if (craft_id) {
-    sql += ' AND craft_id = ?';
-    params.push(craft_id);
-  } else if (project_id) {
-    sql += ' AND project_id = ?';
-    params.push(project_id);
+  if (entity_type && entity_id) {
+    const parsed = z.object({
+      entity_type: photoEntitySchema,
+      entity_id: z.coerce.number().int().positive(),
+    }).safeParse({ entity_type, entity_id });
+
+    if (!parsed.success) {
+      res.status(400).json({ error: 'Invalid photo filters' });
+      return;
+    }
+
+    sql += ' AND entity_type = ? AND entity_id = ?';
+    params.push(parsed.data.entity_type, parsed.data.entity_id);
   }
 
-  sql += ' ORDER BY sort_order ASC, created_at DESC';
-
-  const items = db.prepare(sql).all(...params);
-  res.json({ items });
+  sql += ' ORDER BY is_cover DESC, sort_order ASC, created_at DESC';
+  res.json({ items: db.prepare(sql).all(...params) });
 });
 
 router.post('/', upload.single('image'), async (req: Request, res: Response) => {
@@ -76,40 +99,33 @@ router.post('/', upload.single('image'), async (req: Request, res: Response) => 
     return;
   }
 
-  const db = getDb();
-  const owner = ownerId(req);
-  const { craft_id, project_id, caption } = req.body;
+  const parsed = z.object({
+    entity_type: photoEntitySchema,
+    entity_id: z.coerce.number().int().positive(),
+    caption: z.string().optional(),
+  }).safeParse(req.body);
 
-  if (!craft_id && !project_id) {
-    fs.unlinkSync(req.file.path);
-    res.status(400).json({ error: 'craft_id or project_id is required' });
+  if (!parsed.success) {
+    cleanupUpload(req.file.path);
+    res.status(400).json({ error: 'Validation failed', details: parsed.error.flatten().fieldErrors });
     return;
   }
 
-  if (craft_id) {
-    const craft = db.prepare('SELECT id FROM crafts WHERE id = ? AND owner_id = ?').get(craft_id, owner);
-    if (!craft) {
-      fs.unlinkSync(req.file.path);
-      res.status(404).json({ error: 'Craft not found' });
-      return;
-    }
-  }
+  const db = getDb();
+  const owner = ownerId(req);
+  const { entity_type, entity_id, caption } = parsed.data;
 
-  if (project_id) {
-    const project = db.prepare('SELECT id FROM projects WHERE id = ? AND owner_id = ?').get(project_id, owner);
-    if (!project) {
-      fs.unlinkSync(req.file.path);
-      res.status(404).json({ error: 'Project not found' });
-      return;
-    }
+  if (!getOwnedEntity(db, entity_type, entity_id, owner)) {
+    cleanupUpload(req.file.path);
+    res.status(404).json({ error: getOwnedEntityNotFoundMessage(entity_type) });
+    return;
   }
 
   const result = db.prepare(
-    'INSERT INTO photos (owner_id, craft_id, project_id, image, caption) VALUES (?, ?, ?, ?, ?)'
-  ).run(owner, craft_id || null, project_id || null, '', caption || null);
+    'INSERT INTO photos (owner_id, entity_type, entity_id, image, caption) VALUES (?, ?, ?, ?, ?)'
+  ).run(owner, entity_type, entity_id, '', caption ?? null);
 
-  const photoId = result.lastInsertRowid;
-
+  const photoId = Number(result.lastInsertRowid);
   const destDir = path.join(dataDir(), 'uploads', 'photos', String(photoId));
   const ext = path.extname(req.file.originalname);
   const filename = `original${ext}`;
@@ -118,31 +134,46 @@ router.post('/', upload.single('image'), async (req: Request, res: Response) => 
   fs.renameSync(req.file.path, destPath);
 
   await generateThumbnails(destPath, destDir);
-
   db.prepare('UPDATE photos SET image = ? WHERE id = ?').run(filename, photoId);
 
-  const photo = db.prepare('SELECT * FROM photos WHERE id = ?').get(photoId);
+  const photo = db.prepare('SELECT * FROM photos WHERE id = ? AND owner_id = ?').get(photoId, owner);
   res.status(201).json(photo);
 });
 
-router.delete('/:id', (req: Request, res: Response) => {
+router.put('/:id/cover', (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-
   const photo = db.prepare('SELECT * FROM photos WHERE id = ? AND owner_id = ?')
-    .get(req.params.id, owner) as any;
+    .get(req.params.id, owner) as { id: number; entity_type: PhotoEntityType; entity_id: number } | undefined;
 
   if (!photo) {
     res.status(404).json({ error: 'Not found' });
     return;
   }
 
-  const photoDir = path.join(dataDir(), 'uploads', 'photos', String(photo.id));
-  if (fs.existsSync(photoDir)) {
-    fs.rmSync(photoDir, { recursive: true });
+  db.transaction(() => {
+    db.prepare('UPDATE photos SET is_cover = 0 WHERE owner_id = ? AND entity_type = ? AND entity_id = ?')
+      .run(owner, photo.entity_type, photo.entity_id);
+    db.prepare('UPDATE photos SET is_cover = 1 WHERE id = ? AND owner_id = ?')
+      .run(photo.id, owner);
+  })();
+
+  res.json(db.prepare('SELECT * FROM photos WHERE id = ? AND owner_id = ?').get(photo.id, owner));
+});
+
+router.delete('/:id', (req: Request, res: Response) => {
+  const db = getDb();
+  const owner = ownerId(req);
+  const photo = db.prepare('SELECT * FROM photos WHERE id = ? AND owner_id = ?')
+    .get(req.params.id, owner) as { id: number } | undefined;
+
+  if (!photo) {
+    res.status(404).json({ error: 'Not found' });
+    return;
   }
 
-  db.prepare('DELETE FROM photos WHERE id = ?').run(photo.id);
+  db.prepare('DELETE FROM photos WHERE id = ? AND owner_id = ?').run(photo.id, owner);
+  removePhotoFiles(photo.id);
   res.status(204).send();
 });
 

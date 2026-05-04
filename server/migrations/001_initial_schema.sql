@@ -32,6 +32,7 @@ CREATE TABLE techniques (
   title TEXT NOT NULL,
   content TEXT,
   category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
+  difficulty TEXT CHECK(difficulty IN ('beginner','intermediate','advanced')),
   owner_id INTEGER NOT NULL REFERENCES users(id),
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT DEFAULT CURRENT_TIMESTAMP
@@ -52,10 +53,20 @@ CREATE TABLE materials (
   description TEXT,
   unit TEXT,
   reusable INTEGER DEFAULT 0,
-  preferred_links TEXT DEFAULT '[]',
+  price REAL DEFAULT 0,
   owner_id INTEGER NOT NULL REFERENCES users(id),
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE material_vendors (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  material_id INTEGER NOT NULL REFERENCES materials(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  url TEXT,
+  notes TEXT,
+  owner_id INTEGER NOT NULL REFERENCES users(id),
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE crafts (
@@ -93,11 +104,20 @@ CREATE TABLE projects (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   title TEXT NOT NULL,
   description TEXT,
-  status TEXT NOT NULL DEFAULT 'planning' CHECK(status IN ('planning','active','complete','archived')),
-  craft_id INTEGER REFERENCES crafts(id) ON DELETE SET NULL,
+  status TEXT NOT NULL DEFAULT 'planning' CHECK(status IN ('planning','active','complete','paused')),
+  due_date TEXT,
   owner_id INTEGER NOT NULL REFERENCES users(id),
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE project_crafts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  craft_id INTEGER NOT NULL REFERENCES crafts(id) ON DELETE CASCADE,
+  quantity INTEGER DEFAULT 1,
+  sort_order INTEGER DEFAULT 0,
+  UNIQUE(project_id, craft_id)
 );
 
 CREATE TABLE project_techniques (
@@ -147,14 +167,26 @@ CREATE TABLE curiosities (
   UNIQUE(owner_id, url)
 );
 
+CREATE TABLE notes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  owner_id INTEGER NOT NULL REFERENCES users(id),
+  entity_type TEXT NOT NULL CHECK(entity_type IN ('project','craft','technique','material','curiosity')),
+  entity_id INTEGER NOT NULL,
+  title TEXT NOT NULL,
+  content TEXT,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE photos (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   owner_id INTEGER NOT NULL REFERENCES users(id),
-  craft_id INTEGER REFERENCES crafts(id) ON DELETE CASCADE,
-  project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE,
+  entity_type TEXT NOT NULL CHECK(entity_type IN ('project','craft','technique','material','log')),
+  entity_id INTEGER NOT NULL,
   image TEXT NOT NULL,
   caption TEXT,
   sort_order INTEGER DEFAULT 0,
+  is_cover INTEGER DEFAULT 0,
   created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -165,6 +197,7 @@ CREATE TABLE logs (
   project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE,
   content TEXT,
   duration_minutes INTEGER DEFAULT 0,
+  links TEXT DEFAULT '[]',
   date TEXT NOT NULL,
   created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
@@ -172,25 +205,13 @@ CREATE TABLE logs (
 CREATE TABLE tasks (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   owner_id INTEGER NOT NULL REFERENCES users(id),
-  craft_id INTEGER REFERENCES crafts(id) ON DELETE CASCADE,
-  project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE,
+  project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
   notes TEXT,
   done INTEGER DEFAULT 0,
   due_date TEXT,
   sort_order INTEGER DEFAULT 0,
   created_at TEXT DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE journal_entries (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  owner_id INTEGER NOT NULL REFERENCES users(id),
-  craft_id INTEGER REFERENCES crafts(id) ON DELETE CASCADE,
-  project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE,
-  title TEXT NOT NULL,
-  content TEXT,
-  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-  updated_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Tag junction table
@@ -211,16 +232,15 @@ CREATE INDEX idx_crafts_owner ON crafts(owner_id);
 CREATE INDEX idx_crafts_category ON crafts(category_id);
 CREATE INDEX idx_projects_owner ON projects(owner_id);
 CREATE INDEX idx_projects_status ON projects(status);
-CREATE INDEX idx_projects_craft ON projects(craft_id);
+CREATE INDEX idx_project_crafts_project ON project_crafts(project_id);
+CREATE INDEX idx_project_crafts_craft ON project_crafts(craft_id);
 CREATE INDEX idx_materials_owner ON materials(owner_id);
+CREATE INDEX idx_material_vendors_material ON material_vendors(material_id);
 CREATE INDEX idx_curiosities_owner ON curiosities(owner_id);
 CREATE INDEX idx_curiosities_category ON curiosities(category_id);
 CREATE INDEX idx_material_stock_material ON material_stock(material_id);
-CREATE INDEX idx_photos_craft ON photos(craft_id);
-CREATE INDEX idx_photos_project ON photos(project_id);
+CREATE INDEX idx_notes_entity ON notes(entity_type, entity_id);
+CREATE INDEX idx_photos_entity ON photos(entity_type, entity_id);
 CREATE INDEX idx_logs_craft ON logs(craft_id);
 CREATE INDEX idx_logs_project ON logs(project_id);
-CREATE INDEX idx_tasks_craft ON tasks(craft_id);
 CREATE INDEX idx_tasks_project ON tasks(project_id);
-CREATE INDEX idx_journal_craft ON journal_entries(craft_id);
-CREATE INDEX idx_journal_project ON journal_entries(project_id);
