@@ -52,11 +52,21 @@ export function TechniqueDetail() {
           )}
           <PhotoGallery entityType="technique" entityId={techniqueId} />
           <NotesSection entityType="technique" entityId={techniqueId} />
-          <div className="p-4 bg-card border border-border rounded-xl">
-            <p className="text-sm text-text-secondary">Created: {formatDate(technique.created_at)}</p>
-          </div>
         </div>
         <div className="space-y-4">
+          <div className="p-4 bg-card border border-border rounded-xl">
+            <h2 className="text-sm font-medium text-text-secondary mb-3">Details</h2>
+            <dl className="space-y-2 text-sm">
+              {technique.category && (
+                <div><dt className="text-text-muted text-xs">Category</dt><dd className="text-text-primary">{technique.category.name}</dd></div>
+              )}
+              {technique.difficulty && (
+                <div><dt className="text-text-muted text-xs">Difficulty</dt><dd className="text-text-primary capitalize">{technique.difficulty}</dd></div>
+              )}
+              <div><dt className="text-text-muted text-xs">Created</dt><dd className="text-text-primary">{formatDate(technique.created_at)}</dd></div>
+              <div><dt className="text-text-muted text-xs">Updated</dt><dd className="text-text-primary">{formatDate(technique.updated_at)}</dd></div>
+            </dl>
+          </div>
           <div className="p-4 bg-card border border-border rounded-xl">
             <h2 className="text-sm font-medium text-text-secondary mb-3">Tags</h2>
             <TagSelect entityType="techniques" entityId={techniqueId} tags={technique.tags || []} onUpdate={() => qc.invalidateQueries({ queryKey: ['techniques', techniqueId] })} />

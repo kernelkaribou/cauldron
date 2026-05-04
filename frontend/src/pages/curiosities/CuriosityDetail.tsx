@@ -54,11 +54,21 @@ export function CuriosityDetail() {
           )}
           <NotesSection entityType="curiosity" entityId={curiosityId} />
           <PhotoGallery entityType="curiosity" entityId={curiosityId} />
-          <div className="p-4 bg-card border border-border rounded-xl">
-            <p className="text-sm text-text-secondary">Created: {formatDate(curiosity.created_at)}</p>
-          </div>
         </div>
         <div className="space-y-4">
+          <div className="p-4 bg-card border border-border rounded-xl">
+            <h2 className="text-sm font-medium text-text-secondary mb-3">Details</h2>
+            <dl className="space-y-2 text-sm">
+              {curiosity.type && (
+                <div><dt className="text-text-muted text-xs">Type</dt><dd className="text-text-primary capitalize">{curiosity.type}</dd></div>
+              )}
+              {curiosity.category && (
+                <div><dt className="text-text-muted text-xs">Category</dt><dd className="text-text-primary">{curiosity.category.name}</dd></div>
+              )}
+              <div><dt className="text-text-muted text-xs">Created</dt><dd className="text-text-primary">{formatDate(curiosity.created_at)}</dd></div>
+              <div><dt className="text-text-muted text-xs">Updated</dt><dd className="text-text-primary">{formatDate(curiosity.updated_at)}</dd></div>
+            </dl>
+          </div>
           <div className="p-4 bg-card border border-border rounded-xl">
             <h2 className="text-sm font-medium text-text-secondary mb-3">Tags</h2>
             <TagSelect entityType="curiosities" entityId={curiosityId} tags={curiosity.tags || []} onUpdate={() => qc.invalidateQueries({ queryKey: ['curiosities', curiosityId] })} />

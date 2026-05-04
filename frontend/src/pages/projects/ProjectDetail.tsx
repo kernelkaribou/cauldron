@@ -41,19 +41,7 @@ export function ProjectDetail() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-xl font-semibold text-text-primary">{project.title}</h1>
-          {project.crafts && project.crafts.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-1">
-              {project.crafts.map(c => (
-                <Link key={c.craft_id} to={`/crafts/${c.craft_id}`} className="text-sm text-accent-light hover:text-accent">
-                  {c.title || `Craft #${c.craft_id}`}{c.quantity > 1 ? ` ×${c.quantity}` : ''}
-                </Link>
-              ))}
-            </div>
-          )}
-          {project.due_date && <p className="text-xs text-text-muted mt-1">Due: {formatDate(project.due_date)}</p>}
-        </div>
+        <h1 className="text-xl font-semibold text-text-primary">{project.title}</h1>
         <div className="flex gap-2">
           <Link to={`/projects/${projectId}/edit`} className="px-3 py-1.5 border border-border rounded-lg text-sm text-text-secondary hover:border-accent hover:text-accent transition-colors">Edit</Link>
           <button onClick={handleDelete} className="px-3 py-1.5 border border-border rounded-lg text-sm text-text-muted hover:border-error hover:text-error transition-colors">Delete</button>
@@ -62,20 +50,6 @@ export function ProjectDetail() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <div className="p-4 bg-card border border-border rounded-xl">
-            <h2 className="text-sm font-medium text-text-secondary mb-3">Status</h2>
-            <div className="flex items-center gap-3">
-              <span className={`px-3 py-1 rounded-lg text-sm ${sc.color} ${sc.bg}`}>{sc.label}</span>
-              <div className="flex gap-1">
-                {(Object.keys(STATUS_CONFIG) as Project['status'][]).filter(s => s !== project.status).map(s => (
-                  <button key={s} onClick={() => handleStatusChange(s)} className={`px-2 py-0.5 rounded text-xs border border-border hover:border-accent transition-colors ${STATUS_CONFIG[s].color}`}>
-                    {STATUS_CONFIG[s].label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
           {project.description && (
             <div className="p-4 bg-card border border-border rounded-xl">
               <h2 className="text-sm font-medium text-text-secondary mb-2">Description</h2>
@@ -88,13 +62,44 @@ export function ProjectDetail() {
           <PhotoGallery entityType="project" entityId={projectId} />
           <LogFeed projectId={projectId} />
           <NotesSection entityType="project" entityId={projectId} />
-
-          <div className="p-4 bg-card border border-border rounded-xl">
-            <p className="text-sm text-text-secondary">Created: {formatDate(project.created_at)}</p>
-          </div>
         </div>
 
         <div className="space-y-4">
+          <div className="p-4 bg-card border border-border rounded-xl">
+            <h2 className="text-sm font-medium text-text-secondary mb-3">Details</h2>
+            <dl className="space-y-2 text-sm">
+              <div>
+                <dt className="text-text-muted text-xs">Status</dt>
+                <dd className="flex items-center gap-2 mt-1">
+                  <span className={`px-2 py-0.5 rounded text-xs ${sc.color} ${sc.bg}`}>{sc.label}</span>
+                  <div className="flex gap-1">
+                    {(Object.keys(STATUS_CONFIG) as Project['status'][]).filter(s => s !== project.status).map(s => (
+                      <button key={s} onClick={() => handleStatusChange(s)} className={`px-1.5 py-0.5 rounded text-[10px] border border-border hover:border-accent transition-colors ${STATUS_CONFIG[s].color}`}>
+                        {STATUS_CONFIG[s].label}
+                      </button>
+                    ))}
+                  </div>
+                </dd>
+              </div>
+              {project.due_date && (
+                <div><dt className="text-text-muted text-xs">Due Date</dt><dd className="text-text-primary">{formatDate(project.due_date)}</dd></div>
+              )}
+              {project.crafts && project.crafts.length > 0 && (
+                <div>
+                  <dt className="text-text-muted text-xs">Crafts</dt>
+                  <dd className="mt-1 space-y-1">
+                    {project.crafts.map(c => (
+                      <Link key={c.craft_id} to={`/crafts/${c.craft_id}`} className="block text-sm text-accent-light hover:text-accent">
+                        {c.title || `Craft #${c.craft_id}`}{c.quantity > 1 ? ` ×${c.quantity}` : ''}
+                      </Link>
+                    ))}
+                  </dd>
+                </div>
+              )}
+              <div><dt className="text-text-muted text-xs">Created</dt><dd className="text-text-primary">{formatDate(project.created_at)}</dd></div>
+              <div><dt className="text-text-muted text-xs">Updated</dt><dd className="text-text-primary">{formatDate(project.updated_at)}</dd></div>
+            </dl>
+          </div>
           <div className="p-4 bg-card border border-border rounded-xl">
             <h2 className="text-sm font-medium text-text-secondary mb-3">Tags</h2>
             <TagSelect entityType="projects" entityId={projectId} tags={project.tags || []} onUpdate={() => qc.invalidateQueries({ queryKey: ['projects', projectId] })} />

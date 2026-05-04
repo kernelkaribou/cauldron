@@ -97,16 +97,22 @@ export function CraftDetail() {
           <PhotoGallery entityType="craft" entityId={craftId} />
           <LogFeed craftId={craftId} />
           <NotesSection entityType="craft" entityId={craftId} />
-
-          <div className="p-4 bg-card border border-border rounded-xl">
-            <div className="flex items-center gap-4 text-sm text-text-secondary">
-              {craft.duration_minutes > 0 && <span>Duration: {formatDuration(craft.duration_minutes)}</span>}
-              <span>Created: {formatDate(craft.created_at)}</span>
-            </div>
-          </div>
         </div>
 
         <div className="space-y-4">
+          <div className="p-4 bg-card border border-border rounded-xl">
+            <h2 className="text-sm font-medium text-text-secondary mb-3">Details</h2>
+            <dl className="space-y-2 text-sm">
+              {craft.category && (
+                <div><dt className="text-text-muted text-xs">Category</dt><dd className="text-text-primary">{craft.category.name}</dd></div>
+              )}
+              {craft.duration_minutes > 0 && (
+                <div><dt className="text-text-muted text-xs">Duration</dt><dd className="text-text-primary">{formatDuration(craft.duration_minutes)}</dd></div>
+              )}
+              <div><dt className="text-text-muted text-xs">Created</dt><dd className="text-text-primary">{formatDate(craft.created_at)}</dd></div>
+              <div><dt className="text-text-muted text-xs">Updated</dt><dd className="text-text-primary">{formatDate(craft.updated_at)}</dd></div>
+            </dl>
+          </div>
           <div className="p-4 bg-card border border-border rounded-xl">
             <h2 className="text-sm font-medium text-text-secondary mb-3">Tags</h2>
             <TagSelect entityType="crafts" entityId={craftId} tags={craft.tags || []} onUpdate={() => qc.invalidateQueries({ queryKey: ['crafts', craftId] })} />

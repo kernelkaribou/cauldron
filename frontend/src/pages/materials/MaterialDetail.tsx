@@ -54,11 +54,22 @@ export function MaterialDetail() {
           )}
           <PhotoGallery entityType="material" entityId={materialId} />
           <NotesSection entityType="material" entityId={materialId} />
-          <div className="p-4 bg-card border border-border rounded-xl">
-            <p className="text-sm text-text-secondary">Created: {formatDate(material.created_at)}</p>
-          </div>
         </div>
         <div className="space-y-4">
+          <div className="p-4 bg-card border border-border rounded-xl">
+            <h2 className="text-sm font-medium text-text-secondary mb-3">Details</h2>
+            <dl className="space-y-2 text-sm">
+              {material.unit && (
+                <div><dt className="text-text-muted text-xs">Unit</dt><dd className="text-text-primary">{material.unit}</dd></div>
+              )}
+              {material.price > 0 && (
+                <div><dt className="text-text-muted text-xs">Price</dt><dd className="text-text-primary">${material.price.toFixed(2)}</dd></div>
+              )}
+              <div><dt className="text-text-muted text-xs">Reusable</dt><dd className="text-text-primary">{material.reusable ? 'Yes' : 'No'}</dd></div>
+              <div><dt className="text-text-muted text-xs">Created</dt><dd className="text-text-primary">{formatDate(material.created_at)}</dd></div>
+              <div><dt className="text-text-muted text-xs">Updated</dt><dd className="text-text-primary">{formatDate(material.updated_at)}</dd></div>
+            </dl>
+          </div>
           <div className="p-4 bg-card border border-border rounded-xl">
             <h2 className="text-sm font-medium text-text-secondary mb-3">Tags</h2>
             <TagSelect entityType="materials" entityId={materialId} tags={material.tags || []} onUpdate={() => qc.invalidateQueries({ queryKey: ['materials', materialId] })} />
