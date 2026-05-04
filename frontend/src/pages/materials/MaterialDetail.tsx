@@ -1,6 +1,7 @@
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useMaterial, useDeleteMaterial } from '@/hooks/useMaterials';
 import { ErrorBanner } from '@/components/shared/ErrorBanner';
+import { DetailPageShell, MetadataCard, TagsCard } from '@/components/shared/DetailPageShell';
 import { TagSelect } from '@/components/shared/TagSelect';
 import { StockFeed } from '@/components/shared/StockFeed';
 import { VendorSection } from '@/components/shared/VendorSection';
@@ -28,56 +29,39 @@ export function MaterialDetail() {
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-xl font-semibold text-text-primary">{material.name}</h1>
-          <div className="flex items-center gap-2 text-sm text-text-secondary">
-            {material.unit && <span>Unit: {material.unit}</span>}
-            {material.price > 0 && <span>${material.price.toFixed(2)}</span>}
-            {material.reusable ? <span className="text-accent-light">Reusable</span> : null}
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <Link to={`/materials/${materialId}/edit`} className="px-3 py-1.5 border border-border rounded-lg text-sm text-text-secondary hover:border-accent hover:text-accent transition-colors">Edit</Link>
-          <button onClick={handleDelete} className="px-3 py-1.5 border border-border rounded-lg text-sm text-text-muted hover:border-error hover:text-error transition-colors">Delete</button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          {material.description && (
-            <div className="p-4 bg-card border border-border rounded-xl">
-              <h2 className="text-sm font-medium text-text-secondary mb-2">Description</h2>
-              <p className="text-text-primary whitespace-pre-wrap">{material.description}</p>
-            </div>
-          )}
-          <PhotoGallery entityType="material" entityId={materialId} />
-          <NotesSection entityType="material" entityId={materialId} />
-        </div>
-        <div className="space-y-4">
+    <DetailPageShell
+      title={material.name}
+      subtitle={<>
+        {material.unit && <span>Unit: {material.unit}</span>}
+        {material.price > 0 && <span>${material.price.toFixed(2)}</span>}
+        {material.reusable ? <span className="text-accent-light">Reusable</span> : null}
+      </>}
+      editPath={`/materials/${materialId}/edit`}
+      onDelete={handleDelete}
+      left={<>
+        {material.description && (
           <div className="p-4 bg-card border border-border rounded-xl">
-            <h2 className="text-sm font-medium text-text-secondary mb-3">Details</h2>
-            <dl className="space-y-2 text-sm">
-              {material.unit && (
-                <div><dt className="text-text-muted text-xs">Unit</dt><dd className="text-text-primary">{material.unit}</dd></div>
-              )}
-              {material.price > 0 && (
-                <div><dt className="text-text-muted text-xs">Price</dt><dd className="text-text-primary">${material.price.toFixed(2)}</dd></div>
-              )}
-              <div><dt className="text-text-muted text-xs">Reusable</dt><dd className="text-text-primary">{material.reusable ? 'Yes' : 'No'}</dd></div>
-              <div><dt className="text-text-muted text-xs">Created</dt><dd className="text-text-primary">{formatDate(material.created_at)}</dd></div>
-              <div><dt className="text-text-muted text-xs">Updated</dt><dd className="text-text-primary">{formatDate(material.updated_at)}</dd></div>
-            </dl>
+            <h2 className="text-sm font-medium text-text-secondary mb-2">Description</h2>
+            <p className="text-text-primary whitespace-pre-wrap">{material.description}</p>
           </div>
-          <div className="p-4 bg-card border border-border rounded-xl">
-            <h2 className="text-sm font-medium text-text-secondary mb-3">Tags</h2>
-            <TagSelect entityType="materials" entityId={materialId} tags={material.tags || []} onUpdate={() => qc.invalidateQueries({ queryKey: ['materials', materialId] })} />
-          </div>
-          <VendorSection materialId={materialId} />
-          <StockFeed materialId={materialId} unit={material.unit} />
-        </div>
-      </div>
-    </div>
+        )}
+        <PhotoGallery entityType="material" entityId={materialId} />
+        <NotesSection entityType="material" entityId={materialId} />
+      </>}
+      sidebar={<>
+        <MetadataCard items={[
+          ...(material.unit ? [{ label: 'Unit', value: material.unit }] : []),
+          ...(material.price > 0 ? [{ label: 'Price', value: `$${material.price.toFixed(2)}` }] : []),
+          { label: 'Reusable', value: material.reusable ? 'Yes' : 'No' },
+          { label: 'Created', value: formatDate(material.created_at) },
+          { label: 'Updated', value: formatDate(material.updated_at) },
+        ]} />
+        <TagsCard>
+          <TagSelect entityType="materials" entityId={materialId} tags={material.tags || []} onUpdate={() => qc.invalidateQueries({ queryKey: ['materials', materialId] })} />
+        </TagsCard>
+        <VendorSection materialId={materialId} />
+        <StockFeed materialId={materialId} unit={material.unit} />
+      </>}
+    />
   );
 }

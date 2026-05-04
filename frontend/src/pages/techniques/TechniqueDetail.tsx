@@ -1,6 +1,7 @@
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useTechnique, useDeleteTechnique } from '@/hooks/useTechniques';
 import { ErrorBanner } from '@/components/shared/ErrorBanner';
+import { DetailPageShell, MetadataCard, TagsCard } from '@/components/shared/DetailPageShell';
 import { TagSelect } from '@/components/shared/TagSelect';
 import { ResourceManager } from '@/components/shared/ResourceManager';
 import { PhotoGallery } from '@/components/shared/PhotoGallery';
@@ -29,51 +30,35 @@ export function TechniqueDetail() {
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-xl font-semibold text-text-primary">{technique.title}</h1>
-          <div className="flex items-center gap-2 text-sm text-text-secondary mt-1">
-            {technique.category && <p className="text-accent-light">{technique.category.name}</p>}
-            {technique.difficulty && <span className="px-2 py-0.5 bg-page border border-border text-xs rounded capitalize">{technique.difficulty}</span>}
+    <DetailPageShell
+      title={technique.title}
+      subtitle={<>
+        {technique.category && <p className="text-accent-light">{technique.category.name}</p>}
+        {technique.difficulty && <span className="px-2 py-0.5 bg-page border border-border text-xs rounded capitalize">{technique.difficulty}</span>}
+      </>}
+      editPath={`/techniques/${techniqueId}/edit`}
+      onDelete={handleDelete}
+      left={<>
+        {technique.content && (
+          <div className="p-4 bg-card border border-border rounded-xl prose prose-invert max-w-none">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{technique.content}</ReactMarkdown>
           </div>
-        </div>
-        <div className="flex gap-2">
-          <Link to={`/techniques/${techniqueId}/edit`} className="px-3 py-1.5 border border-border rounded-lg text-sm text-text-secondary hover:border-accent hover:text-accent transition-colors">Edit</Link>
-          <button onClick={handleDelete} className="px-3 py-1.5 border border-border rounded-lg text-sm text-text-muted hover:border-error hover:text-error transition-colors">Delete</button>
-        </div>
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          {technique.content && (
-            <div className="p-4 bg-card border border-border rounded-xl prose prose-invert max-w-none">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{technique.content}</ReactMarkdown>
-            </div>
-          )}
-          <PhotoGallery entityType="technique" entityId={techniqueId} />
-          <NotesSection entityType="technique" entityId={techniqueId} />
-        </div>
-        <div className="space-y-4">
-          <div className="p-4 bg-card border border-border rounded-xl">
-            <h2 className="text-sm font-medium text-text-secondary mb-3">Details</h2>
-            <dl className="space-y-2 text-sm">
-              {technique.category && (
-                <div><dt className="text-text-muted text-xs">Category</dt><dd className="text-text-primary">{technique.category.name}</dd></div>
-              )}
-              {technique.difficulty && (
-                <div><dt className="text-text-muted text-xs">Difficulty</dt><dd className="text-text-primary capitalize">{technique.difficulty}</dd></div>
-              )}
-              <div><dt className="text-text-muted text-xs">Created</dt><dd className="text-text-primary">{formatDate(technique.created_at)}</dd></div>
-              <div><dt className="text-text-muted text-xs">Updated</dt><dd className="text-text-primary">{formatDate(technique.updated_at)}</dd></div>
-            </dl>
-          </div>
-          <div className="p-4 bg-card border border-border rounded-xl">
-            <h2 className="text-sm font-medium text-text-secondary mb-3">Tags</h2>
-            <TagSelect entityType="techniques" entityId={techniqueId} tags={technique.tags || []} onUpdate={() => qc.invalidateQueries({ queryKey: ['techniques', techniqueId] })} />
-          </div>
-          <ResourceManager techniqueId={techniqueId} />
-        </div>
-      </div>
-    </div>
+        )}
+        <PhotoGallery entityType="technique" entityId={techniqueId} />
+        <NotesSection entityType="technique" entityId={techniqueId} />
+      </>}
+      sidebar={<>
+        <MetadataCard items={[
+          ...(technique.category ? [{ label: 'Category', value: technique.category.name }] : []),
+          ...(technique.difficulty ? [{ label: 'Difficulty', value: <span className="capitalize">{technique.difficulty}</span> }] : []),
+          { label: 'Created', value: formatDate(technique.created_at) },
+          { label: 'Updated', value: formatDate(technique.updated_at) },
+        ]} />
+        <TagsCard>
+          <TagSelect entityType="techniques" entityId={techniqueId} tags={technique.tags || []} onUpdate={() => qc.invalidateQueries({ queryKey: ['techniques', techniqueId] })} />
+        </TagsCard>
+        <ResourceManager techniqueId={techniqueId} />
+      </>}
+    />
   );
 }
