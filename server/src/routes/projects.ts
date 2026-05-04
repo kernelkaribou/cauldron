@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { getDb } from '../db.js';
 import { ownerId } from '../middleware/owner.js';
 import { validate } from '../middleware/validate.js';
-import { deleteNotesForEntity, deletePhotosForEntity } from './entity-utils.js';
+import { assertOwned, deleteNotesForEntity, deletePhotosForEntity } from './entity-utils.js';
 
 const router = Router();
 const sortColumns = new Set(['title', 'created_at', 'updated_at', 'status', 'due_date']);
@@ -371,9 +371,8 @@ router.put('/:id', validate(updateSchema), (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
   const projectId = Number(req.params.id);
-  const existing = db.prepare('SELECT id FROM projects WHERE id = ? AND owner_id = ?').get(projectId, owner);
 
-  if (!existing) {
+  if (!assertOwned(db, 'projects', projectId, owner)) {
     res.status(404).json({ error: 'Not found' });
     return;
   }
@@ -417,9 +416,8 @@ router.delete('/:id', (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
   const projectId = Number(req.params.id);
-  const existing = db.prepare('SELECT id FROM projects WHERE id = ? AND owner_id = ?').get(projectId, owner);
 
-  if (!existing) {
+  if (!assertOwned(db, 'projects', projectId, owner)) {
     res.status(404).json({ error: 'Not found' });
     return;
   }

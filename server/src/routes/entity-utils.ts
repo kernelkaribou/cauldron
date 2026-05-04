@@ -24,6 +24,15 @@ const entityConfigs: Record<OwnedEntityType, EntityConfig> = {
   log: { table: 'logs', label: 'Log' },
 };
 
+export function assertOwned(
+  db: Database.Database,
+  table: string,
+  id: number | string | bigint,
+  owner: number
+): boolean {
+  return !!db.prepare(`SELECT id FROM ${table} WHERE id = ? AND owner_id = ?`).get(id, owner);
+}
+
 export function getOwnedEntity(
   db: Database.Database,
   entityType: OwnedEntityType,

@@ -3,242 +3,35 @@ import { z } from 'zod';
 import { getDb } from '../db.js';
 import { ownerId } from '../middleware/owner.js';
 import { validate } from '../middleware/validate.js';
-import {
-  deletePhotosForEntity,
-  getOwnedEntity,
-  getOwnedEntityNotFoundMessage,
-  noteEntityTypes,
-} from './entity-utils.js';
+import { assertOwned, deletePhotosForEntity } from './entity-utils.js';
+import { registerStandardSubresourceRoutes } from './subresource-setup.js';
+import { registerTagRoutes } from './tag-routes.js';
 
 const router = Router();
-const taggableEntityTypeSchema = z.enum(['crafts', 'techniques', 'projects', 'materials', 'curiosities']);
-type TaggableEntityType = z.infer<typeof taggableEntityTypeSchema>;
+const projectCraftSchema = z.object({
+  craft_id: z.number().int().positive(),
+  quantity: z.number().int().positive().optional(),
+});
+type AggregatedTagSource = 'craft' | 'technique' | 'material';
 
-const tagEntityConfig: Record<TaggableEntityType, {
-  table: string;
-  entityType: 'craft' | 'technique' | 'project' | 'material' | 'curiosity';
-  notFound: string;
-}> = {
-  crafts: { table: 'crafts', entityType: 'craft', notFound: 'Craft not found' },
-  techniques: { table: 'techniques', entityType: 'technique', notFound: 'Technique not found' },
-  projects: { table: 'projects', entityType: 'project', notFound: 'Project not found' },
-  materials: { table: 'materials', entityType: 'material', notFound: 'Material not found' },
-  curiosities: { table: 'curiosities', entityType: 'curiosity', notFound: 'Curiosity not found' },
-};
+registerStandardSubresourceRoutes(router);
+registerTagRoutes(router);
 
-// --- Craft Techniques ---
-router.get('/crafts/:id/techniques', (req: Request, res: Response) => {
+router.delete('/logs/:id', (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const craft = db.prepare('SELECT id FROM crafts WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!craft) { res.status(404).json({ error: 'Craft not found' }); return; }
+  const logId = Number(req.params.id);
+  if (!assertOwned(db, 'logs', logId, owner)) { res.status(404).json({ error: 'Not found' }); return; }
 
-  const items = db.prepare(`
-    SELECT ft.id, ft.technique_id, ft.sort_order, ft.notes, t.title, t.content
-    FROM craft_techniques ft JOIN techniques t ON ft.technique_id = t.id
-    WHERE ft.craft_id = ? ORDER BY ft.sort_order
-  `).all(req.params.id);
-  res.json({ items });
-});
-
-const addTechniqueSchema = z.object({
-  technique_id: z.number().int().positive(),
-  sort_order: z.number().int().min(0).optional(),
-  notes: z.string().max(1000).optional(),
-});
-
-router.post('/crafts/:id/techniques', validate(addTechniqueSchema), (req: Request, res: Response) => {
-  const db = getDb();
-  const owner = ownerId(req);
-  const craft = db.prepare('SELECT id FROM crafts WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!craft) { res.status(404).json({ error: 'Craft not found' }); return; }
-
-  const { technique_id, sort_order, notes } = req.body;
-  try {
-    db.prepare('INSERT INTO craft_techniques (craft_id, technique_id, sort_order, notes) VALUES (?, ?, ?, ?)')
-      .run(req.params.id, technique_id, sort_order || 0, notes || null);
-  } catch {
-    res.status(409).json({ error: 'Technique already attached to this craft' });
-    return;
-  }
-  res.status(201).json({ message: 'Technique added' });
-});
-
-router.delete('/crafts/:id/techniques/:techniqueId', (req: Request, res: Response) => {
-  const db = getDb();
-  const owner = ownerId(req);
-  const craft = db.prepare('SELECT id FROM crafts WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!craft) { res.status(404).json({ error: 'Craft not found' }); return; }
-
-  const existing = db.prepare('SELECT 1 FROM craft_techniques WHERE craft_id = ? AND technique_id = ?')
-    .get(req.params.id, req.params.techniqueId);
-  if (!existing) { res.status(204).send(); return; }
-
-  const { total } = db.prepare('SELECT COUNT(*) as total FROM craft_techniques WHERE craft_id = ?')
-    .get(req.params.id) as { total: number };
-  if (total <= 1) {
-    res.status(400).json({ error: 'Cannot remove the last technique from a craft' });
-    return;
-  }
-
-  db.prepare('DELETE FROM craft_techniques WHERE craft_id = ? AND technique_id = ?')
-    .run(req.params.id, req.params.techniqueId);
+  deletePhotosForEntity(db, owner, 'log', logId);
+  db.prepare('DELETE FROM logs WHERE id = ? AND owner_id = ?').run(logId, owner);
   res.status(204).send();
 });
 
-// --- Craft Materials ---
-router.get('/crafts/:id/materials', (req: Request, res: Response) => {
-  const db = getDb();
-  const owner = ownerId(req);
-  const craft = db.prepare('SELECT id FROM crafts WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!craft) { res.status(404).json({ error: 'Craft not found' }); return; }
-
-  const items = db.prepare(`
-    SELECT fm.id, fm.material_id, fm.quantity, fm.unit, fm.notes, m.name
-    FROM craft_materials fm JOIN materials m ON fm.material_id = m.id
-    WHERE fm.craft_id = ? ORDER BY fm.id
-  `).all(req.params.id);
-  res.json({ items });
-});
-
-const addMaterialSchema = z.object({
-  material_id: z.number().int().positive(),
-  quantity: z.number().min(0).optional(),
-  unit: z.string().max(50).optional(),
-  notes: z.string().max(1000).optional(),
-});
-
-router.post('/crafts/:id/materials', validate(addMaterialSchema), (req: Request, res: Response) => {
-  const db = getDb();
-  const owner = ownerId(req);
-  const craft = db.prepare('SELECT id FROM crafts WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!craft) { res.status(404).json({ error: 'Craft not found' }); return; }
-
-  const { material_id, quantity, unit, notes } = req.body;
-  try {
-    db.prepare('INSERT INTO craft_materials (craft_id, material_id, quantity, unit, notes) VALUES (?, ?, ?, ?, ?)')
-      .run(req.params.id, material_id, quantity || 0, unit || null, notes || null);
-  } catch {
-    res.status(409).json({ error: 'Material already attached to this craft' });
-    return;
-  }
-  res.status(201).json({ message: 'Material added' });
-});
-
-router.delete('/crafts/:id/materials/:materialId', (req: Request, res: Response) => {
-  const db = getDb();
-  const owner = ownerId(req);
-  const craft = db.prepare('SELECT id FROM crafts WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!craft) { res.status(404).json({ error: 'Craft not found' }); return; }
-
-  const existing = db.prepare('SELECT 1 FROM craft_materials WHERE craft_id = ? AND material_id = ?')
-    .get(req.params.id, req.params.materialId);
-  if (!existing) { res.status(204).send(); return; }
-
-  const { total } = db.prepare('SELECT COUNT(*) as total FROM craft_materials WHERE craft_id = ?')
-    .get(req.params.id) as { total: number };
-  if (total <= 1) {
-    res.status(400).json({ error: 'Cannot remove the last material from a craft' });
-    return;
-  }
-
-  db.prepare('DELETE FROM craft_materials WHERE craft_id = ? AND material_id = ?')
-    .run(req.params.id, req.params.materialId);
-  res.status(204).send();
-});
-
-// --- Project Techniques ---
-router.get('/projects/:id/techniques', (req: Request, res: Response) => {
-  const db = getDb();
-  const owner = ownerId(req);
-  const project = db.prepare('SELECT id FROM projects WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!project) { res.status(404).json({ error: 'Project not found' }); return; }
-
-  const items = db.prepare(`
-    SELECT pt.id, pt.technique_id, pt.sort_order, pt.notes, t.title, t.content
-    FROM project_techniques pt JOIN techniques t ON pt.technique_id = t.id
-    WHERE pt.project_id = ? ORDER BY pt.sort_order
-  `).all(req.params.id);
-  res.json({ items });
-});
-
-router.post('/projects/:id/techniques', validate(addTechniqueSchema), (req: Request, res: Response) => {
-  const db = getDb();
-  const owner = ownerId(req);
-  const project = db.prepare('SELECT id FROM projects WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!project) { res.status(404).json({ error: 'Project not found' }); return; }
-
-  const { technique_id, sort_order, notes } = req.body;
-  try {
-    db.prepare('INSERT INTO project_techniques (project_id, technique_id, sort_order, notes) VALUES (?, ?, ?, ?)')
-      .run(req.params.id, technique_id, sort_order || 0, notes || null);
-  } catch {
-    res.status(409).json({ error: 'Technique already attached to this project' });
-    return;
-  }
-  res.status(201).json({ message: 'Technique added' });
-});
-
-router.delete('/projects/:id/techniques/:techniqueId', (req: Request, res: Response) => {
-  const db = getDb();
-  const owner = ownerId(req);
-  const project = db.prepare('SELECT id FROM projects WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!project) { res.status(404).json({ error: 'Project not found' }); return; }
-
-  db.prepare('DELETE FROM project_techniques WHERE project_id = ? AND technique_id = ?')
-    .run(req.params.id, req.params.techniqueId);
-  res.status(204).send();
-});
-
-// --- Project Materials ---
-router.get('/projects/:id/materials', (req: Request, res: Response) => {
-  const db = getDb();
-  const owner = ownerId(req);
-  const project = db.prepare('SELECT id FROM projects WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!project) { res.status(404).json({ error: 'Project not found' }); return; }
-
-  const items = db.prepare(`
-    SELECT pm.id, pm.material_id, pm.quantity, pm.unit, pm.notes, m.name
-    FROM project_materials pm JOIN materials m ON pm.material_id = m.id
-    WHERE pm.project_id = ? ORDER BY pm.id
-  `).all(req.params.id);
-  res.json({ items });
-});
-
-router.post('/projects/:id/materials', validate(addMaterialSchema), (req: Request, res: Response) => {
-  const db = getDb();
-  const owner = ownerId(req);
-  const project = db.prepare('SELECT id FROM projects WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!project) { res.status(404).json({ error: 'Project not found' }); return; }
-
-  const { material_id, quantity, unit, notes } = req.body;
-  try {
-    db.prepare('INSERT INTO project_materials (project_id, material_id, quantity, unit, notes) VALUES (?, ?, ?, ?, ?)')
-      .run(req.params.id, material_id, quantity || 0, unit || null, notes || null);
-  } catch {
-    res.status(409).json({ error: 'Material already attached to this project' });
-    return;
-  }
-  res.status(201).json({ message: 'Material added' });
-});
-
-router.delete('/projects/:id/materials/:materialId', (req: Request, res: Response) => {
-  const db = getDb();
-  const owner = ownerId(req);
-  const project = db.prepare('SELECT id FROM projects WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!project) { res.status(404).json({ error: 'Project not found' }); return; }
-
-  db.prepare('DELETE FROM project_materials WHERE project_id = ? AND material_id = ?')
-    .run(req.params.id, req.params.materialId);
-  res.status(204).send();
-});
-
-// --- Project Crafts ---
 router.get('/projects/:id/crafts', (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const project = db.prepare('SELECT id FROM projects WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!project) { res.status(404).json({ error: 'Project not found' }); return; }
+  if (!assertOwned(db, 'projects', req.params.id as string, owner)) { res.status(404).json({ error: 'Project not found' }); return; }
 
   const items = db.prepare(`
     SELECT pc.id, pc.craft_id, pc.quantity, pc.sort_order, c.title
@@ -247,13 +40,7 @@ router.get('/projects/:id/crafts', (req: Request, res: Response) => {
     WHERE pc.project_id = ? AND c.owner_id = ?
     ORDER BY pc.sort_order, pc.id
   `).all(req.params.id, owner);
-
   res.json({ items });
-});
-
-const projectCraftSchema = z.object({
-  craft_id: z.number().int().positive(),
-  quantity: z.number().int().positive().optional(),
 });
 
 router.post('/projects/:id/crafts', validate(projectCraftSchema), (req: Request, res: Response) => {
@@ -261,11 +48,8 @@ router.post('/projects/:id/crafts', validate(projectCraftSchema), (req: Request,
   const owner = ownerId(req);
   const projectId = Number(req.params.id);
   const { craft_id, quantity } = req.body;
-  const project = db.prepare('SELECT id FROM projects WHERE id = ? AND owner_id = ?').get(projectId, owner);
-  if (!project) { res.status(404).json({ error: 'Project not found' }); return; }
-
-  const craft = db.prepare('SELECT id, title FROM crafts WHERE id = ? AND owner_id = ?').get(craft_id, owner) as { id: number; title: string } | undefined;
-  if (!craft) { res.status(404).json({ error: 'Craft not found' }); return; }
+  if (!assertOwned(db, 'projects', projectId, owner)) { res.status(404).json({ error: 'Project not found' }); return; }
+  if (!assertOwned(db, 'crafts', craft_id, owner)) { res.status(404).json({ error: 'Craft not found' }); return; }
 
   const { nextSortOrder } = db.prepare(
     'SELECT COALESCE(MAX(sort_order), -1) + 1 as nextSortOrder FROM project_crafts WHERE project_id = ?'
@@ -297,8 +81,7 @@ router.delete('/projects/:id/crafts/:craftId', (req: Request, res: Response) => 
   const db = getDb();
   const owner = ownerId(req);
   const projectId = Number(req.params.id);
-  const project = db.prepare('SELECT id FROM projects WHERE id = ? AND owner_id = ?').get(projectId, owner);
-  if (!project) { res.status(404).json({ error: 'Project not found' }); return; }
+  if (!assertOwned(db, 'projects', projectId, owner)) { res.status(404).json({ error: 'Project not found' }); return; }
 
   const existing = db.prepare('SELECT id FROM project_crafts WHERE project_id = ? AND craft_id = ?')
     .get(projectId, req.params.craftId);
@@ -316,67 +99,10 @@ router.delete('/projects/:id/crafts/:craftId', (req: Request, res: Response) => 
   res.status(204).send();
 });
 
-// --- Technique Resources ---
-router.get('/techniques/:id/resources', (req: Request, res: Response) => {
-  const db = getDb();
-  const owner = ownerId(req);
-  const technique = db.prepare('SELECT id FROM techniques WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!technique) { res.status(404).json({ error: 'Technique not found' }); return; }
-
-  const items = db.prepare('SELECT * FROM technique_resources WHERE technique_id = ?').all(req.params.id);
-  res.json({ items });
-});
-
-const addResourceSchema = z.object({
-  url: z.string().url(),
-  title: z.string().min(1).max(200),
-  description: z.string().max(500).optional(),
-  type: z.enum(['video', 'article', 'other']).optional(),
-});
-
-router.post('/techniques/:id/resources', validate(addResourceSchema), (req: Request, res: Response) => {
-  const db = getDb();
-  const owner = ownerId(req);
-  const technique = db.prepare('SELECT id FROM techniques WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!technique) { res.status(404).json({ error: 'Technique not found' }); return; }
-
-  const { url, title, description, type } = req.body;
-  const result = db.prepare(
-    'INSERT INTO technique_resources (technique_id, url, title, description, type) VALUES (?, ?, ?, ?, ?)'
-  ).run(req.params.id, url, title, description || null, type || null);
-
-  const resource = db.prepare('SELECT * FROM technique_resources WHERE id = ?').get(result.lastInsertRowid);
-  res.status(201).json(resource);
-});
-
-router.delete('/techniques/:id/resources/:resourceId', (req: Request, res: Response) => {
-  const db = getDb();
-  const owner = ownerId(req);
-  const technique = db.prepare('SELECT id FROM techniques WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!technique) { res.status(404).json({ error: 'Technique not found' }); return; }
-
-  db.prepare('DELETE FROM technique_resources WHERE id = ? AND technique_id = ?')
-    .run(req.params.resourceId, req.params.id);
-  res.status(204).send();
-});
-
-// --- Material Stock ---
-router.get('/materials/:id/stock', (req: Request, res: Response) => {
-  const db = getDb();
-  const owner = ownerId(req);
-  const material = db.prepare('SELECT id FROM materials WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!material) { res.status(404).json({ error: 'Material not found' }); return; }
-
-  const items = db.prepare('SELECT * FROM material_stock WHERE material_id = ? ORDER BY date DESC, created_at DESC')
-    .all(req.params.id);
-  res.json({ items });
-});
-
 router.get('/materials/:id/stock-summary', (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  const material = db.prepare('SELECT id FROM materials WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!material) { res.status(404).json({ error: 'Material not found' }); return; }
+  if (!assertOwned(db, 'materials', req.params.id as string, owner)) { res.status(404).json({ error: 'Material not found' }); return; }
 
   const summary = db.prepare(`
     SELECT
@@ -395,332 +121,14 @@ router.get('/materials/:id/stock-summary', (req: Request, res: Response) => {
       END as avg_unit_cost
     FROM material_stock WHERE material_id = ?
   `).get(req.params.id);
-
   res.json(summary);
 });
-
-const addStockSchema = z.object({
-  type: z.enum(['purchase', 'usage', 'adjustment']),
-  quantity: z.number().positive(),
-  unit_cost: z.number().min(0).optional(),
-  location: z.string().max(200).optional(),
-  notes: z.string().max(1000).optional(),
-  project_id: z.number().int().positive().nullable().optional(),
-  date: z.string().min(1),
-});
-
-router.post('/materials/:id/stock', validate(addStockSchema), (req: Request, res: Response) => {
-  const db = getDb();
-  const owner = ownerId(req);
-  const material = db.prepare('SELECT id FROM materials WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!material) { res.status(404).json({ error: 'Material not found' }); return; }
-
-  const { type, quantity, unit_cost, location, notes, project_id, date } = req.body;
-  const result = db.prepare(`
-    INSERT INTO material_stock (material_id, type, quantity, unit_cost, location, notes, project_id, date, owner_id)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(req.params.id, type, quantity, unit_cost || 0, location || null, notes || null, project_id || null, date, owner);
-
-  const entry = db.prepare('SELECT * FROM material_stock WHERE id = ?').get(result.lastInsertRowid);
-  res.status(201).json(entry);
-});
-
-// --- Material Vendors ---
-const materialVendorSchema = z.object({
-  name: z.string().min(1).max(200),
-  url: z.string().url().optional(),
-  notes: z.string().max(1000).optional(),
-});
-
-router.get('/materials/:id/vendors', (req: Request, res: Response) => {
-  const db = getDb();
-  const owner = ownerId(req);
-  const material = db.prepare('SELECT id FROM materials WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!material) { res.status(404).json({ error: 'Material not found' }); return; }
-
-  const items = db.prepare(
-    'SELECT * FROM material_vendors WHERE material_id = ? AND owner_id = ? ORDER BY created_at DESC, id DESC'
-  ).all(req.params.id, owner);
-  res.json({ items });
-});
-
-router.post('/materials/:id/vendors', validate(materialVendorSchema), (req: Request, res: Response) => {
-  const db = getDb();
-  const owner = ownerId(req);
-  const material = db.prepare('SELECT id FROM materials WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!material) { res.status(404).json({ error: 'Material not found' }); return; }
-
-  const { name, url, notes } = req.body;
-  const result = db.prepare(
-    'INSERT INTO material_vendors (material_id, name, url, notes, owner_id) VALUES (?, ?, ?, ?, ?)'
-  ).run(req.params.id, name, url || null, notes || null, owner);
-
-  res.status(201).json(db.prepare('SELECT * FROM material_vendors WHERE id = ?').get(result.lastInsertRowid));
-});
-
-router.put('/materials/:id/vendors/:vendorId', validate(materialVendorSchema.partial()), (req: Request, res: Response) => {
-  const db = getDb();
-  const owner = ownerId(req);
-  const material = db.prepare('SELECT id FROM materials WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!material) { res.status(404).json({ error: 'Material not found' }); return; }
-
-  const existing = db.prepare(
-    'SELECT id FROM material_vendors WHERE id = ? AND material_id = ? AND owner_id = ?'
-  ).get(req.params.vendorId, req.params.id, owner);
-  if (!existing) { res.status(404).json({ error: 'Vendor not found' }); return; }
-
-  const fields = Object.entries(req.body).filter(([_, value]) => value !== undefined);
-  if (fields.length === 0) { res.status(400).json({ error: 'No fields to update' }); return; }
-
-  const setClauses = fields.map(([key]) => `${key} = ?`).join(', ');
-  const values = fields.map(([_, value]) => value || null);
-  db.prepare(`UPDATE material_vendors SET ${setClauses} WHERE id = ? AND material_id = ? AND owner_id = ?`)
-    .run(...values, req.params.vendorId, req.params.id, owner);
-
-  res.json(db.prepare('SELECT * FROM material_vendors WHERE id = ?').get(req.params.vendorId));
-});
-
-router.delete('/materials/:id/vendors/:vendorId', (req: Request, res: Response) => {
-  const db = getDb();
-  const owner = ownerId(req);
-  const material = db.prepare('SELECT id FROM materials WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!material) { res.status(404).json({ error: 'Material not found' }); return; }
-
-  const result = db.prepare(
-    'DELETE FROM material_vendors WHERE id = ? AND material_id = ? AND owner_id = ?'
-  ).run(req.params.vendorId, req.params.id, owner);
-  if (result.changes === 0) { res.status(404).json({ error: 'Vendor not found' }); return; }
-
-  res.status(204).send();
-});
-
-// --- Shared Sub-Resources: Logs, Tasks, Notes ---
-router.get('/logs', (req: Request, res: Response) => {
-  const db = getDb();
-  const owner = ownerId(req);
-  const { craft_id, project_id } = req.query;
-
-  let sql = 'SELECT * FROM logs WHERE owner_id = ?';
-  const params: any[] = [owner];
-  if (craft_id) { sql += ' AND craft_id = ?'; params.push(craft_id); }
-  else if (project_id) { sql += ' AND project_id = ?'; params.push(project_id); }
-  sql += ' ORDER BY date DESC, created_at DESC';
-
-  res.json({ items: db.prepare(sql).all(...params) });
-});
-
-const logSchema = z.object({
-  content: z.string().optional(),
-  duration_minutes: z.number().int().min(0).optional(),
-  links: z.string().optional(),
-  date: z.string().min(1),
-  craft_id: z.number().int().positive().nullable().optional(),
-  project_id: z.number().int().positive().nullable().optional(),
-});
-
-router.post('/logs', validate(logSchema), (req: Request, res: Response) => {
-  const db = getDb();
-  const owner = ownerId(req);
-  const { content, duration_minutes, links, date, craft_id, project_id } = req.body;
-
-  const result = db.prepare(
-    'INSERT INTO logs (owner_id, craft_id, project_id, content, duration_minutes, links, date) VALUES (?, ?, ?, ?, ?, ?, ?)'
-  ).run(owner, craft_id || null, project_id || null, content || null, duration_minutes || 0, links ?? '[]', date);
-
-  res.status(201).json(db.prepare('SELECT * FROM logs WHERE id = ?').get(result.lastInsertRowid));
-});
-
-router.put('/logs/:id', validate(logSchema.partial()), (req: Request, res: Response) => {
-  const db = getDb();
-  const owner = ownerId(req);
-  const existing = db.prepare('SELECT id FROM logs WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!existing) { res.status(404).json({ error: 'Not found' }); return; }
-
-  const fields = Object.entries(req.body).filter(([_, value]) => value !== undefined);
-  if (fields.length === 0) { res.status(400).json({ error: 'No fields to update' }); return; }
-
-  const setClauses = fields.map(([key]) => `${key} = ?`).join(', ');
-  const values = fields.map(([_, value]) => value);
-  db.prepare(`UPDATE logs SET ${setClauses} WHERE id = ?`).run(...values, req.params.id);
-
-  res.json(db.prepare('SELECT * FROM logs WHERE id = ?').get(req.params.id));
-});
-
-router.delete('/logs/:id', (req: Request, res: Response) => {
-  const db = getDb();
-  const owner = ownerId(req);
-  const logId = Number(req.params.id);
-  const existing = db.prepare('SELECT id FROM logs WHERE id = ? AND owner_id = ?').get(logId, owner);
-  if (!existing) { res.status(404).json({ error: 'Not found' }); return; }
-
-  deletePhotosForEntity(db, owner, 'log', logId);
-  db.prepare('DELETE FROM logs WHERE id = ? AND owner_id = ?').run(logId, owner);
-  res.status(204).send();
-});
-
-router.get('/tasks', (req: Request, res: Response) => {
-  const db = getDb();
-  const owner = ownerId(req);
-  const { project_id } = req.query;
-
-  let sql = 'SELECT * FROM tasks WHERE owner_id = ?';
-  const params: any[] = [owner];
-  if (project_id) { sql += ' AND project_id = ?'; params.push(project_id); }
-  sql += ' ORDER BY sort_order ASC, created_at ASC';
-
-  res.json({ items: db.prepare(sql).all(...params) });
-});
-
-const taskSchema = z.object({
-  title: z.string().min(1).max(200),
-  notes: z.string().max(1000).optional(),
-  done: z.number().int().min(0).max(1).optional(),
-  due_date: z.string().nullable().optional(),
-  sort_order: z.number().int().min(0).optional(),
-  project_id: z.number().int().positive(),
-});
-
-router.post('/tasks', validate(taskSchema), (req: Request, res: Response) => {
-  const db = getDb();
-  const owner = ownerId(req);
-  const { title, notes, done, due_date, sort_order, project_id } = req.body;
-  const project = db.prepare('SELECT id FROM projects WHERE id = ? AND owner_id = ?').get(project_id, owner);
-  if (!project) { res.status(404).json({ error: 'Project not found' }); return; }
-
-  const result = db.prepare(
-    'INSERT INTO tasks (owner_id, project_id, title, notes, done, due_date, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)'
-  ).run(owner, project_id, title, notes || null, done || 0, due_date || null, sort_order || 0);
-
-  res.status(201).json(db.prepare('SELECT * FROM tasks WHERE id = ?').get(result.lastInsertRowid));
-});
-
-router.put('/tasks/:id', validate(taskSchema.partial()), (req: Request, res: Response) => {
-  const db = getDb();
-  const owner = ownerId(req);
-  const existing = db.prepare('SELECT id FROM tasks WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!existing) { res.status(404).json({ error: 'Not found' }); return; }
-
-  if (req.body.project_id !== undefined) {
-    const project = db.prepare('SELECT id FROM projects WHERE id = ? AND owner_id = ?').get(req.body.project_id, owner);
-    if (!project) { res.status(404).json({ error: 'Project not found' }); return; }
-  }
-
-  const fields = Object.entries(req.body).filter(([_, value]) => value !== undefined);
-  if (fields.length === 0) { res.status(400).json({ error: 'No fields to update' }); return; }
-
-  const setClauses = fields.map(([key]) => `${key} = ?`).join(', ');
-  const values = fields.map(([_, value]) => value);
-  db.prepare(`UPDATE tasks SET ${setClauses} WHERE id = ?`).run(...values, req.params.id);
-
-  res.json(db.prepare('SELECT * FROM tasks WHERE id = ?').get(req.params.id));
-});
-
-router.delete('/tasks/:id', (req: Request, res: Response) => {
-  const db = getDb();
-  const owner = ownerId(req);
-  const result = db.prepare('DELETE FROM tasks WHERE id = ? AND owner_id = ?').run(req.params.id, owner);
-  if (result.changes === 0) { res.status(404).json({ error: 'Not found' }); return; }
-  res.status(204).send();
-});
-
-const noteEntitySchema = z.enum(noteEntityTypes);
-const noteQuerySchema = z.object({
-  entity_type: noteEntitySchema,
-  entity_id: z.coerce.number().int().positive(),
-});
-const noteSchema = z.object({
-  entity_type: noteEntitySchema,
-  entity_id: z.number().int().positive(),
-  title: z.string().min(1).max(200),
-  content: z.string().optional(),
-});
-const noteUpdateSchema = z.object({
-  title: z.string().min(1).max(200).optional(),
-  content: z.string().optional(),
-});
-
-router.get('/notes', (req: Request, res: Response) => {
-  const parsed = noteQuerySchema.safeParse(req.query);
-  if (!parsed.success) { res.status(400).json({ error: 'Invalid note filters' }); return; }
-
-  const db = getDb();
-  const owner = ownerId(req);
-  const { entity_type, entity_id } = parsed.data;
-  const items = db.prepare(
-    'SELECT * FROM notes WHERE owner_id = ? AND entity_type = ? AND entity_id = ? ORDER BY created_at DESC, id DESC'
-  ).all(owner, entity_type, entity_id);
-  res.json({ items });
-});
-
-router.post('/notes', validate(noteSchema), (req: Request, res: Response) => {
-  const db = getDb();
-  const owner = ownerId(req);
-  const { entity_type, entity_id, title, content } = req.body;
-
-  if (!getOwnedEntity(db, entity_type, entity_id, owner)) {
-    res.status(404).json({ error: getOwnedEntityNotFoundMessage(entity_type) });
-    return;
-  }
-
-  const result = db.prepare(
-    'INSERT INTO notes (owner_id, entity_type, entity_id, title, content) VALUES (?, ?, ?, ?, ?)'
-  ).run(owner, entity_type, entity_id, title, content || null);
-
-  res.status(201).json(db.prepare('SELECT * FROM notes WHERE id = ?').get(result.lastInsertRowid));
-});
-
-router.put('/notes/:id', validate(noteUpdateSchema), (req: Request, res: Response) => {
-  const db = getDb();
-  const owner = ownerId(req);
-  const existing = db.prepare('SELECT id FROM notes WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
-  if (!existing) { res.status(404).json({ error: 'Not found' }); return; }
-
-  const fields = Object.entries(req.body).filter(([_, value]) => value !== undefined);
-  if (fields.length === 0) { res.status(400).json({ error: 'No fields to update' }); return; }
-
-  const setClauses = [...fields.map(([key]) => `${key} = ?`), 'updated_at = CURRENT_TIMESTAMP'].join(', ');
-  const values = fields.map(([_, value]) => value);
-  db.prepare(`UPDATE notes SET ${setClauses} WHERE id = ? AND owner_id = ?`).run(...values, req.params.id, owner);
-
-  res.json(db.prepare('SELECT * FROM notes WHERE id = ?').get(req.params.id));
-});
-
-router.delete('/notes/:id', (req: Request, res: Response) => {
-  const db = getDb();
-  const owner = ownerId(req);
-  const result = db.prepare('DELETE FROM notes WHERE id = ? AND owner_id = ?').run(req.params.id, owner);
-  if (result.changes === 0) { res.status(404).json({ error: 'Not found' }); return; }
-  res.status(204).send();
-});
-
-const tagActionSchema = z.object({ tag_id: z.number().int().positive() });
-type AggregatedTagSource = 'craft' | 'technique' | 'material';
-
-function getTagEntityContext(req: Request, res: Response) {
-  const parsedEntityType = taggableEntityTypeSchema.safeParse(req.params.entityType);
-  if (!parsedEntityType.success) {
-    res.status(400).json({ error: 'Invalid entity type' });
-    return null;
-  }
-
-  const db = getDb();
-  const owner = ownerId(req);
-  const config = tagEntityConfig[parsedEntityType.data];
-  const entity = db.prepare(`SELECT id FROM ${config.table} WHERE id = ? AND owner_id = ?`).get(req.params.id, owner);
-  if (!entity) {
-    res.status(404).json({ error: config.notFound });
-    return null;
-  }
-
-  return { db, config };
-}
 
 router.get('/crafts/:id/all-tags', (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
   const craftId = Number(req.params.id);
-  const craft = db.prepare('SELECT id FROM crafts WHERE id = ? AND owner_id = ?').get(craftId, owner);
-  if (!craft) { res.status(404).json({ error: 'Craft not found' }); return; }
+  if (!assertOwned(db, 'crafts', craftId, owner)) { res.status(404).json({ error: 'Craft not found' }); return; }
 
   type TagRow = { id: number; name: string };
   type AggregatedTag = TagRow & { sources: Set<AggregatedTagSource> };
@@ -728,7 +136,6 @@ router.get('/crafts/:id/all-tags', (req: Request, res: Response) => {
   const craftTags = db.prepare(
     "SELECT t.id, t.name FROM tags t JOIN entity_tags et ON t.id = et.tag_id WHERE et.entity_type = 'craft' AND et.entity_id = ?"
   ).all(craftId) as TagRow[];
-
   const techniqueIds = (db.prepare('SELECT technique_id FROM craft_techniques WHERE craft_id = ?').all(craftId) as Array<{ technique_id: number }>)
     .map(({ technique_id }) => technique_id);
   const materialIds = (db.prepare('SELECT material_id FROM craft_materials WHERE craft_id = ?').all(craftId) as Array<{ material_id: number }>)
@@ -746,11 +153,8 @@ router.get('/crafts/:id/all-tags', (req: Request, res: Response) => {
   const addTags = (tags: TagRow[], source: AggregatedTagSource) => {
     for (const tag of tags) {
       const existing = aggregated.get(tag.id);
-      if (existing) {
-        existing.sources.add(source);
-      } else {
-        aggregated.set(tag.id, { ...tag, sources: new Set([source]) });
-      }
+      if (existing) existing.sources.add(source);
+      else aggregated.set(tag.id, { ...tag, sources: new Set([source]) });
     }
   };
 
@@ -759,52 +163,8 @@ router.get('/crafts/:id/all-tags', (req: Request, res: Response) => {
   addTags(loadEntityTags('material', materialIds), 'material');
 
   res.json({
-    items: Array.from(aggregated.values()).map(({ sources, ...tag }) => ({
-      ...tag,
-      sources: Array.from(sources),
-    })),
+    items: Array.from(aggregated.values()).map(({ sources, ...tag }) => ({ ...tag, sources: Array.from(sources) })),
   });
-});
-
-router.get('/:entityType/:id/tags', (req: Request, res: Response) => {
-  const context = getTagEntityContext(req, res);
-  if (!context) return;
-
-  const tags = context.db.prepare(
-    'SELECT t.* FROM tags t JOIN entity_tags et ON t.id = et.tag_id WHERE et.entity_type = ? AND et.entity_id = ?'
-  ).all(context.config.entityType, req.params.id);
-
-  res.json({ items: tags });
-});
-
-router.post('/:entityType/:id/tags', validate(tagActionSchema), (req: Request, res: Response) => {
-  const context = getTagEntityContext(req, res);
-  if (!context) return;
-
-  try {
-    context.db.prepare('INSERT INTO entity_tags (entity_type, entity_id, tag_id) VALUES (?, ?, ?)')
-      .run(context.config.entityType, req.params.id, req.body.tag_id);
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('FOREIGN KEY constraint failed')) {
-      res.status(400).json({ error: 'Tag not found' });
-      return;
-    }
-
-    res.status(409).json({ error: 'Tag already attached' });
-    return;
-  }
-
-  res.status(201).json({ message: 'Tag added' });
-});
-
-router.delete('/:entityType/:id/tags/:tagId', (req: Request, res: Response) => {
-  const context = getTagEntityContext(req, res);
-  if (!context) return;
-
-  context.db.prepare('DELETE FROM entity_tags WHERE entity_type = ? AND entity_id = ? AND tag_id = ?')
-    .run(context.config.entityType, req.params.id, req.params.tagId);
-
-  res.status(204).send();
 });
 
 export default router;

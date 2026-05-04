@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { getDb } from '../db.js';
 import { ownerId } from '../middleware/owner.js';
 import { validate } from '../middleware/validate.js';
-import { deleteNotesForEntity, deletePhotosForEntity } from './entity-utils.js';
+import { assertOwned, deleteNotesForEntity, deletePhotosForEntity } from './entity-utils.js';
 
 const router = Router();
 const sortColumns = new Set(['title', 'created_at', 'updated_at']);
@@ -185,17 +185,13 @@ function parseExpand(req: Request): Set<string> {
 }
 
 function ensureOwnedTechnique(id: number, owner: number): void {
-  const db = getDb();
-  const technique = db.prepare('SELECT id FROM techniques WHERE id = ? AND owner_id = ?').get(id, owner);
-  if (!technique) {
+  if (!assertOwned(getDb(), 'techniques', id, owner)) {
     throw new RequestError(400, 'Technique not found');
   }
 }
 
 function ensureOwnedMaterial(id: number, owner: number): void {
-  const db = getDb();
-  const material = db.prepare('SELECT id FROM materials WHERE id = ? AND owner_id = ?').get(id, owner);
-  if (!material) {
+  if (!assertOwned(getDb(), 'materials', id, owner)) {
     throw new RequestError(400, 'Material not found');
   }
 }
@@ -360,9 +356,8 @@ router.put('/:id', validate(updateSchema), (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
   const craftId = Number(req.params.id);
-  const existing = db.prepare('SELECT id FROM crafts WHERE id = ? AND owner_id = ?').get(craftId, owner);
 
-  if (!existing) {
+  if (!assertOwned(db, 'crafts', craftId, owner)) {
     res.status(404).json({ error: 'Not found' });
     return;
   }
@@ -415,9 +410,8 @@ router.delete('/:id', (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
   const craftId = Number(req.params.id);
-  const existing = db.prepare('SELECT id FROM crafts WHERE id = ? AND owner_id = ?').get(craftId, owner);
 
-  if (!existing) {
+  if (!assertOwned(db, 'crafts', craftId, owner)) {
     res.status(404).json({ error: 'Not found' });
     return;
   }
