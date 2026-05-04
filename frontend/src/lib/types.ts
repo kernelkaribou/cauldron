@@ -41,6 +41,22 @@ export interface TechniqueResource {
   type: 'video' | 'article' | 'other' | null;
 }
 
+export interface CraftTechnique {
+  technique_id: number;
+  title: string;
+  content?: string | null;
+  sort_order: number;
+  notes?: string | null;
+}
+
+export interface CraftMaterial {
+  material_id: number;
+  name: string;
+  quantity: number;
+  unit?: string | null;
+  notes?: string | null;
+}
+
 export interface Craft {
   id: number;
   title: string;
@@ -53,6 +69,8 @@ export interface Craft {
   updated_at: string;
   category?: Category | null;
   tags?: Tag[];
+  techniques?: CraftTechnique[];
+  materials?: CraftMaterial[];
 }
 
 export interface Project {

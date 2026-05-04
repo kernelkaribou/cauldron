@@ -13,6 +13,7 @@ interface CrudOptions {
   expandConfig?: Record<string, ExpandDef>;
   createSchema: ZodSchema;
   updateSchema: ZodSchema;
+  beforeDelete?: (db: ReturnType<typeof getDb>, id: number, ownerId: number) => string | null;
 }
 
 interface ExpandDef {
@@ -206,14 +207,25 @@ export function createCrudRouter(options: CrudOptions): Router {
   router.delete('/:id', (req: Request, res: Response) => {
     const db = getDb();
     const owner = ownerId(req);
+    const id = Number(req.params.id);
+    const existing = db.prepare(`SELECT id FROM ${table} WHERE id = ? AND owner_id = ?`)
+      .get(id, owner);
 
-    const result = db.prepare(`DELETE FROM ${table} WHERE id = ? AND owner_id = ?`)
-      .run(req.params.id, owner);
-
-    if (result.changes === 0) {
+    if (!existing) {
       res.status(404).json({ error: 'Not found' });
       return;
     }
+
+    if (options.beforeDelete) {
+      const error = options.beforeDelete(db, id, owner);
+      if (error) {
+        res.status(400).json({ error });
+        return;
+      }
+    }
+
+    db.prepare(`DELETE FROM ${table} WHERE id = ? AND owner_id = ?`)
+      .run(id, owner);
 
     res.status(204).send();
   });

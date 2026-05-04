@@ -50,6 +50,17 @@ router.delete('/crafts/:id/techniques/:techniqueId', (req: Request, res: Respons
   const craft = db.prepare('SELECT id FROM crafts WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
   if (!craft) { res.status(404).json({ error: 'Craft not found' }); return; }
 
+  const existing = db.prepare('SELECT 1 FROM craft_techniques WHERE craft_id = ? AND technique_id = ?')
+    .get(req.params.id, req.params.techniqueId);
+  if (!existing) { res.status(204).send(); return; }
+
+  const { total } = db.prepare('SELECT COUNT(*) as total FROM craft_techniques WHERE craft_id = ?')
+    .get(req.params.id) as { total: number };
+  if (total <= 1) {
+    res.status(400).json({ error: 'Cannot remove the last technique from a craft' });
+    return;
+  }
+
   db.prepare('DELETE FROM craft_techniques WHERE craft_id = ? AND technique_id = ?')
     .run(req.params.id, req.params.techniqueId);
   res.status(204).send();
@@ -99,6 +110,17 @@ router.delete('/crafts/:id/materials/:materialId', (req: Request, res: Response)
   const owner = ownerId(req);
   const craft = db.prepare('SELECT id FROM crafts WHERE id = ? AND owner_id = ?').get(req.params.id, owner);
   if (!craft) { res.status(404).json({ error: 'Craft not found' }); return; }
+
+  const existing = db.prepare('SELECT 1 FROM craft_materials WHERE craft_id = ? AND material_id = ?')
+    .get(req.params.id, req.params.materialId);
+  if (!existing) { res.status(204).send(); return; }
+
+  const { total } = db.prepare('SELECT COUNT(*) as total FROM craft_materials WHERE craft_id = ?')
+    .get(req.params.id) as { total: number };
+  if (total <= 1) {
+    res.status(400).json({ error: 'Cannot remove the last material from a craft' });
+    return;
+  }
 
   db.prepare('DELETE FROM craft_materials WHERE craft_id = ? AND material_id = ?')
     .run(req.params.id, req.params.materialId);

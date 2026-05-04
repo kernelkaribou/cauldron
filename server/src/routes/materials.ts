@@ -31,6 +31,20 @@ const router = createCrudRouter({
       key: 'id',
     },
   },
+  beforeDelete: (db, id) => {
+    const craftsWithOnlyThis = db.prepare(`
+      SELECT cm.craft_id
+      FROM craft_materials cm
+      WHERE cm.material_id = ?
+        AND (SELECT COUNT(*) FROM craft_materials WHERE craft_id = cm.craft_id) = 1
+    `).all(id);
+
+    if (craftsWithOnlyThis.length > 0) {
+      return 'Cannot delete: this material is the only one on a craft';
+    }
+
+    return null;
+  },
 });
 
 export default router;
