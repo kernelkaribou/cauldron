@@ -24,12 +24,20 @@ const entityConfigs: Record<OwnedEntityType, EntityConfig> = {
   log: { table: 'logs', label: 'Log' },
 };
 
+const ALLOWED_TABLES = new Set([
+  'projects', 'crafts', 'techniques', 'materials', 'curiosities', 'logs',
+  'notes', 'tasks', 'photos', 'material_stock', 'material_vendors',
+]);
+
 export function assertOwned(
   db: Database.Database,
   table: string,
   id: number | string | bigint,
   owner: number
 ): boolean {
+  if (!ALLOWED_TABLES.has(table)) {
+    throw new Error(`assertOwned: disallowed table "${table}"`);
+  }
   return !!db.prepare(`SELECT id FROM ${table} WHERE id = ? AND owner_id = ?`).get(id, owner);
 }
 

@@ -5,9 +5,17 @@ import type { PaginatedResponse } from '@/lib/types';
 interface EntityHooksConfig {
   entityKey: string;
   basePath: string;
-  defaultExpand?: string;
   listExpand?: string;
   detailExpand?: string;
+}
+
+function normalizeFilters(filters?: Record<string, string | number | undefined>): Record<string, string | number> | undefined {
+  if (!filters) return undefined;
+  const cleaned: Record<string, string | number> = {};
+  for (const [key, val] of Object.entries(filters)) {
+    if (val !== undefined && val !== '') cleaned[key] = val;
+  }
+  return Object.keys(cleaned).length > 0 ? cleaned : undefined;
 }
 
 export function createEntityHooks<
@@ -18,16 +26,17 @@ export function createEntityHooks<
   const { entityKey, basePath, listExpand, detailExpand } = config;
 
   function useList(page = 1, filters?: Record<string, string | number | undefined>) {
+    const normalized = normalizeFilters(filters);
     const params = new URLSearchParams({ page: String(page) });
     if (listExpand) params.set('expand', listExpand);
-    if (filters) {
-      for (const [key, val] of Object.entries(filters)) {
-        if (val !== undefined && val !== '') params.set(key, String(val));
+    if (normalized) {
+      for (const [key, val] of Object.entries(normalized)) {
+        params.set(key, String(val));
       }
     }
 
     return useQuery({
-      queryKey: [entityKey, page, filters],
+      queryKey: [entityKey, page, normalized],
       queryFn: () => apiFetch<PaginatedResponse<T>>(`${basePath}?${params}`),
     });
   }
@@ -66,7 +75,10 @@ export function createEntityHooks<
     const qc = useQueryClient();
     return useMutation({
       mutationFn: (id: number) => apiFetch(`${basePath}/${id}`, { method: 'DELETE' }),
-      onSuccess: () => qc.invalidateQueries({ queryKey: [entityKey] }),
+      onSuccess: (_, id) => {
+        qc.invalidateQueries({ queryKey: [entityKey] });
+        qc.removeQueries({ queryKey: [entityKey, id] });
+      },
     });
   }
 

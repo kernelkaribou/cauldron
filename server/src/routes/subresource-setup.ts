@@ -80,6 +80,9 @@ export function registerStandardSubresourceRoutes(router: Router): void {
       config: {
         parentTable: 'crafts',
         parentLabel: 'Craft',
+        childTable: 'techniques',
+        childLabel: 'Technique',
+        childIdField: 'technique_id',
         junctionTable: 'craft_techniques',
         parentFk: 'craft_id',
         childFk: 'technique_id',
@@ -102,6 +105,9 @@ export function registerStandardSubresourceRoutes(router: Router): void {
       config: {
         parentTable: 'crafts',
         parentLabel: 'Craft',
+        childTable: 'materials',
+        childLabel: 'Material',
+        childIdField: 'material_id',
         junctionTable: 'craft_materials',
         parentFk: 'craft_id',
         childFk: 'material_id',
@@ -124,6 +130,9 @@ export function registerStandardSubresourceRoutes(router: Router): void {
       config: {
         parentTable: 'projects',
         parentLabel: 'Project',
+        childTable: 'techniques',
+        childLabel: 'Technique',
+        childIdField: 'technique_id',
         junctionTable: 'project_techniques',
         parentFk: 'project_id',
         childFk: 'technique_id',
@@ -144,6 +153,9 @@ export function registerStandardSubresourceRoutes(router: Router): void {
       config: {
         parentTable: 'projects',
         parentLabel: 'Project',
+        childTable: 'materials',
+        childLabel: 'Material',
+        childIdField: 'material_id',
         junctionTable: 'project_materials',
         parentFk: 'project_id',
         childFk: 'material_id',
@@ -185,6 +197,9 @@ export function registerStandardSubresourceRoutes(router: Router): void {
     },
     create: {
       schema: addStockSchema,
+      ownershipRefs: [
+        { table: 'projects', label: 'Project', source: 'body', key: 'project_id' },
+      ],
       insertSql: `
         INSERT INTO material_stock (material_id, type, quantity, unit_cost, location, notes, project_id, date, owner_id)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -249,6 +264,10 @@ export function registerStandardSubresourceRoutes(router: Router): void {
     },
     create: {
       schema: logSchema,
+      ownershipRefs: [
+        { table: 'crafts', label: 'Craft', source: 'body', key: 'craft_id' },
+        { table: 'projects', label: 'Project', source: 'body', key: 'project_id' },
+      ],
       insertSql: 'INSERT INTO logs (owner_id, craft_id, project_id, content, duration_minutes, links, date) VALUES (?, ?, ?, ?, ?, ?, ?)',
       insertParams: (req, owner) => [
         owner,
@@ -266,6 +285,10 @@ export function registerStandardSubresourceRoutes(router: Router): void {
       existingSql: 'SELECT id FROM logs WHERE id = ? AND owner_id = ?',
       existingParams: (req, owner) => [req.params.id, owner],
       notFoundError: 'Not found',
+      ownershipRefs: [
+        { table: 'crafts', label: 'Craft', source: 'body', key: 'craft_id' },
+        { table: 'projects', label: 'Project', source: 'body', key: 'project_id' },
+      ],
       updateSql: setClause => `UPDATE logs SET ${setClause} WHERE id = ?`,
       updateParams: (values, req) => [...values, req.params.id],
       selectSql: 'SELECT * FROM logs WHERE id = ?',

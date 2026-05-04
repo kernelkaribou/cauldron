@@ -9,6 +9,9 @@ import { assertOwned } from './entity-utils.js';
 export interface JunctionRouteConfig {
   parentTable: string;
   parentLabel: string;
+  childTable: string;
+  childLabel: string;
+  childIdField: string;
   junctionTable: string;
   parentFk: string;
   childFk: string;
@@ -155,6 +158,12 @@ export function createJunctionRoutes(
     const owner = ownerId(req);
     if (!ensureParent(db, req, res, owner, { table: config.parentTable, label: config.parentLabel })) return;
 
+    const childId = req.body[config.childIdField];
+    if (!assertOwned(db, config.childTable, childId, owner)) {
+      res.status(404).json({ error: `${config.childLabel} not found` });
+      return;
+    }
+
     const columns = [config.parentFk, ...config.addColumns];
     const placeholders = columns.map(() => '?').join(', ');
 
@@ -162,8 +171,13 @@ export function createJunctionRoutes(
       db.prepare(
         `INSERT INTO ${config.junctionTable} (${columns.join(', ')}) VALUES (${placeholders})`
       ).run(req.params.id, ...config.addValues(req.body));
-    } catch {
-      res.status(409).json({ error: config.conflictError });
+    } catch (err: any) {
+      const msg = err?.message ?? '';
+      if (msg.includes('UNIQUE') || msg.includes('constraint')) {
+        res.status(409).json({ error: config.conflictError });
+      } else {
+        res.status(500).json({ error: 'Internal server error' });
+      }
       return;
     }
 
