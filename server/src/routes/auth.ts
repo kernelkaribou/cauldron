@@ -32,22 +32,22 @@ const loginSchema = z.object({
   password: z.string().min(1, 'Password is required'),
 });
 
-function cookieOptions(maxAge?: number) {
+function cookieOptions(req: Request, maxAge?: number) {
   return {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: req.secure,
     sameSite: 'strict' as const,
     path: '/',
     ...(maxAge !== undefined ? { maxAge } : {}),
   };
 }
 
-function setCookie(res: Response, token: string, maxAge: number) {
-  res.cookie('cauldron_token', token, cookieOptions(maxAge));
+function setCookie(req: Request, res: Response, token: string, maxAge: number) {
+  res.cookie('cauldron_token', token, cookieOptions(req, maxAge));
 }
 
-function clearAuthCookie(res: Response) {
-  res.clearCookie('cauldron_token', cookieOptions());
+function clearAuthCookie(req: Request, res: Response) {
+  res.clearCookie('cauldron_token', cookieOptions(req));
 }
 
 // Check if setup is needed (public)
@@ -124,13 +124,13 @@ router.post('/login', authLimiter, validate(loginSchema), async (req: Request, r
   const token = signToken({ sub: user.id, email: user.email, role: user.role, tv: user.token_version });
   const maxAge = tokenExpiryMs();
 
-  setCookie(res, token, maxAge);
+  setCookie(req, res, token, maxAge);
   res.json({ message: 'Logged in' });
 });
 
 // Logout
-router.post('/logout', (_req: Request, res: Response) => {
-  clearAuthCookie(res);
+router.post('/logout', (req: Request, res: Response) => {
+  clearAuthCookie(req, res);
   res.json({ message: 'Logged out' });
 });
 
@@ -170,7 +170,7 @@ router.post('/change-password', authMiddleware, authLimiter, validate(z.object({
   // Issue new token with updated version, invalidating all old sessions
   const token = signToken({ sub: req.user!.id, email: req.user!.email, role: req.user!.role, tv: newVersion });
   const maxAge = tokenExpiryMs();
-  setCookie(res, token, maxAge);
+  setCookie(req, res, token, maxAge);
 
   res.json({ message: 'Password changed' });
 });

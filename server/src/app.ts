@@ -19,6 +19,9 @@ import subresourcesRoutes from './routes/subresources.js';
 
 export const app = express();
 
+// Trust reverse proxy headers (X-Forwarded-Proto, etc.) for correct req.secure detection
+app.set('trust proxy', 1);
+
 app.use(helmet({
   contentSecurityPolicy: false, // SPA handles its own CSP needs
   crossOriginEmbedderPolicy: false, // allow loading images
