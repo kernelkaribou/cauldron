@@ -7,6 +7,7 @@ CREATE TABLE users (
   name TEXT DEFAULT '',
   role TEXT NOT NULL DEFAULT 'user' CHECK(role IN ('admin','user')),
   avatar TEXT,
+  token_version INTEGER NOT NULL DEFAULT 0,
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
@@ -47,21 +48,35 @@ CREATE TABLE technique_resources (
   type TEXT CHECK(type IN ('video','article','other'))
 );
 
-CREATE TABLE materials (
+CREATE TABLE supply_profiles (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  schema TEXT NOT NULL DEFAULT '[]' CHECK(json_valid(schema) AND json_type(schema) = 'array'),
+  owner_id INTEGER NOT NULL REFERENCES users(id),
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(name, owner_id)
+);
+
+CREATE TABLE supplies (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   description TEXT,
+  material TEXT,
+  brand TEXT,
   unit TEXT,
   reusable INTEGER DEFAULT 0,
   price REAL DEFAULT 0,
+  profile_id INTEGER REFERENCES supply_profiles(id) ON DELETE SET NULL,
+  attributes TEXT NOT NULL DEFAULT '{}' CHECK(json_valid(attributes) AND json_type(attributes) = 'object'),
   owner_id INTEGER NOT NULL REFERENCES users(id),
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE material_vendors (
+CREATE TABLE supply_vendors (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  material_id INTEGER NOT NULL REFERENCES materials(id) ON DELETE CASCADE,
+  supply_id INTEGER NOT NULL REFERENCES supplies(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   url TEXT,
   notes TEXT,
@@ -90,14 +105,14 @@ CREATE TABLE craft_techniques (
   UNIQUE(craft_id, technique_id)
 );
 
-CREATE TABLE craft_materials (
+CREATE TABLE craft_supplies (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   craft_id INTEGER NOT NULL REFERENCES crafts(id) ON DELETE CASCADE,
-  material_id INTEGER NOT NULL REFERENCES materials(id) ON DELETE CASCADE,
+  supply_id INTEGER NOT NULL REFERENCES supplies(id) ON DELETE CASCADE,
   quantity REAL DEFAULT 0,
   unit TEXT,
   notes TEXT,
-  UNIQUE(craft_id, material_id)
+  UNIQUE(craft_id, supply_id)
 );
 
 CREATE TABLE projects (
@@ -129,19 +144,19 @@ CREATE TABLE project_techniques (
   UNIQUE(project_id, technique_id)
 );
 
-CREATE TABLE project_materials (
+CREATE TABLE project_supplies (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
-  material_id INTEGER NOT NULL REFERENCES materials(id) ON DELETE CASCADE,
+  supply_id INTEGER NOT NULL REFERENCES supplies(id) ON DELETE CASCADE,
   quantity REAL DEFAULT 0,
   unit TEXT,
   notes TEXT,
-  UNIQUE(project_id, material_id)
+  UNIQUE(project_id, supply_id)
 );
 
-CREATE TABLE material_stock (
+CREATE TABLE supply_stock (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  material_id INTEGER NOT NULL REFERENCES materials(id) ON DELETE CASCADE,
+  supply_id INTEGER NOT NULL REFERENCES supplies(id) ON DELETE CASCADE,
   type TEXT NOT NULL CHECK(type IN ('purchase','usage','adjustment')),
   quantity REAL NOT NULL,
   unit_cost REAL DEFAULT 0,
@@ -170,7 +185,7 @@ CREATE TABLE curiosities (
 CREATE TABLE notes (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   owner_id INTEGER NOT NULL REFERENCES users(id),
-  entity_type TEXT NOT NULL CHECK(entity_type IN ('project','craft','technique','material','curiosity')),
+  entity_type TEXT NOT NULL CHECK(entity_type IN ('project','craft','technique','supply','curiosity')),
   entity_id INTEGER NOT NULL,
   title TEXT NOT NULL,
   content TEXT,
@@ -181,7 +196,7 @@ CREATE TABLE notes (
 CREATE TABLE photos (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   owner_id INTEGER NOT NULL REFERENCES users(id),
-  entity_type TEXT NOT NULL CHECK(entity_type IN ('project','craft','technique','material','curiosity','log')),
+  entity_type TEXT NOT NULL CHECK(entity_type IN ('project','craft','technique','supply','curiosity','log')),
   entity_id INTEGER NOT NULL,
   image TEXT NOT NULL,
   caption TEXT,
@@ -214,18 +229,21 @@ CREATE TABLE tasks (
   created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
--- Tag junction table
 CREATE TABLE entity_tags (
-  entity_type TEXT NOT NULL CHECK(entity_type IN ('craft','technique','project','material','curiosity')),
+  entity_type TEXT NOT NULL CHECK(entity_type IN ('craft','technique','project','supply','curiosity')),
   entity_id INTEGER NOT NULL,
   tag_id INTEGER NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
   PRIMARY KEY (entity_type, entity_id, tag_id)
 );
 
-CREATE INDEX idx_entity_tags_entity ON entity_tags(entity_type, entity_id);
-CREATE INDEX idx_entity_tags_tag ON entity_tags(tag_id);
-
--- Indexes for common queries
+-- Indexes
+CREATE INDEX idx_supply_profiles_owner ON supply_profiles(owner_id);
+CREATE INDEX idx_supplies_owner ON supplies(owner_id);
+CREATE INDEX idx_supplies_profile ON supplies(profile_id);
+CREATE INDEX idx_supplies_material ON supplies(material);
+CREATE INDEX idx_supplies_brand ON supplies(brand);
+CREATE INDEX idx_supply_vendors_supply ON supply_vendors(supply_id);
+CREATE INDEX idx_supply_stock_supply ON supply_stock(supply_id);
 CREATE INDEX idx_techniques_owner ON techniques(owner_id);
 CREATE INDEX idx_techniques_category ON techniques(category_id);
 CREATE INDEX idx_crafts_owner ON crafts(owner_id);
@@ -234,11 +252,10 @@ CREATE INDEX idx_projects_owner ON projects(owner_id);
 CREATE INDEX idx_projects_status ON projects(status);
 CREATE INDEX idx_project_crafts_project ON project_crafts(project_id);
 CREATE INDEX idx_project_crafts_craft ON project_crafts(craft_id);
-CREATE INDEX idx_materials_owner ON materials(owner_id);
-CREATE INDEX idx_material_vendors_material ON material_vendors(material_id);
 CREATE INDEX idx_curiosities_owner ON curiosities(owner_id);
 CREATE INDEX idx_curiosities_category ON curiosities(category_id);
-CREATE INDEX idx_material_stock_material ON material_stock(material_id);
+CREATE INDEX idx_entity_tags_entity ON entity_tags(entity_type, entity_id);
+CREATE INDEX idx_entity_tags_tag ON entity_tags(tag_id);
 CREATE INDEX idx_notes_entity ON notes(entity_type, entity_id);
 CREATE INDEX idx_photos_entity ON photos(entity_type, entity_id);
 CREATE INDEX idx_logs_craft ON logs(craft_id);
