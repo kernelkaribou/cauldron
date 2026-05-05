@@ -14,6 +14,7 @@ interface CrudOptions {
   createSchema: ZodSchema;
   updateSchema: ZodSchema;
   beforeDelete?: (db: ReturnType<typeof getDb>, id: number, ownerId: number) => string | null;
+  beforeSave?: (db: ReturnType<typeof getDb>, data: Record<string, any>, ownerId: number, existing?: Record<string, any>) => string | null;
 }
 
 interface ExpandDef {
@@ -26,7 +27,7 @@ const tagEntityTypeByTable: Partial<Record<string, string>> = {
   crafts: 'craft',
   techniques: 'technique',
   projects: 'project',
-  materials: 'material',
+  supplies: 'supply',
   curiosities: 'curiosity',
 };
 
@@ -164,6 +165,11 @@ export function createCrudRouter(options: CrudOptions): Router {
     const owner = ownerId(req);
     const data = req.body;
 
+    if (options.beforeSave) {
+      const err = options.beforeSave(db, data, owner);
+      if (err) { res.status(400).json({ error: err }); return; }
+    }
+
     const columns = Object.keys(data);
     columns.push('owner_id');
     const values = Object.values(data);
@@ -184,12 +190,17 @@ export function createCrudRouter(options: CrudOptions): Router {
     const owner = ownerId(req);
     const data = req.body;
 
-    // Verify ownership
-    const existing = db.prepare(`SELECT id FROM ${table} WHERE id = ? AND owner_id = ?`)
-      .get(req.params.id, owner);
+    // Verify ownership and fetch existing row for merge
+    const existing = db.prepare(`SELECT * FROM ${table} WHERE id = ? AND owner_id = ?`)
+      .get(req.params.id, owner) as Record<string, any> | undefined;
     if (!existing) {
       res.status(404).json({ error: 'Not found' });
       return;
+    }
+
+    if (options.beforeSave) {
+      const err = options.beforeSave(db, data, owner, existing);
+      if (err) { res.status(400).json({ error: err }); return; }
     }
 
     const columns = Object.keys(data);

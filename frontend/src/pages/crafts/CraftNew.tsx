@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TechniquePicker } from '@/components/shared/TechniquePicker';
-import { MaterialPicker } from '@/components/shared/MaterialPicker';
+import { SupplyPicker } from '@/components/shared/SupplyPicker';
 import { CategorySelect } from '@/components/shared/CategorySelect';
 import { useCreateCraft } from '@/hooks/useCrafts';
 import { ApiError } from '@/lib/api';
-import { buildMaterialPayload, buildTechniquePayload, type MaterialSelection, type TechniqueSelection } from '@/pages/crafts/craftFormUtils';
+import { buildSupplyPayload, buildTechniquePayload, type SupplySelection, type TechniqueSelection } from '@/pages/crafts/craftFormUtils';
 
 export function CraftNew() {
   const [title, setTitle] = useState('');
@@ -13,12 +13,12 @@ export function CraftNew() {
   const [categoryId, setCategoryId] = useState<number | null>(null);
   const [duration, setDuration] = useState('');
   const [techniques, setTechniques] = useState<TechniqueSelection[]>([]);
-  const [materials, setMaterials] = useState<MaterialSelection[]>([]);
+  const [supplies, setSupplies] = useState<SupplySelection[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const createCraft = useCreateCraft();
   const navigate = useNavigate();
 
-  const isSubmitDisabled = !title.trim() || techniques.length < 1 || materials.length < 1 || createCraft.isPending;
+  const isSubmitDisabled = !title.trim() || techniques.length < 1 || supplies.length < 1 || createCraft.isPending;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -31,7 +31,7 @@ export function CraftNew() {
         category_id: categoryId,
         duration_minutes: duration ? parseInt(duration, 10) : undefined,
         techniques: buildTechniquePayload(techniques),
-        materials: buildMaterialPayload(materials),
+        supplies: buildSupplyPayload(supplies),
       });
       navigate(`/crafts/${craft.id}`);
     } catch (err) {
@@ -94,12 +94,12 @@ export function CraftNew() {
           onRemove={id => setTechniques(current => current.filter(item => item.id !== id))}
         />
 
-        <MaterialPicker
-          selected={materials}
-          onAdd={item => setMaterials(current => [...current, { ...item, quantity: undefined }])}
-          onCreate={item => setMaterials(current => [...current, { mode: 'existing', id: item.id, name: item.name, unit: item.unit }])}
-          onRemove={id => setMaterials(current => current.filter(item => item.id !== id))}
-          onUpdate={(id, changes) => setMaterials(current => current.map(item => (item.id === id ? { ...item, ...changes } : item)))}
+        <SupplyPicker
+          selected={supplies}
+          onAdd={item => setSupplies(current => [...current, { ...item, quantity: undefined }])}
+          onCreate={item => setSupplies(current => [...current, { mode: 'existing', id: item.id, name: item.name, unit: item.unit }])}
+          onRemove={id => setSupplies(current => current.filter(item => item.id !== id))}
+          onUpdate={(id, changes) => setSupplies(current => current.map(item => (item.id === id ? { ...item, ...changes } : item)))}
         />
 
         {errors.form && <p className="text-sm text-error">{errors.form}</p>}

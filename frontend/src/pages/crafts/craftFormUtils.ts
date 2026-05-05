@@ -1,5 +1,5 @@
-import type { CraftMaterial, CraftTechnique } from '@/lib/types';
-import type { CraftMaterialInput, CraftTechniqueInput } from '@/hooks/useCrafts';
+import type { CraftSupply, CraftTechnique } from '@/lib/types';
+import type { CraftSupplyInput, CraftTechniqueInput } from '@/hooks/useCrafts';
 
 export interface TechniqueSelection {
   mode: 'existing';
@@ -9,7 +9,7 @@ export interface TechniqueSelection {
   notes?: string;
 }
 
-export interface MaterialSelection {
+export interface SupplySelection {
   mode: 'existing';
   id: number;
   name: string;
@@ -28,14 +28,14 @@ export function mapCraftTechniqueToSelection(technique: CraftTechnique): Techniq
   };
 }
 
-export function mapCraftMaterialToSelection(material: CraftMaterial): MaterialSelection {
+export function mapCraftSupplyToSelection(supply: CraftSupply): SupplySelection {
   return {
     mode: 'existing',
-    id: material.material_id,
-    name: material.name,
-    quantity: material.quantity,
-    unit: material.unit || undefined,
-    notes: material.notes || undefined,
+    id: supply.supply_id,
+    name: supply.name,
+    quantity: supply.quantity,
+    unit: supply.unit || undefined,
+    notes: supply.notes || undefined,
   };
 }
 
@@ -48,7 +48,7 @@ export function buildTechniquePayload(items: TechniqueSelection[]): CraftTechniq
   }));
 }
 
-export function buildMaterialPayload(items: MaterialSelection[]): CraftMaterialInput[] {
+export function buildSupplyPayload(items: SupplySelection[]): CraftSupplyInput[] {
   return items.map(item => ({
     mode: 'existing',
     id: item.id,
@@ -62,6 +62,6 @@ export function areTechniqueSelectionsEqual(a: TechniqueSelection[], b: Techniqu
   return JSON.stringify(buildTechniquePayload(a)) === JSON.stringify(buildTechniquePayload(b));
 }
 
-export function areMaterialSelectionsEqual(a: MaterialSelection[], b: MaterialSelection[]) {
-  return JSON.stringify(buildMaterialPayload(a)) === JSON.stringify(buildMaterialPayload(b));
+export function areSupplySelectionsEqual(a: SupplySelection[], b: SupplySelection[]) {
+  return JSON.stringify(buildSupplyPayload(a)) === JSON.stringify(buildSupplyPayload(b));
 }

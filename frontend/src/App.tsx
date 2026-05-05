@@ -19,10 +19,13 @@ import { ProjectList } from '@/pages/projects/ProjectList';
 import { ProjectNew } from '@/pages/projects/ProjectNew';
 import { ProjectDetail } from '@/pages/projects/ProjectDetail';
 import { ProjectEdit } from '@/pages/projects/ProjectEdit';
-import { MaterialList } from '@/pages/materials/MaterialList';
-import { MaterialNew } from '@/pages/materials/MaterialNew';
-import { MaterialDetail } from '@/pages/materials/MaterialDetail';
-import { MaterialEdit } from '@/pages/materials/MaterialEdit';
+import { SupplyList } from '@/pages/supplies/SupplyList';
+import { SupplyNew } from '@/pages/supplies/SupplyNew';
+import { SupplyDetail } from '@/pages/supplies/SupplyDetail';
+import { SupplyEdit } from '@/pages/supplies/SupplyEdit';
+import { ProfileList } from '@/pages/supplies/profiles/ProfileList';
+import { ProfileNew } from '@/pages/supplies/profiles/ProfileNew';
+import { ProfileEdit } from '@/pages/supplies/profiles/ProfileEdit';
 import { CuriosityList } from '@/pages/curiosities/CuriosityList';
 import { CuriosityNew } from '@/pages/curiosities/CuriosityNew';
 import { CuriosityDetail } from '@/pages/curiosities/CuriosityDetail';
@@ -62,10 +65,13 @@ function App() {
                 <Route path="/projects/new" element={<ProjectNew />} />
                 <Route path="/projects/:id" element={<ProjectDetail />} />
                 <Route path="/projects/:id/edit" element={<ProjectEdit />} />
-                <Route path="/materials" element={<MaterialList />} />
-                <Route path="/materials/new" element={<MaterialNew />} />
-                <Route path="/materials/:id" element={<MaterialDetail />} />
-                <Route path="/materials/:id/edit" element={<MaterialEdit />} />
+                <Route path="/supplies" element={<SupplyList />} />
+                <Route path="/supplies/new" element={<SupplyNew />} />
+                <Route path="/supplies/profiles" element={<ProfileList />} />
+                <Route path="/supplies/profiles/new" element={<ProfileNew />} />
+                <Route path="/supplies/profiles/:id/edit" element={<ProfileEdit />} />
+                <Route path="/supplies/:id" element={<SupplyDetail />} />
+                <Route path="/supplies/:id/edit" element={<SupplyEdit />} />
                 <Route path="/curiosities" element={<CuriosityList />} />
                 <Route path="/curiosities/new" element={<CuriosityNew />} />
                 <Route path="/curiosities/:id" element={<CuriosityDetail />} />

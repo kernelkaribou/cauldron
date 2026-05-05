@@ -6,7 +6,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
 interface NotesSectionProps {
-  entityType: 'project' | 'craft' | 'technique' | 'material' | 'curiosity';
+  entityType: 'project' | 'craft' | 'technique' | 'supply' | 'curiosity';
   entityId: number;
 }
 

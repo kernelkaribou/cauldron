@@ -6,7 +6,7 @@ import { ErrorBanner } from '@/components/shared/ErrorBanner';
 import { DetailPageShell, MetadataCard } from '@/components/shared/DetailPageShell';
 import { TagSelect } from '@/components/shared/TagSelect';
 import { TechniqueManager } from '@/components/shared/TechniqueManager';
-import { MaterialManager } from '@/components/shared/MaterialManager';
+import { SupplyManager } from '@/components/shared/SupplyManager';
 import { PhotoGallery } from '@/components/shared/PhotoGallery';
 import { LogFeed } from '@/components/shared/LogFeed';
 import { NotesSection } from '@/components/shared/NotesSection';
@@ -15,9 +15,9 @@ import { useQueryClient } from '@tanstack/react-query';
 
 function getInheritedSourceLabel(sources: AggregatedTag['sources']) {
   const inheritedSources = sources.filter(source => source !== 'craft');
-  if (inheritedSources.includes('technique') && inheritedSources.includes('material')) return 'from techniques & materials';
+  if (inheritedSources.includes('technique') && inheritedSources.includes('supply')) return 'from techniques & supplies';
   if (inheritedSources.includes('technique')) return 'from techniques';
-  return 'from materials';
+  return 'from supplies';
 }
 
 export function CraftDetail() {
@@ -35,7 +35,7 @@ export function CraftDetail() {
   if (!craft) return <p className="text-text-muted">Craft not found</p>;
 
   const relatedTags = (aggregatedTags?.items || []).filter(tag =>
-    !tag.sources.includes('craft') && tag.sources.some(source => source === 'technique' || source === 'material'),
+    !tag.sources.includes('craft') && tag.sources.some(source => source === 'technique' || source === 'supply'),
   );
 
   async function handleDelete() {
@@ -71,7 +71,7 @@ export function CraftDetail() {
           </div>
         )}
         <TechniqueManager entityType="crafts" entityId={craftId} />
-        <MaterialManager entityType="crafts" entityId={craftId} />
+        <SupplyManager entityType="crafts" entityId={craftId} />
         <PhotoGallery entityType="craft" entityId={craftId} />
         <LogFeed craftId={craftId} />
         <NotesSection entityType="craft" entityId={craftId} />
@@ -88,7 +88,7 @@ export function CraftDetail() {
           <TagSelect entityType="crafts" entityId={craftId} tags={craft.tags || []} onUpdate={() => qc.invalidateQueries({ queryKey: ['crafts', craftId] })} />
 
           <div className="mt-4 border-t border-border pt-4">
-            <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-text-muted">From Techniques & Materials</h3>
+            <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-text-muted">From Techniques & Supplies</h3>
             {aggregatedTagsError ? (
               <p className="text-xs text-error">Unable to load related tags.</p>
             ) : isLoadingAggregatedTags ? (
@@ -105,7 +105,7 @@ export function CraftDetail() {
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-text-muted">No related tags from techniques or materials.</p>
+              <p className="text-xs text-text-muted">No related tags from techniques or supplies.</p>
             )}
           </div>
         </div>

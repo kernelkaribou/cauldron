@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api';
 import type { Tag, PaginatedResponse } from '@/lib/types';
 
-export type AggregatedTagSource = 'craft' | 'technique' | 'material';
+export type AggregatedTagSource = 'craft' | 'technique' | 'supply';
 
 export interface AggregatedTag {
   id: number;

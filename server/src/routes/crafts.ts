@@ -38,7 +38,7 @@ const techniqueSchema = z.discriminatedUnion('mode', [
   }),
 ]);
 
-const materialSchema = z.discriminatedUnion('mode', [
+const supplySchema = z.discriminatedUnion('mode', [
   z.object({
     mode: z.literal('existing'),
     id: idSchema,
@@ -60,18 +60,18 @@ const materialSchema = z.discriminatedUnion('mode', [
 
 const createSchema = craftScalarSchema.extend({
   techniques: z.array(techniqueSchema).min(1),
-  materials: z.array(materialSchema).min(1),
+  supplies: z.array(supplySchema).min(1),
 });
 
 const updateSchema = craftScalarSchema.partial().extend({
   techniques: z.array(techniqueSchema).min(1).optional(),
-  materials: z.array(materialSchema).min(1).optional(),
+  supplies: z.array(supplySchema).min(1).optional(),
 });
 
 type CreateCraftInput = z.infer<typeof createSchema>;
 type UpdateCraftInput = z.infer<typeof updateSchema>;
 type TechniqueInput = z.infer<typeof techniqueSchema>;
-type MaterialInput = z.infer<typeof materialSchema>;
+type SupplyInput = z.infer<typeof supplySchema>;
 
 class RequestError extends Error {
   constructor(public status: number, message: string) {
@@ -102,10 +102,10 @@ function applyCraftExpansions(items: any[], requested: Set<string>): void {
     WHERE ct.craft_id = ?
     ORDER BY ct.sort_order, ct.id
   `);
-  const materialStmt = db.prepare(`
-    SELECT cm.material_id, m.name, cm.quantity, cm.unit, cm.notes
-    FROM craft_materials cm
-    JOIN materials m ON m.id = cm.material_id
+  const supplyStmt = db.prepare(`
+    SELECT cm.supply_id, s.name, cs.quantity, cs.unit, cs.notes
+    FROM craft_supplies cm
+    JOIN supplies s ON m.id = cm.supply_id
     WHERE cm.craft_id = ?
     ORDER BY cm.id
   `);
@@ -120,8 +120,8 @@ function applyCraftExpansions(items: any[], requested: Set<string>): void {
     if (requested.has('techniques')) {
       item.techniques = techniqueStmt.all(item.id);
     }
-    if (requested.has('materials')) {
-      item.materials = materialStmt.all(item.id);
+    if (requested.has('supplies')) {
+      item.supplies = supplyStmt.all(item.id);
     }
   }
 }
@@ -190,9 +190,9 @@ function ensureOwnedTechnique(id: number, owner: number): void {
   }
 }
 
-function ensureOwnedMaterial(id: number, owner: number): void {
-  if (!assertOwned(getDb(), 'materials', id, owner)) {
-    throw new RequestError(400, 'Material not found');
+function ensureOwnedSupply(id: number, owner: number): void {
+  if (!assertOwned(getDb(), 'supplies', id, owner)) {
+    throw new RequestError(400, 'Supply not found');
   }
 }
 
@@ -232,33 +232,33 @@ function replaceCraftTechniques(craftId: number, owner: number, techniques: Tech
   }
 }
 
-function replaceCraftMaterials(craftId: number, owner: number, materials: MaterialInput[]): void {
+function replaceCraftSupplies(craftId: number, owner: number, supplies: SupplyInput[]): void {
   const db = getDb();
-  const insertCraftMaterial = db.prepare(
-    'INSERT INTO craft_materials (craft_id, material_id, quantity, unit, notes) VALUES (?, ?, ?, ?, ?)'
+  const insertCraftSupply = db.prepare(
+    'INSERT INTO craft_supplies (craft_id, supply_id, quantity, unit, notes) VALUES (?, ?, ?, ?, ?)'
   );
 
-  for (const material of materials) {
-    let materialId = material.mode === 'existing' ? material.id : 0;
-    let unitOnCraft = material.mode === 'existing' ? material.unit ?? null : material.unit_on_craft ?? null;
+  for (const supply of supplies) {
+    let supplyId = supply.mode === 'existing' ? supply.id : 0;
+    let unitOnCraft = supply.mode === 'existing' ? supply.unit ?? null : supply.unit_on_craft ?? null;
 
-    if (material.mode === 'existing') {
-      ensureOwnedMaterial(material.id, owner);
+    if (supply.mode === 'existing') {
+      ensureOwnedSupply(supply.id, owner);
     } else {
-      materialId = insertRow('materials', {
-        name: material.name,
-        description: material.description,
-        unit: material.unit,
-        reusable: toReusableValue(material.reusable),
+      supplyId = insertRow('supplies', {
+        name: supply.name,
+        description: supply.description,
+        unit: supply.unit,
+        reusable: toReusableValue(supply.reusable),
         owner_id: owner,
       });
     }
 
     try {
-      insertCraftMaterial.run(craftId, materialId, material.quantity ?? 0, unitOnCraft, material.notes ?? null);
+      insertCraftSupply.run(craftId, supplyId, supply.quantity ?? 0, unitOnCraft, supply.notes ?? null);
     } catch (error) {
       if (error instanceof Error && error.message.includes('UNIQUE constraint failed')) {
-        throw new RequestError(409, 'Material already attached to this craft');
+        throw new RequestError(409, 'Supply already attached to this craft');
       }
       throw error;
     }
@@ -268,13 +268,13 @@ function replaceCraftMaterials(craftId: number, owner: number, materials: Materi
 function ensureCraftInvariant(craftId: number): void {
   const db = getDb();
   const techniqueCount = db.prepare('SELECT COUNT(*) as total FROM craft_techniques WHERE craft_id = ?').get(craftId) as { total: number };
-  const materialCount = db.prepare('SELECT COUNT(*) as total FROM craft_materials WHERE craft_id = ?').get(craftId) as { total: number };
+  const supplyCount = db.prepare('SELECT COUNT(*) as total FROM craft_supplies WHERE craft_id = ?').get(craftId) as { total: number };
 
   if (techniqueCount.total < 1) {
     throw new RequestError(400, 'Craft must have at least one technique');
   }
-  if (materialCount.total < 1) {
-    throw new RequestError(400, 'Craft must have at least one material');
+  if (supplyCount.total < 1) {
+    throw new RequestError(400, 'Craft must have at least one supply');
   }
 }
 
@@ -339,7 +339,7 @@ router.post('/', validate(createSchema), (req: Request, res: Response) => {
       });
 
       replaceCraftTechniques(createdCraftId, owner, data.techniques);
-      replaceCraftMaterials(createdCraftId, owner, data.materials);
+      replaceCraftSupplies(createdCraftId, owner, data.supplies);
       ensureCraftInvariant(createdCraftId);
 
       return createdCraftId;
@@ -391,9 +391,9 @@ router.put('/:id', validate(updateSchema), (req: Request, res: Response) => {
         replaceCraftTechniques(craftId, owner, data.techniques);
       }
 
-      if (data.materials) {
-        db.prepare('DELETE FROM craft_materials WHERE craft_id = ?').run(craftId);
-        replaceCraftMaterials(craftId, owner, data.materials);
+      if (data.supplies) {
+        db.prepare('DELETE FROM craft_supplies WHERE craft_id = ?').run(craftId);
+        replaceCraftSupplies(craftId, owner, data.supplies);
       }
 
       ensureCraftInvariant(craftId);

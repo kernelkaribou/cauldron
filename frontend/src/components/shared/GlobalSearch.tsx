@@ -7,7 +7,7 @@ const TYPE_PATHS: Record<string, string> = {
   craft: '/crafts',
   technique: '/techniques',
   project: '/projects',
-  material: '/materials',
+  supply: '/supplies',
   curiosity: '/curiosities',
 };
 
@@ -15,7 +15,7 @@ const TYPE_GLYPHS: Record<string, string> = {
   craft: '◉',
   technique: '✦',
   project: '▦',
-  material: '◈',
+  supply: '◈',
   curiosity: '★',
 };
 

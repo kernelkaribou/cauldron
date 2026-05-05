@@ -42,7 +42,7 @@ type ProjectCraftInput = z.infer<typeof projectCraftSchema>;
 type CreateProjectInput = z.infer<typeof createSchema>;
 type UpdateProjectInput = z.infer<typeof updateSchema>;
 type SnapshotTechniqueRow = { technique_id: number; sort_order: number | null; notes: string | null };
-type SnapshotMaterialRow = { material_id: number; quantity: number | null; unit: string | null; notes: string | null };
+type SnapshotSupplyRow = { supply_id: number; quantity: number | null; unit: string | null; notes: string | null };
 
 class RequestError extends Error {
   constructor(public status: number, message: string) {
@@ -130,20 +130,20 @@ function snapshotProjectTechniques(projectId: number, craftIds: number[]): void 
   }
 }
 
-function snapshotProjectMaterials(projectId: number, craftIds: number[]): void {
+function snapshotProjectSupplies(projectId: number, craftIds: number[]): void {
   const db = getDb();
   const placeholders = craftIds.map(() => '?').join(', ');
   const rows = db.prepare(`
-    SELECT cm.material_id, cm.quantity, cm.unit, cm.notes
-    FROM craft_materials cm
-    WHERE cm.craft_id IN (${placeholders})
-    ORDER BY cm.craft_id, cm.id
-  `).all(...craftIds) as SnapshotMaterialRow[];
+    SELECT cs.supply_id, cs.quantity, cs.unit, cs.notes
+    FROM craft_supplies cs
+    WHERE cs.craft_id IN (${placeholders})
+    ORDER BY cs.craft_id, cs.id
+  `).all(...craftIds) as SnapshotSupplyRow[];
 
   const aggregated = new Map<number, { quantity: number; unit: string | null; notes: Array<string | null> }>();
 
   for (const row of rows) {
-    const existing = aggregated.get(row.material_id);
+    const existing = aggregated.get(row.supply_id);
     if (existing) {
       existing.quantity += row.quantity ?? 0;
       if (!existing.unit && row.unit) {
@@ -153,19 +153,19 @@ function snapshotProjectMaterials(projectId: number, craftIds: number[]): void {
       continue;
     }
 
-    aggregated.set(row.material_id, {
+    aggregated.set(row.supply_id, {
       quantity: row.quantity ?? 0,
       unit: row.unit,
       notes: [row.notes],
     });
   }
 
-  const insertMaterial = db.prepare(
-    'INSERT INTO project_materials (project_id, material_id, quantity, unit, notes) VALUES (?, ?, ?, ?, ?)'
+  const insertSupply = db.prepare(
+    'INSERT INTO project_supplies (project_id, supply_id, quantity, unit, notes) VALUES (?, ?, ?, ?, ?)'
   );
 
-  for (const [materialId, value] of aggregated) {
-    insertMaterial.run(projectId, materialId, value.quantity, value.unit, joinNotes(value.notes));
+  for (const [supplyId, value] of aggregated) {
+    insertSupply.run(projectId, supplyId, value.quantity, value.unit, joinNotes(value.notes));
   }
 }
 
@@ -181,7 +181,7 @@ function createProject(owner: number, data: CreateProjectInput): number {
     const projectId = Number(result.lastInsertRowid);
     insertProjectCrafts(projectId, data.crafts);
     snapshotProjectTechniques(projectId, craftIds);
-    snapshotProjectMaterials(projectId, craftIds);
+    snapshotProjectSupplies(projectId, craftIds);
 
     return projectId;
   })();
@@ -260,12 +260,12 @@ function applyProjectExpansions(items: any[], requested: Set<string>, owner: num
     WHERE pt.project_id = ?
     ORDER BY pt.sort_order, pt.id
   `);
-  const materialsStmt = db.prepare(`
-    SELECT pm.id, pm.material_id, pm.quantity, pm.unit, pm.notes, m.name, m.description, m.unit AS default_unit, m.reusable, m.price
-    FROM project_materials pm
-    JOIN materials m ON m.id = pm.material_id
+  const suppliesStmt = db.prepare(`
+    SELECT ps.id, pm.supply_id, ps.quantity, ps.unit, ps.notes, s.name, s.description, s.unit AS default_unit, s.reusable, s.price
+    FROM project_supplies pm
+    JOIN supplies s ON m.id = pm.supply_id
     WHERE pm.project_id = ?
-    ORDER BY pm.id
+    ORDER BY ps.id
   `);
 
   for (const item of items) {
@@ -278,8 +278,8 @@ function applyProjectExpansions(items: any[], requested: Set<string>, owner: num
     if (requested.has('techniques')) {
       item.techniques = techniquesStmt.all(item.id);
     }
-    if (requested.has('materials')) {
-      item.materials = materialsStmt.all(item.id);
+    if (requested.has('supplies')) {
+      item.supplies = suppliesStmt.all(item.id);
     }
   }
 }

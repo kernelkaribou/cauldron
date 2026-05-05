@@ -6,18 +6,18 @@ import { validate } from '../middleware/validate.js';
 import { assertOwned } from './entity-utils.js';
 
 const tagActionSchema = z.object({ tag_id: z.number().int().positive() });
-const taggableEntityTypeSchema = z.enum(['crafts', 'techniques', 'projects', 'materials', 'curiosities']);
+const taggableEntityTypeSchema = z.enum(['crafts', 'techniques', 'projects', 'supplies', 'curiosities']);
 type TaggableEntityType = z.infer<typeof taggableEntityTypeSchema>;
 
 const tagEntityConfig: Record<TaggableEntityType, {
   table: string;
-  entityType: 'craft' | 'technique' | 'project' | 'material' | 'curiosity';
+  entityType: 'craft' | 'technique' | 'project' | 'supply' | 'curiosity';
   notFound: string;
 }> = {
   crafts: { table: 'crafts', entityType: 'craft', notFound: 'Craft not found' },
   techniques: { table: 'techniques', entityType: 'technique', notFound: 'Technique not found' },
   projects: { table: 'projects', entityType: 'project', notFound: 'Project not found' },
-  materials: { table: 'materials', entityType: 'material', notFound: 'Material not found' },
+  supplies: { table: 'supplies', entityType: 'supply', notFound: 'Supply not found' },
   curiosities: { table: 'curiosities', entityType: 'curiosity', notFound: 'Curiosity not found' },
 };
 

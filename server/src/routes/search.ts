@@ -28,8 +28,8 @@ router.get('/', (req: Request, res: Response) => {
     'SELECT id, title, \'project\' as type FROM projects WHERE owner_id = ? AND (title LIKE ? OR description LIKE ?) LIMIT 5'
   ).all(owner, pattern, pattern);
 
-  const materials = db.prepare(
-    'SELECT id, name as title, \'material\' as type FROM materials WHERE owner_id = ? AND name LIKE ? LIMIT 5'
+  const supplies = db.prepare(
+    'SELECT id, name as title, \'supply\' as type FROM supplies WHERE owner_id = ? AND name LIKE ? LIMIT 5'
   ).all(owner, pattern);
 
   const curiosities = db.prepare(
@@ -37,7 +37,7 @@ router.get('/', (req: Request, res: Response) => {
   ).all(owner, pattern);
 
   res.json({
-    results: [...crafts, ...techniques, ...projects, ...materials, ...curiosities],
+    results: [...crafts, ...techniques, ...projects, ...supplies, ...curiosities],
   });
 });
 

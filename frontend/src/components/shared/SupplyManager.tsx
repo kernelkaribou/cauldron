@@ -1,37 +1,37 @@
 import { useState } from 'react';
-import { MaterialInlineForm } from '@/components/shared/MaterialInlineForm';
-import { useEntityMaterials, useAddEntityMaterial, useRemoveEntityMaterial } from '@/hooks/useSubResources';
-import { useMaterials } from '@/hooks/useMaterials';
+import { SupplyInlineForm } from '@/components/shared/SupplyInlineForm';
+import { useEntitySupplies, useAddEntitySupply, useRemoveEntitySupply } from '@/hooks/useSubResources';
+import { useSupplies } from '@/hooks/useSupplies';
 
-interface MaterialManagerProps {
+interface SupplyManagerProps {
   entityType: 'crafts' | 'projects';
   entityId: number;
 }
 
-export function MaterialManager({ entityType, entityId }: MaterialManagerProps) {
-  const { data, isLoading } = useEntityMaterials(entityType, entityId);
-  const addMaterial = useAddEntityMaterial();
-  const removeMaterial = useRemoveEntityMaterial();
+export function SupplyManager({ entityType, entityId }: SupplyManagerProps) {
+  const { data, isLoading } = useEntitySupplies(entityType, entityId);
+  const addSupply = useAddEntitySupply();
+  const removeSupply = useRemoveEntitySupply();
   const [showExisting, setShowExisting] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [search, setSearch] = useState('');
   const [quantity, setQuantity] = useState('');
   const [unit, setUnit] = useState('');
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const { data: materialResults } = useMaterials(1, { search: search || undefined });
+  const { data: supplyResults } = useSupplies(1, { search: search || undefined });
 
-  const attachedIds = new Set(data?.items.map(item => item.material_id) || []);
-  const available = materialResults?.items.filter(item => !attachedIds.has(item.id)) || [];
+  const attachedIds = new Set(data?.items.map(item => item.supply_id) || []);
+  const available = supplyResults?.items.filter(item => !attachedIds.has(item.id)) || [];
   const canRemove = entityType !== 'crafts' || (data?.items.length ?? 0) > 1;
 
   async function handleAdd() {
     if (!selectedId) return;
 
-    await addMaterial.mutateAsync({
+    await addSupply.mutateAsync({
       entityType,
       entityId,
       data: {
-        material_id: selectedId,
+        supply_id: selectedId,
         quantity: quantity ? parseFloat(quantity) : 0,
         unit: unit || undefined,
       },
@@ -44,27 +44,27 @@ export function MaterialManager({ entityType, entityId }: MaterialManagerProps) 
     setShowExisting(false);
   }
 
-  async function attachCreatedMaterial(material: { id: number; name: string; unit?: string }) {
-    await addMaterial.mutateAsync({
+  async function attachCreatedSupply(supply: { id: number; name: string; unit?: string }) {
+    await addSupply.mutateAsync({
       entityType,
       entityId,
       data: {
-        material_id: material.id,
+        supply_id: supply.id,
         quantity: 0,
-        unit: material.unit,
+        unit: supply.unit,
       },
     });
     setShowCreate(false);
   }
 
-  function handleCreated(material: { id: number; name: string; unit?: string }) {
-    void attachCreatedMaterial(material);
+  function handleCreated(supply: { id: number; name: string; unit?: string }) {
+    void attachCreatedSupply(supply);
   }
 
   return (
     <div className="rounded-xl border border-border bg-card p-4">
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-sm font-medium text-text-secondary">Materials</h2>
+        <h2 className="text-sm font-medium text-text-secondary">Supplies</h2>
         <div className="flex gap-2">
           <button
             type="button"
@@ -96,31 +96,31 @@ export function MaterialManager({ entityType, entityId }: MaterialManagerProps) 
               <input
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                placeholder="Search materials..."
+                placeholder="Search supplies..."
                 className="w-full rounded border border-border bg-card px-2 py-1.5 text-sm text-text-primary focus:border-accent focus:outline-none"
               />
-              {search && available.length === 0 && <p className="text-xs text-text-muted">No matching materials.</p>}
-              {!search && available.length === 0 && <p className="text-xs text-text-muted">No more materials available.</p>}
+              {search && available.length === 0 && <p className="text-xs text-text-muted">No matching supplies.</p>}
+              {!search && available.length === 0 && <p className="text-xs text-text-muted">No more supplies available.</p>}
               <div className="max-h-40 space-y-1 overflow-y-auto">
-                {available.slice(0, 10).map(material => (
+                {available.slice(0, 10).map(supply => (
                   <button
-                    key={material.id}
+                    key={supply.id}
                     type="button"
                     onClick={() => {
-                      setSelectedId(material.id);
-                      setUnit(material.unit || '');
+                      setSelectedId(supply.id);
+                      setUnit(supply.unit || '');
                     }}
                     className="w-full rounded px-2 py-1.5 text-left text-sm text-text-primary transition-colors hover:bg-card"
                   >
-                    {material.name}
-                    {material.unit ? ` (${material.unit})` : ''}
+                    {supply.name}
+                    {supply.unit ? ` (${supply.unit})` : ''}
                   </button>
                 ))}
               </div>
             </>
           ) : (
             <>
-              <p className="text-sm text-text-primary">Adding material...</p>
+              <p className="text-sm text-text-primary">Adding supply...</p>
               <div className="flex flex-wrap gap-2">
                 <input
                   type="number"
@@ -157,13 +157,13 @@ export function MaterialManager({ entityType, entityId }: MaterialManagerProps) 
         </div>
       )}
 
-      {showCreate && <MaterialInlineForm onCreated={handleCreated} onCancel={() => setShowCreate(false)} />}
+      {showCreate && <SupplyInlineForm onCreated={handleCreated} onCancel={() => setShowCreate(false)} />}
 
       {isLoading && <p className="text-xs text-text-muted">Loading...</p>}
-      {data?.items.length === 0 && !isLoading && <p className="text-xs text-text-muted">No materials attached.</p>}
+      {data?.items.length === 0 && !isLoading && <p className="text-xs text-text-muted">No supplies attached.</p>}
       <div className="space-y-1">
         {data?.items.map(item => (
-          <div key={item.material_id} className="group flex items-center justify-between rounded-lg bg-page p-2">
+          <div key={item.supply_id} className="group flex items-center justify-between rounded-lg bg-page p-2">
             <span className="text-sm text-text-primary">
               {item.name}
               {item.quantity > 0 && <span className="ml-1 text-text-muted">({item.quantity}{item.unit ? ` ${item.unit}` : ''})</span>}
@@ -171,7 +171,7 @@ export function MaterialManager({ entityType, entityId }: MaterialManagerProps) 
             {canRemove ? (
               <button
                 type="button"
-                onClick={() => { if (confirm('Remove this material?')) removeMaterial.mutate({ entityType, entityId, materialId: item.material_id }); }}
+                onClick={() => { if (confirm('Remove this supply?')) removeSupply.mutate({ entityType, entityId, supplyId: item.supply_id }); }}
                 className="text-xs text-text-muted opacity-0 transition-opacity hover:text-error group-hover:opacity-100"
               >
                 ×

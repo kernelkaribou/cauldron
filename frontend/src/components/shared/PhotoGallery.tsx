@@ -3,7 +3,7 @@ import { usePhotos, useUploadPhoto, useDeletePhoto, useSetCoverPhoto } from '@/h
 import type { Photo } from '@/lib/types';
 
 interface PhotoGalleryProps {
-  entityType: 'project' | 'craft' | 'technique' | 'material' | 'curiosity' | 'log';
+  entityType: 'project' | 'craft' | 'technique' | 'supply' | 'curiosity' | 'log';
   entityId: number;
 }
 

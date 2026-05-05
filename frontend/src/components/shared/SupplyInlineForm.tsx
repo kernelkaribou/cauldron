@@ -1,39 +1,39 @@
 import { useState } from 'react';
-import { useCreateMaterial } from '@/hooks/useMaterials';
+import { useCreateSupply } from '@/hooks/useSupplies';
 import { ApiError } from '@/lib/api';
 
-interface MaterialInlineFormProps {
-  onCreated: (material: { id: number; name: string; unit?: string }) => void;
+interface SupplyInlineFormProps {
+  onCreated: (supply: { id: number; name: string; unit?: string }) => void;
   onCancel: () => void;
 }
 
-export function MaterialInlineForm({ onCreated, onCancel }: MaterialInlineFormProps) {
+export function SupplyInlineForm({ onCreated, onCancel }: SupplyInlineFormProps) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [unit, setUnit] = useState('');
   const [reusable, setReusable] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const createMaterial = useCreateMaterial();
+  const createSupply = useCreateSupply();
 
   async function handleSave() {
     if (!name.trim()) return;
     setErrors({});
 
     try {
-      const material = await createMaterial.mutateAsync({
+      const supply = await createSupply.mutateAsync({
         name: name.trim(),
         description: description.trim() || undefined,
         unit: unit.trim() || undefined,
         reusable: reusable ? 1 : 0,
       });
-      onCreated({ id: material.id, name: material.name, unit: material.unit || undefined });
+      onCreated({ id: supply.id, name: supply.name, unit: supply.unit || undefined });
     } catch (err) {
       if (err instanceof ApiError && err.details) {
         setErrors(err.details);
         return;
       }
 
-      setErrors({ form: 'Unable to create material right now.' });
+      setErrors({ form: 'Unable to create supply right now.' });
     }
   }
 
@@ -86,10 +86,10 @@ export function MaterialInlineForm({ onCreated, onCancel }: MaterialInlineFormPr
         <button
           type="button"
           onClick={handleSave}
-          disabled={createMaterial.isPending || !name.trim()}
+          disabled={createSupply.isPending || !name.trim()}
           className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-light disabled:opacity-50"
         >
-          {createMaterial.isPending ? 'Saving...' : 'Save'}
+          {createSupply.isPending ? 'Saving...' : 'Save'}
         </button>
         <button
           type="button"

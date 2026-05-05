@@ -15,8 +15,8 @@ const addTechniqueSchema = z.object({
   sort_order: z.number().int().min(0).optional(),
   notes: z.string().max(1000).optional(),
 });
-const addMaterialSchema = z.object({
-  material_id: z.number().int().positive(),
+const addSupplySchema = z.object({
+  supply_id: z.number().int().positive(),
   quantity: z.number().min(0).optional(),
   unit: z.string().max(50).optional(),
   notes: z.string().max(1000).optional(),
@@ -36,7 +36,7 @@ const addStockSchema = z.object({
   project_id: z.number().int().positive().nullable().optional(),
   date: z.string().min(1),
 });
-const materialVendorSchema = z.object({
+const supplyVendorSchema = z.object({
   name: z.string().min(1).max(200),
   url: z.string().url().optional(),
   notes: z.string().max(1000).optional(),
@@ -101,28 +101,28 @@ export function registerStandardSubresourceRoutes(router: Router): void {
       },
     },
     {
-      basePath: '/crafts/:id/materials',
+      basePath: '/crafts/:id/supplies',
       config: {
         parentTable: 'crafts',
         parentLabel: 'Craft',
-        childTable: 'materials',
-        childLabel: 'Material',
-        childIdField: 'material_id',
-        junctionTable: 'craft_materials',
+        childTable: 'supplies',
+        childLabel: 'Supply',
+        childIdField: 'supply_id',
+        junctionTable: 'craft_supplies',
         parentFk: 'craft_id',
-        childFk: 'material_id',
+        childFk: 'supply_id',
         listQuery: `
-          SELECT fm.id, fm.material_id, fm.quantity, fm.unit, fm.notes, m.name
-          FROM craft_materials fm JOIN materials m ON fm.material_id = m.id
-          WHERE fm.craft_id = ? ORDER BY fm.id
+          SELECT cs.id, cs.supply_id, cs.quantity, cs.unit, cs.notes, s.name
+          FROM craft_supplies cs JOIN supplies s ON cs.supply_id = s.id
+          WHERE cs.craft_id = ? ORDER BY cs.id
         `,
-        addSchema: addMaterialSchema,
-        addColumns: ['material_id', 'quantity', 'unit', 'notes'],
-        addValues: (body: any) => [body.material_id, body.quantity || 0, body.unit || null, body.notes || null],
-        conflictError: 'Material already attached to this craft',
-        successMessage: 'Material added',
+        addSchema: addSupplySchema,
+        addColumns: ['supply_id', 'quantity', 'unit', 'notes'],
+        addValues: (body: any) => [body.supply_id, body.quantity || 0, body.unit || null, body.notes || null],
+        conflictError: 'Supply already attached to this craft',
+        successMessage: 'Supply added',
         minItems: 1,
-        minItemsError: 'Cannot remove the last material from a craft',
+        minItemsError: 'Cannot remove the last supply from a craft',
       },
     },
     {
@@ -149,26 +149,26 @@ export function registerStandardSubresourceRoutes(router: Router): void {
       },
     },
     {
-      basePath: '/projects/:id/materials',
+      basePath: '/projects/:id/supplies',
       config: {
         parentTable: 'projects',
         parentLabel: 'Project',
-        childTable: 'materials',
-        childLabel: 'Material',
-        childIdField: 'material_id',
-        junctionTable: 'project_materials',
+        childTable: 'supplies',
+        childLabel: 'Supply',
+        childIdField: 'supply_id',
+        junctionTable: 'project_supplies',
         parentFk: 'project_id',
-        childFk: 'material_id',
+        childFk: 'supply_id',
         listQuery: `
-          SELECT pm.id, pm.material_id, pm.quantity, pm.unit, pm.notes, m.name
-          FROM project_materials pm JOIN materials m ON pm.material_id = m.id
-          WHERE pm.project_id = ? ORDER BY pm.id
+          SELECT ps.id, ps.supply_id, ps.quantity, ps.unit, ps.notes, s.name
+          FROM project_supplies ps JOIN supplies s ON ps.supply_id = s.id
+          WHERE ps.project_id = ? ORDER BY ps.id
         `,
-        addSchema: addMaterialSchema,
-        addColumns: ['material_id', 'quantity', 'unit', 'notes'],
-        addValues: (body: any) => [body.material_id, body.quantity || 0, body.unit || null, body.notes || null],
-        conflictError: 'Material already attached to this project',
-        successMessage: 'Material added',
+        addSchema: addSupplySchema,
+        addColumns: ['supply_id', 'quantity', 'unit', 'notes'],
+        addValues: (body: any) => [body.supply_id, body.quantity || 0, body.unit || null, body.notes || null],
+        conflictError: 'Supply already attached to this project',
+        successMessage: 'Supply added',
       },
     },
   ].forEach(({ basePath, config }) => createJunctionRoutes(router, basePath, config));
@@ -189,10 +189,10 @@ export function registerStandardSubresourceRoutes(router: Router): void {
     },
   });
 
-  createOwnedCrudSubRoutes(router, '/materials/:id/stock', {
-    parent: { table: 'materials', label: 'Material' },
+  createOwnedCrudSubRoutes(router, '/supplies/:id/stock', {
+    parent: { table: 'supplies', label: 'Supply' },
     list: {
-      query: 'SELECT * FROM material_stock WHERE material_id = ? ORDER BY date DESC, created_at DESC',
+      query: 'SELECT * FROM supply_stock WHERE supply_id = ? ORDER BY date DESC, created_at DESC',
       params: req => [req.params.id],
     },
     create: {
@@ -201,7 +201,7 @@ export function registerStandardSubresourceRoutes(router: Router): void {
         { table: 'projects', label: 'Project', source: 'body', key: 'project_id' },
       ],
       insertSql: `
-        INSERT INTO material_stock (material_id, type, quantity, unit_cost, location, notes, project_id, date, owner_id)
+        INSERT INTO supply_stock (supply_id, type, quantity, unit_cost, location, notes, project_id, date, owner_id)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       insertParams: (req, owner) => [
@@ -215,37 +215,37 @@ export function registerStandardSubresourceRoutes(router: Router): void {
         req.body.date,
         owner,
       ],
-      selectSql: 'SELECT * FROM material_stock WHERE id = ?',
+      selectSql: 'SELECT * FROM supply_stock WHERE id = ?',
     },
   });
 
-  createOwnedCrudSubRoutes(router, '/materials/:id/vendors', {
-    parent: { table: 'materials', label: 'Material' },
+  createOwnedCrudSubRoutes(router, '/supplies/:id/vendors', {
+    parent: { table: 'supplies', label: 'Supply' },
     itemIdParam: 'vendorId',
     list: {
-      query: 'SELECT * FROM material_vendors WHERE material_id = ? AND owner_id = ? ORDER BY created_at DESC, id DESC',
+      query: 'SELECT * FROM supply_vendors WHERE supply_id = ? AND owner_id = ? ORDER BY created_at DESC, id DESC',
       params: (req, owner) => [req.params.id, owner],
     },
     create: {
-      schema: materialVendorSchema,
-      insertSql: 'INSERT INTO material_vendors (material_id, name, url, notes, owner_id) VALUES (?, ?, ?, ?, ?)',
+      schema: supplyVendorSchema,
+      insertSql: 'INSERT INTO supply_vendors (supply_id, name, url, notes, owner_id) VALUES (?, ?, ?, ?, ?)',
       insertParams: (req, owner) => [req.params.id, req.body.name, req.body.url || null, req.body.notes || null, owner],
-      selectSql: 'SELECT * FROM material_vendors WHERE id = ?',
+      selectSql: 'SELECT * FROM supply_vendors WHERE id = ?',
     },
     update: {
-      schema: materialVendorSchema.partial(),
-      existingSql: 'SELECT id FROM material_vendors WHERE id = ? AND material_id = ? AND owner_id = ?',
+      schema: supplyVendorSchema.partial(),
+      existingSql: 'SELECT id FROM supply_vendors WHERE id = ? AND supply_id = ? AND owner_id = ?',
       existingParams: (req, owner) => [req.params.vendorId, req.params.id, owner],
       notFoundError: 'Vendor not found',
       mapValue: value => value || null,
-      updateSql: setClause => `UPDATE material_vendors SET ${setClause} WHERE id = ? AND material_id = ? AND owner_id = ?`,
+      updateSql: setClause => `UPDATE supply_vendors SET ${setClause} WHERE id = ? AND supply_id = ? AND owner_id = ?`,
       updateParams: (values, req, owner) => [...values, req.params.vendorId, req.params.id, owner],
-      selectSql: 'SELECT * FROM material_vendors WHERE id = ?',
+      selectSql: 'SELECT * FROM supply_vendors WHERE id = ?',
       selectParams: req => [req.params.vendorId],
     },
     delete: {
       notFoundError: 'Vendor not found',
-      deleteSql: 'DELETE FROM material_vendors WHERE id = ? AND material_id = ? AND owner_id = ?',
+      deleteSql: 'DELETE FROM supply_vendors WHERE id = ? AND supply_id = ? AND owner_id = ?',
       deleteParams: (req, owner) => [req.params.vendorId, req.params.id, owner],
     },
   });

@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api';
 import { createEntityHooks } from './createEntityHooks';
-import type { Craft, CraftMaterial, CraftTechnique } from '@/lib/types';
+import type { Craft, CraftSupply, CraftTechnique } from '@/lib/types';
 
 export interface CraftTechniqueInput {
   mode: 'existing';
@@ -10,7 +10,7 @@ export interface CraftTechniqueInput {
   notes?: string;
 }
 
-export interface CraftMaterialInput {
+export interface CraftSupplyInput {
   mode: 'existing';
   id: number;
   quantity?: number;
@@ -24,10 +24,10 @@ export interface CraftPayload {
   category_id?: number | null;
   duration_minutes?: number;
   techniques?: CraftTechniqueInput[];
-  materials?: CraftMaterialInput[];
+  supplies?: CraftSupplyInput[];
 }
 
-type CraftExpand = 'category' | 'tags' | 'techniques' | 'materials';
+type CraftExpand = 'category' | 'tags' | 'techniques' | 'supplies';
 
 const baseHooks = createEntityHooks<Craft>({
   entityKey: 'crafts',
@@ -39,9 +39,9 @@ const baseHooks = createEntityHooks<Craft>({
 export const useCrafts = baseHooks.useList;
 export const useDeleteCraft = baseHooks.useDelete;
 
-// Custom detail hook that also fetches techniques/materials from sub-routes
+// Custom detail hook that also fetches techniques/supplies from sub-routes
 async function fetchCraftRelations(craftId: number, expand: CraftExpand[]) {
-  const requests: Array<Promise<{ key: 'techniques' | 'materials'; items: CraftTechnique[] | CraftMaterial[] }>> = [];
+  const requests: Array<Promise<{ key: 'techniques' | 'supplies'; items: CraftTechnique[] | CraftSupply[] }>> = [];
 
   if (expand.includes('techniques')) {
     requests.push(
@@ -49,9 +49,9 @@ async function fetchCraftRelations(craftId: number, expand: CraftExpand[]) {
     );
   }
 
-  if (expand.includes('materials')) {
+  if (expand.includes('supplies')) {
     requests.push(
-      apiFetch<{ items: CraftMaterial[] }>(`/crafts/${craftId}/materials`).then(result => ({ key: 'materials', items: result.items })),
+      apiFetch<{ items: CraftSupply[] }>(`/crafts/${craftId}/supplies`).then(result => ({ key: 'supplies', items: result.items })),
     );
   }
 
@@ -99,11 +99,11 @@ export function useCreateCraft() {
         body: JSON.stringify({
           ...getBaseCraftData(data),
           techniques: data.techniques || [],
-          materials: data.materials || [],
+          supplies: data.supplies || [],
         }),
       });
 
-      return fetchCraftByExpand(craft.id, ['category', 'tags', 'techniques', 'materials']);
+      return fetchCraftByExpand(craft.id, ['category', 'tags', 'techniques', 'supplies']);
     },
     onSuccess: craft => {
       qc.invalidateQueries({ queryKey: ['crafts'] });
@@ -118,14 +118,14 @@ export function useUpdateCraft() {
     mutationFn: async ({ id, data }: { id: number; data: CraftPayload }) => {
       const payload: Record<string, unknown> = getBaseCraftData(data);
       if (data.techniques) payload.techniques = data.techniques;
-      if (data.materials) payload.materials = data.materials;
+      if (data.supplies) payload.supplies = data.supplies;
 
       await apiFetch<Craft>(`/crafts/${id}`, {
         method: 'PUT',
         body: JSON.stringify(payload),
       });
 
-      return fetchCraftByExpand(id, ['category', 'tags', 'techniques', 'materials']);
+      return fetchCraftByExpand(id, ['category', 'tags', 'techniques', 'supplies']);
     },
     onSuccess: (_, { id }) => {
       qc.invalidateQueries({ queryKey: ['crafts'] });

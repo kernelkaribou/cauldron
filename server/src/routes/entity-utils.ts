@@ -2,10 +2,10 @@ import Database from 'better-sqlite3';
 import fs from 'fs';
 import path from 'path';
 
-export const noteEntityTypes = ['project', 'craft', 'technique', 'material', 'curiosity'] as const;
+export const noteEntityTypes = ['project', 'craft', 'technique', 'supply', 'curiosity'] as const;
 export type NoteEntityType = (typeof noteEntityTypes)[number];
 
-export const photoEntityTypes = ['project', 'craft', 'technique', 'material', 'curiosity', 'log'] as const;
+export const photoEntityTypes = ['project', 'craft', 'technique', 'supply', 'curiosity', 'log'] as const;
 export type PhotoEntityType = (typeof photoEntityTypes)[number];
 
 type OwnedEntityType = NoteEntityType | PhotoEntityType;
@@ -19,14 +19,14 @@ const entityConfigs: Record<OwnedEntityType, EntityConfig> = {
   project: { table: 'projects', label: 'Project' },
   craft: { table: 'crafts', label: 'Craft' },
   technique: { table: 'techniques', label: 'Technique' },
-  material: { table: 'materials', label: 'Material' },
+  supply: { table: 'supplies', label: 'Supply' },
   curiosity: { table: 'curiosities', label: 'Curiosity' },
   log: { table: 'logs', label: 'Log' },
 };
 
 const ALLOWED_TABLES = new Set([
-  'projects', 'crafts', 'techniques', 'materials', 'curiosities', 'logs',
-  'notes', 'tasks', 'photos', 'material_stock', 'material_vendors',
+  'projects', 'crafts', 'techniques', 'supplies', 'curiosities', 'logs',
+  'notes', 'tasks', 'photos', 'supply_stock', 'supply_vendors', 'supply_profiles',
 ]);
 
 export function assertOwned(

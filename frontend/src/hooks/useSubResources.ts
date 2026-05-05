@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api';
-import type { Log, Task, Note, TechniqueResource, StockEntry, StockSummary, Photo, MaterialVendor } from '@/lib/types';
+import type { Log, Task, Note, TechniqueResource, StockEntry, StockSummary, Photo, SupplyVendor } from '@/lib/types';
 
 // --- Logs ---
 export function useLogs(params: { craft_id?: number; project_id?: number }) {
@@ -128,7 +128,7 @@ export function useDeleteTechniqueResource() {
   });
 }
 
-// --- Entity Techniques/Materials (craft or project) ---
+// --- Entity Techniques/Supplies (craft or project) ---
 export function useEntityTechniques(entityType: 'crafts' | 'projects', entityId: number) {
   return useQuery({
     queryKey: [entityType, entityId, 'techniques'],
@@ -155,94 +155,94 @@ export function useRemoveEntityTechnique() {
   });
 }
 
-export function useEntityMaterials(entityType: 'crafts' | 'projects', entityId: number) {
+export function useEntitySupplies(entityType: 'crafts' | 'projects', entityId: number) {
   return useQuery({
-    queryKey: [entityType, entityId, 'materials'],
-    queryFn: () => apiFetch<{ items: Array<{ id: number; material_id: number; quantity: number; unit: string | null; notes: string | null; name: string }> }>(`/${entityType}/${entityId}/materials`),
+    queryKey: [entityType, entityId, 'supplies'],
+    queryFn: () => apiFetch<{ items: Array<{ id: number; supply_id: number; quantity: number; unit: string | null; notes: string | null; name: string }> }>(`/${entityType}/${entityId}/supplies`),
     enabled: !!entityId,
   });
 }
 
-export function useAddEntityMaterial() {
+export function useAddEntitySupply() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ entityType, entityId, data }: { entityType: 'crafts' | 'projects'; entityId: number; data: Record<string, unknown> }) =>
-      apiFetch(`/${entityType}/${entityId}/materials`, { method: 'POST', body: JSON.stringify(data) }),
+      apiFetch(`/${entityType}/${entityId}/supplies`, { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: (_, { entityType, entityId }) => qc.invalidateQueries({ queryKey: [entityType, entityId] }),
   });
 }
 
-export function useRemoveEntityMaterial() {
+export function useRemoveEntitySupply() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ entityType, entityId, materialId }: { entityType: 'crafts' | 'projects'; entityId: number; materialId: number }) =>
-      apiFetch(`/${entityType}/${entityId}/materials/${materialId}`, { method: 'DELETE' }),
+    mutationFn: ({ entityType, entityId, supplyId }: { entityType: 'crafts' | 'projects'; entityId: number; supplyId: number }) =>
+      apiFetch(`/${entityType}/${entityId}/supplies/${supplyId}`, { method: 'DELETE' }),
     onSuccess: (_, { entityType, entityId }) => qc.invalidateQueries({ queryKey: [entityType, entityId] }),
   });
 }
 
-// --- Material Stock ---
-export function useStock(materialId: number) {
+// --- Supply Stock ---
+export function useStock(supplyId: number) {
   return useQuery({
-    queryKey: ['stock', materialId],
-    queryFn: () => apiFetch<{ items: StockEntry[] }>(`/materials/${materialId}/stock`),
-    enabled: !!materialId,
+    queryKey: ['stock', supplyId],
+    queryFn: () => apiFetch<{ items: StockEntry[] }>(`/supplies/${supplyId}/stock`),
+    enabled: !!supplyId,
   });
 }
 
-export function useStockSummary(materialId: number) {
+export function useStockSummary(supplyId: number) {
   return useQuery({
-    queryKey: ['stock-summary', materialId],
-    queryFn: () => apiFetch<StockSummary>(`/materials/${materialId}/stock-summary`),
-    enabled: !!materialId,
+    queryKey: ['stock-summary', supplyId],
+    queryFn: () => apiFetch<StockSummary>(`/supplies/${supplyId}/stock-summary`),
+    enabled: !!supplyId,
   });
 }
 
 export function useAddStock() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ materialId, data }: { materialId: number; data: Record<string, unknown> }) =>
-      apiFetch<StockEntry>(`/materials/${materialId}/stock`, { method: 'POST', body: JSON.stringify(data) }),
-    onSuccess: (_, { materialId }) => {
-      qc.invalidateQueries({ queryKey: ['stock', materialId] });
-      qc.invalidateQueries({ queryKey: ['stock-summary', materialId] });
+    mutationFn: ({ supplyId, data }: { supplyId: number; data: Record<string, unknown> }) =>
+      apiFetch<StockEntry>(`/supplies/${supplyId}/stock`, { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: (_, { supplyId }) => {
+      qc.invalidateQueries({ queryKey: ['stock', supplyId] });
+      qc.invalidateQueries({ queryKey: ['stock-summary', supplyId] });
     },
   });
 }
 
-// --- Material Vendors ---
-export function useVendors(materialId: number) {
+// --- Supply Vendors ---
+export function useVendors(supplyId: number) {
   return useQuery({
-    queryKey: ['vendors', materialId],
-    queryFn: () => apiFetch<{ items: MaterialVendor[] }>(`/materials/${materialId}/vendors`),
-    enabled: !!materialId,
+    queryKey: ['vendors', supplyId],
+    queryFn: () => apiFetch<{ items: SupplyVendor[] }>(`/supplies/${supplyId}/vendors`),
+    enabled: !!supplyId,
   });
 }
 
 export function useAddVendor() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ materialId, data }: { materialId: number; data: { name: string; url?: string; notes?: string } }) =>
-      apiFetch<MaterialVendor>(`/materials/${materialId}/vendors`, { method: 'POST', body: JSON.stringify(data) }),
-    onSuccess: (_, { materialId }) => qc.invalidateQueries({ queryKey: ['vendors', materialId] }),
+    mutationFn: ({ supplyId, data }: { supplyId: number; data: { name: string; url?: string; notes?: string } }) =>
+      apiFetch<SupplyVendor>(`/supplies/${supplyId}/vendors`, { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: (_, { supplyId }) => qc.invalidateQueries({ queryKey: ['vendors', supplyId] }),
   });
 }
 
 export function useUpdateVendor() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ materialId, vendorId, data }: { materialId: number; vendorId: number; data: { name?: string; url?: string; notes?: string } }) =>
-      apiFetch<MaterialVendor>(`/materials/${materialId}/vendors/${vendorId}`, { method: 'PUT', body: JSON.stringify(data) }),
-    onSuccess: (_, { materialId }) => qc.invalidateQueries({ queryKey: ['vendors', materialId] }),
+    mutationFn: ({ supplyId, vendorId, data }: { supplyId: number; vendorId: number; data: { name?: string; url?: string; notes?: string } }) =>
+      apiFetch<SupplyVendor>(`/supplies/${supplyId}/vendors/${vendorId}`, { method: 'PUT', body: JSON.stringify(data) }),
+    onSuccess: (_, { supplyId }) => qc.invalidateQueries({ queryKey: ['vendors', supplyId] }),
   });
 }
 
 export function useDeleteVendor() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ materialId, vendorId }: { materialId: number; vendorId: number }) =>
-      apiFetch(`/materials/${materialId}/vendors/${vendorId}`, { method: 'DELETE' }),
-    onSuccess: (_, { materialId }) => qc.invalidateQueries({ queryKey: ['vendors', materialId] }),
+    mutationFn: ({ supplyId, vendorId }: { supplyId: number; vendorId: number }) =>
+      apiFetch(`/supplies/${supplyId}/vendors/${vendorId}`, { method: 'DELETE' }),
+    onSuccess: (_, { supplyId }) => qc.invalidateQueries({ queryKey: ['vendors', supplyId] }),
   });
 }
 

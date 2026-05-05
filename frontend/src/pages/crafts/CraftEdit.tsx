@@ -1,25 +1,25 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { TechniquePicker } from '@/components/shared/TechniquePicker';
-import { MaterialPicker } from '@/components/shared/MaterialPicker';
+import { SupplyPicker } from '@/components/shared/SupplyPicker';
 import { CategorySelect } from '@/components/shared/CategorySelect';
 import { useCraft, useUpdateCraft } from '@/hooks/useCrafts';
 import { ApiError } from '@/lib/api';
 import {
-  areMaterialSelectionsEqual,
+  areSupplySelectionsEqual,
   areTechniqueSelectionsEqual,
-  buildMaterialPayload,
+  buildSupplyPayload,
   buildTechniquePayload,
-  mapCraftMaterialToSelection,
+  mapCraftSupplyToSelection,
   mapCraftTechniqueToSelection,
-  type MaterialSelection,
+  type SupplySelection,
   type TechniqueSelection,
 } from '@/pages/crafts/craftFormUtils';
 
 export function CraftEdit() {
   const { id } = useParams();
   const craftId = Number(id);
-  const { data: craft, isLoading } = useCraft(craftId, ['category', 'tags', 'techniques', 'materials']);
+  const { data: craft, isLoading } = useCraft(craftId, ['category', 'tags', 'techniques', 'supplies']);
   const updateCraft = useUpdateCraft();
   const navigate = useNavigate();
 
@@ -28,7 +28,7 @@ export function CraftEdit() {
   const [categoryId, setCategoryId] = useState<number | null>(null);
   const [duration, setDuration] = useState('');
   const [techniques, setTechniques] = useState<TechniqueSelection[]>([]);
-  const [materials, setMaterials] = useState<MaterialSelection[]>([]);
+  const [supplies, setSupplies] = useState<SupplySelection[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [initialized, setInitialized] = useState(false);
 
@@ -36,9 +36,9 @@ export function CraftEdit() {
     () => (craft?.techniques || []).map(mapCraftTechniqueToSelection),
     [craft?.techniques],
   );
-  const initialMaterials = useMemo(
-    () => (craft?.materials || []).map(mapCraftMaterialToSelection),
-    [craft?.materials],
+  const initialSupplies = useMemo(
+    () => (craft?.supplies || []).map(mapCraftSupplyToSelection),
+    [craft?.supplies],
   );
 
   useEffect(() => {
@@ -49,9 +49,9 @@ export function CraftEdit() {
     setCategoryId(craft.category_id);
     setDuration(craft.duration_minutes ? String(craft.duration_minutes) : '');
     setTechniques(initialTechniques);
-    setMaterials(initialMaterials);
+    setSupplies(initialSupplies);
     setInitialized(true);
-  }, [craft, initialMaterials, initialTechniques, initialized]);
+  }, [craft, initialSupplies, initialTechniques, initialized]);
 
   if (isLoading) return <p className="text-text-muted">Loading...</p>;
   if (!craft) return <p className="text-text-muted">Craft not found.</p>;
@@ -59,8 +59,8 @@ export function CraftEdit() {
 
   const currentCraft = craft;
   const techniquesChanged = areTechniqueSelectionsEqual(techniques, initialTechniques) === false;
-  const materialsChanged = areMaterialSelectionsEqual(materials, initialMaterials) === false;
-  const isSubmitDisabled = !title.trim() || techniques.length < 1 || materials.length < 1 || updateCraft.isPending;
+  const suppliesChanged = areSupplySelectionsEqual(supplies, initialSupplies) === false;
+  const isSubmitDisabled = !title.trim() || techniques.length < 1 || supplies.length < 1 || updateCraft.isPending;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -75,7 +75,7 @@ export function CraftEdit() {
       data.duration_minutes = duration ? parseInt(duration, 10) : 0;
     }
     if (techniquesChanged) data.techniques = buildTechniquePayload(techniques);
-    if (materialsChanged) data.materials = buildMaterialPayload(materials);
+    if (suppliesChanged) data.supplies = buildSupplyPayload(supplies);
 
     if (Object.keys(data).length === 0) {
       navigate(`/crafts/${craftId}`);
@@ -145,12 +145,12 @@ export function CraftEdit() {
           onRemove={id => setTechniques(current => current.filter(item => item.id !== id))}
         />
 
-        <MaterialPicker
-          selected={materials}
-          onAdd={item => setMaterials(current => [...current, { ...item, quantity: undefined }])}
-          onCreate={item => setMaterials(current => [...current, { mode: 'existing', id: item.id, name: item.name, unit: item.unit }])}
-          onRemove={id => setMaterials(current => current.filter(item => item.id !== id))}
-          onUpdate={(id, changes) => setMaterials(current => current.map(item => (item.id === id ? { ...item, ...changes } : item)))}
+        <SupplyPicker
+          selected={supplies}
+          onAdd={item => setSupplies(current => [...current, { ...item, quantity: undefined }])}
+          onCreate={item => setSupplies(current => [...current, { mode: 'existing', id: item.id, name: item.name, unit: item.unit }])}
+          onRemove={id => setSupplies(current => current.filter(item => item.id !== id))}
+          onUpdate={(id, changes) => setSupplies(current => current.map(item => (item.id === id ? { ...item, ...changes } : item)))}
         />
 
         {errors.form && <p className="text-sm text-error">{errors.form}</p>}

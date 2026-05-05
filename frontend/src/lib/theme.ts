@@ -10,6 +10,6 @@ export const NAV_ITEMS = [
   { path: '/projects', label: 'Projects', glyph: '▦' },
   { path: '/crafts', label: 'Crafts', glyph: '◉' },
   { path: '/techniques', label: 'Techniques', glyph: '✦' },
-  { path: '/materials', label: 'Materials', glyph: '◈' },
+  { path: '/supplies', label: 'Supplies', glyph: '◈' },
   { path: '/curiosities', label: 'Curiosities', glyph: '★' },
 ] as const;

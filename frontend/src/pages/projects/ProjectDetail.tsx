@@ -4,7 +4,7 @@ import { ErrorBanner } from '@/components/shared/ErrorBanner';
 import { DetailPageShell, TagsCard } from '@/components/shared/DetailPageShell';
 import { TagSelect } from '@/components/shared/TagSelect';
 import { TechniqueManager } from '@/components/shared/TechniqueManager';
-import { MaterialManager } from '@/components/shared/MaterialManager';
+import { SupplyManager } from '@/components/shared/SupplyManager';
 import { PhotoGallery } from '@/components/shared/PhotoGallery';
 import { LogFeed } from '@/components/shared/LogFeed';
 import { TaskList } from '@/components/shared/TaskList';
@@ -52,7 +52,7 @@ export function ProjectDetail() {
           </div>
         )}
         <TechniqueManager entityType="projects" entityId={projectId} />
-        <MaterialManager entityType="projects" entityId={projectId} />
+        <SupplyManager entityType="projects" entityId={projectId} />
         <PhotoGallery entityType="project" entityId={projectId} />
         <LogFeed projectId={projectId} />
         <NotesSection entityType="project" entityId={projectId} />

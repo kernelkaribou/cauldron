@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useVendors, useAddVendor, useDeleteVendor } from '@/hooks/useSubResources';
-import type { MaterialVendor } from '@/lib/types';
+import type { SupplyVendor } from '@/lib/types';
 
 interface VendorSectionProps {
-  materialId: number;
+  supplyId: number;
 }
 
-export function VendorSection({ materialId }: VendorSectionProps) {
-  const { data, isLoading } = useVendors(materialId);
+export function VendorSection({ supplyId }: VendorSectionProps) {
+  const { data, isLoading } = useVendors(supplyId);
   const addVendor = useAddVendor();
   const deleteVendor = useDeleteVendor();
   const [showForm, setShowForm] = useState(false);
@@ -18,7 +18,7 @@ export function VendorSection({ materialId }: VendorSectionProps) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     await addVendor.mutateAsync({
-      materialId,
+      supplyId,
       data: { name, url: url || undefined, notes: notes || undefined },
     });
     setName('');
@@ -46,7 +46,7 @@ export function VendorSection({ materialId }: VendorSectionProps) {
       {isLoading && <p className="text-xs text-text-muted">Loading...</p>}
       {data?.items.length === 0 && !isLoading && <p className="text-xs text-text-muted">No vendors yet.</p>}
       <div className="space-y-2">
-        {data?.items.map((vendor: MaterialVendor) => (
+        {data?.items.map((vendor: SupplyVendor) => (
           <div key={vendor.id} className="flex items-center justify-between p-2 bg-page rounded-lg">
             <div className="flex-1 min-w-0">
               <p className="text-sm text-text-primary font-medium">
@@ -54,7 +54,7 @@ export function VendorSection({ materialId }: VendorSectionProps) {
               </p>
               {vendor.notes && <p className="text-xs text-text-muted mt-0.5">{vendor.notes}</p>}
             </div>
-            <button onClick={() => { if (confirm('Remove this vendor?')) deleteVendor.mutate({ materialId, vendorId: vendor.id }); }} className="text-xs text-text-muted hover:text-error ml-2">×</button>
+            <button onClick={() => { if (confirm('Remove this vendor?')) deleteVendor.mutate({ supplyId, vendorId: vendor.id }); }} className="text-xs text-text-muted hover:text-error ml-2">×</button>
           </div>
         ))}
       </div>

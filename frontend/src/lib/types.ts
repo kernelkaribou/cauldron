@@ -50,8 +50,8 @@ export interface CraftTechnique {
   notes?: string | null;
 }
 
-export interface CraftMaterial {
-  material_id: number;
+export interface CraftSupply {
+  supply_id: number;
   name: string;
   quantity: number;
   unit?: string | null;
@@ -71,7 +71,7 @@ export interface Craft {
   category?: Category | null;
   tags?: Tag[];
   techniques?: CraftTechnique[];
-  materials?: CraftMaterial[];
+  supplies?: CraftSupply[];
 }
 
 export interface ProjectCraft {
@@ -95,22 +95,26 @@ export interface Project {
   tags?: Tag[];
 }
 
-export interface Material {
+export interface Supply {
   id: number;
   name: string;
   description: string | null;
   unit: string | null;
   reusable: number;
   price: number;
+  material: string | null;
+  brand: string | null;
+  profile_id: number | null;
+  attributes: string | null;
   owner_id: number;
   created_at: string;
   updated_at: string;
   tags?: Tag[];
 }
 
-export interface MaterialVendor {
+export interface SupplyVendor {
   id: number;
-  material_id: number;
+  supply_id: number;
   name: string;
   url: string | null;
   notes: string | null;
@@ -136,7 +140,7 @@ export interface Curiosity {
 export interface Photo {
   id: number;
   owner_id: number;
-  entity_type: 'project' | 'craft' | 'technique' | 'material' | 'curiosity' | 'log';
+  entity_type: 'project' | 'craft' | 'technique' | 'supply' | 'curiosity' | 'log';
   entity_id: number;
   image: string;
   caption: string | null;
@@ -172,7 +176,7 @@ export interface Task {
 export interface Note {
   id: number;
   owner_id: number;
-  entity_type: 'project' | 'craft' | 'technique' | 'material' | 'curiosity';
+  entity_type: 'project' | 'craft' | 'technique' | 'supply' | 'curiosity';
   entity_id: number;
   title: string;
   content: string | null;
@@ -182,7 +186,7 @@ export interface Note {
 
 export interface StockEntry {
   id: number;
-  material_id: number;
+  supply_id: number;
   type: 'purchase' | 'usage' | 'adjustment';
   quantity: number;
   unit_cost: number;
@@ -206,5 +210,27 @@ export interface StockSummary {
 export interface SearchResult {
   id: number;
   title: string;
-  type: 'craft' | 'technique' | 'project' | 'material' | 'curiosity';
+  type: 'craft' | 'technique' | 'project' | 'supply' | 'curiosity';
+}
+
+export interface SupplyProfileField {
+  key: string;
+  label: string;
+  type: 'text' | 'number' | 'select' | 'multiselect' | 'boolean';
+  options?: string[];
+  required?: boolean;
+  unit?: string;
+  integer?: boolean;
+  min?: number;
+  max?: number;
+  placeholder?: string;
+}
+
+export interface SupplyProfile {
+  id: number;
+  name: string;
+  schema: string;
+  owner_id: number;
+  created_at: string;
+  updated_at: string;
 }

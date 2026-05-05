@@ -12,7 +12,7 @@ const projectCraftSchema = z.object({
   craft_id: z.number().int().positive(),
   quantity: z.number().int().positive().optional(),
 });
-type AggregatedTagSource = 'craft' | 'technique' | 'material';
+type AggregatedTagSource = 'craft' | 'technique' | 'supply';
 
 registerStandardSubresourceRoutes(router);
 registerTagRoutes(router);
@@ -99,10 +99,10 @@ router.delete('/projects/:id/crafts/:craftId', (req: Request, res: Response) => 
   res.status(204).send();
 });
 
-router.get('/materials/:id/stock-summary', (req: Request, res: Response) => {
+router.get('/supplies/:id/stock-summary', (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
-  if (!assertOwned(db, 'materials', req.params.id as string, owner)) { res.status(404).json({ error: 'Material not found' }); return; }
+  if (!assertOwned(db, 'supplies', req.params.id as string, owner)) { res.status(404).json({ error: 'Supply not found' }); return; }
 
   const summary = db.prepare(`
     SELECT
@@ -119,7 +119,7 @@ router.get('/materials/:id/stock-summary', (req: Request, res: Response) => {
         THEN SUM(CASE WHEN type = 'purchase' THEN quantity * unit_cost ELSE 0 END) / SUM(CASE WHEN type = 'purchase' THEN quantity ELSE 0 END)
         ELSE 0
       END as avg_unit_cost
-    FROM material_stock WHERE material_id = ?
+    FROM supply_stock WHERE supply_id = ?
   `).get(req.params.id);
   res.json(summary);
 });
@@ -138,10 +138,10 @@ router.get('/crafts/:id/all-tags', (req: Request, res: Response) => {
   ).all(craftId) as TagRow[];
   const techniqueIds = (db.prepare('SELECT technique_id FROM craft_techniques WHERE craft_id = ?').all(craftId) as Array<{ technique_id: number }>)
     .map(({ technique_id }) => technique_id);
-  const materialIds = (db.prepare('SELECT material_id FROM craft_materials WHERE craft_id = ?').all(craftId) as Array<{ material_id: number }>)
-    .map(({ material_id }) => material_id);
+  const supplyIds = (db.prepare('SELECT supply_id FROM craft_supplies WHERE craft_id = ?').all(craftId) as Array<{ supply_id: number }>)
+    .map(({ supply_id }) => supply_id);
 
-  const loadEntityTags = (entityType: 'technique' | 'material', entityIds: number[]): TagRow[] => {
+  const loadEntityTags = (entityType: 'technique' | 'supply', entityIds: number[]): TagRow[] => {
     if (entityIds.length === 0) return [];
     const placeholders = entityIds.map(() => '?').join(', ');
     return db.prepare(
@@ -160,7 +160,7 @@ router.get('/crafts/:id/all-tags', (req: Request, res: Response) => {
 
   addTags(craftTags, 'craft');
   addTags(loadEntityTags('technique', techniqueIds), 'technique');
-  addTags(loadEntityTags('material', materialIds), 'material');
+  addTags(loadEntityTags('supply', supplyIds), 'supply');
 
   res.json({
     items: Array.from(aggregated.values()).map(({ sources, ...tag }) => ({ ...tag, sources: Array.from(sources) })),

@@ -174,9 +174,9 @@ router.delete('/users/:id', requireAdmin, (req: Request, res: Response) => {
 
   // Check for owned data
   const tables = [
-    'crafts', 'projects', 'techniques', 'materials', 'curiosities',
+    'crafts', 'projects', 'techniques', 'supplies', 'curiosities',
     'categories', 'tags', 'notes', 'photos', 'logs', 'tasks',
-    'material_vendors', 'material_stock',
+    'supply_vendors', 'supply_stock',
   ];
   const ownedCounts: Record<string, number> = {};
   let totalOwned = 0;
