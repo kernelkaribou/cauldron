@@ -5,6 +5,7 @@ interface EntityFormShellProps {
   onSubmit: (e: React.FormEvent) => void;
   submitLabel: string;
   submitting?: boolean;
+  disabled?: boolean;
   onCancel?: () => void;
   error?: string;
   hint?: string;
@@ -17,6 +18,7 @@ export function EntityFormShell({
   onSubmit,
   submitLabel,
   submitting,
+  disabled,
   onCancel,
   error,
   hint,
@@ -33,7 +35,7 @@ export function EntityFormShell({
         <div className="flex gap-3">
           <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || disabled}
             className="px-4 py-2 bg-accent text-white rounded-lg font-medium hover:bg-accent-light transition-colors disabled:opacity-50"
           >
             {submitting ? 'Saving...' : submitLabel}

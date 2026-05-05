@@ -35,7 +35,8 @@ export function ProjectNew() {
       title="New Project"
       onSubmit={handleSubmit}
       submitLabel="Create Project"
-      submitting={createProject.isPending || !title.trim()}
+      submitting={createProject.isPending}
+      disabled={!title.trim()}
       hint="You can add techniques, supplies, and more after creating the project."
       error={errors._}
     >
