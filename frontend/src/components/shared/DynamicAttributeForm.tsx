@@ -93,7 +93,7 @@ function FieldRenderer({ field, value, onChange }: { field: SupplyProfileField; 
             onChange={e => onChange(e.target.value || undefined)}
             className={inputClass}
           >
-            <option value="">— Select —</option>
+            <option value="">Select...</option>
             {field.options?.map(opt => <option key={opt} value={opt}>{opt}</option>)}
           </select>
         </div>

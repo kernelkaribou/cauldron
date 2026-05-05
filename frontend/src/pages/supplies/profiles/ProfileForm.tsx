@@ -239,6 +239,7 @@ export function ProfileForm({ initialProfile, submitLabel, isSubmitting, errors,
   }
 
   return (
+    <div className="grid grid-cols-1 lg:grid-cols-[1fr_220px] gap-6 items-start">
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
       <div className="p-5 bg-card border border-border rounded-xl space-y-5">
         <div>
@@ -312,7 +313,7 @@ export function ProfileForm({ initialProfile, submitLabel, isSubmitting, errors,
                     <label className="block text-xs text-text-muted mb-1">Input Type</label>
                     <select value={field.type} onChange={e => handleTypeChange(field.localId, e.target.value as SupplyProfileField['type'])} className={fieldInputClassName}>
                       {fieldTypes.map(type => (
-                        <option key={type.value} value={type.value}>{type.label} — {type.description}</option>
+                        <option key={type.value} value={type.value}>{type.label}</option>
                       ))}
                     </select>
                   </div>
@@ -365,7 +366,7 @@ export function ProfileForm({ initialProfile, submitLabel, isSubmitting, errors,
 
                 <label className="flex items-center gap-2 text-xs text-text-muted">
                   <input type="checkbox" checked={!!field.required} onChange={e => updateField(field.localId, f => ({ ...f, required: e.target.checked }))} className="rounded" />
-                  Required — must be filled in when adding a supply
+                  Required
                 </label>
               </div>
             );
@@ -382,5 +383,18 @@ export function ProfileForm({ initialProfile, submitLabel, isSubmitting, errors,
         </button>
       </div>
     </form>
+
+    <aside className="hidden lg:block p-4 bg-card border border-border rounded-xl sticky top-6">
+      <h3 className="text-sm font-medium text-text-primary mb-3">Field Types</h3>
+      <dl className="space-y-2 text-xs">
+        {fieldTypes.map(type => (
+          <div key={type.value}>
+            <dt className="font-medium text-text-primary">{type.label}</dt>
+            <dd className="text-text-muted">{type.description}</dd>
+          </div>
+        ))}
+      </dl>
+    </aside>
+    </div>
   );
 }
