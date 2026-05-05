@@ -4,7 +4,7 @@ import { useSupplies } from '@/hooks/useSupplies';
 import { useSupplyProfiles } from '@/hooks/useSupplyProfiles';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { ErrorBanner } from '@/components/shared/ErrorBanner';
-import { formatDate, getDistinguishingValues } from '@/lib/utils';
+import { formatDate, getListDisplayValues } from '@/lib/utils';
 import type { SupplyProfileField } from '@/lib/types';
 
 export function SupplyList() {
@@ -47,12 +47,12 @@ export function SupplyList() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {data.items.map(supply => {
               const schema = supply.profile_id ? profileSchemas.get(supply.profile_id) || [] : [];
-              const distinguishing = getDistinguishingValues(supply.attributes, schema);
+              const listValues = getListDisplayValues(supply.attributes, schema);
               return (
               <Link key={supply.id} to={`/supplies/${supply.id}`} className="block p-4 bg-card border border-border rounded-xl hover:border-accent hover:-translate-y-0.5 transition-all">
                 <h3 className="font-medium text-text-primary mb-1">
                   {supply.name}
-                  {distinguishing.length > 0 && <span className="text-text-muted font-normal ml-1">({distinguishing.join(', ')})</span>}
+                  {listValues.length > 0 && <span className="text-text-muted font-normal ml-1">({listValues.join(', ')})</span>}
                 </h3>
                 <div className="flex items-center gap-2 text-xs text-text-muted flex-wrap">
                   {supply.brand && <span>{supply.brand}</span>}

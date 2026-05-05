@@ -14,12 +14,12 @@ export function pluralize(count: number, singular: string, plural?: string): str
   return count === 1 ? singular : (plural || `${singular}s`);
 }
 
-export function getDistinguishingValues(attributes: string | null, schema: Array<{ key: string; label: string; distinguishing?: boolean; unit?: string }>): string[] {
+export function getListDisplayValues(attributes: string | null, schema: Array<{ key: string; label: string; show_in_list?: boolean; unit?: string }>): string[] {
   if (!attributes || !schema.length) return [];
   try {
     const attrs = JSON.parse(attributes);
     return schema
-      .filter(f => f.distinguishing)
+      .filter(f => f.show_in_list)
       .map(f => {
         const val = attrs[f.key];
         if (val === undefined || val === null || val === '') return null;

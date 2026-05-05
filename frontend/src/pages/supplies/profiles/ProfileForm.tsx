@@ -51,7 +51,7 @@ function createEmptyField(): EditableField {
     key: '',
     type: 'text',
     required: false,
-    distinguishing: false,
+    show_in_list: false,
     options: undefined,
     unit: undefined,
     integer: false,
@@ -69,7 +69,7 @@ function toEditableField(field: SupplyProfileField): EditableField {
     type: field.type,
     options: field.options,
     required: !!field.required,
-    distinguishing: !!field.distinguishing,
+    show_in_list: !!field.show_in_list,
     unit: field.unit || '',
     integer: !!field.integer,
     min: field.min !== undefined ? String(field.min) : '',
@@ -101,7 +101,7 @@ function serializeField(field: EditableField): SupplyProfileField {
   };
 
   if (field.required) serialized.required = true;
-  if (field.distinguishing) serialized.distinguishing = true;
+  if (field.show_in_list) serialized.show_in_list = true;
   if (field.placeholder?.trim()) serialized.placeholder = field.placeholder.trim();
 
   if (field.type === 'number') {
@@ -372,8 +372,8 @@ export function ProfileForm({ initialProfile, submitLabel, isSubmitting, errors,
                     Required
                   </label>
                   <label className="flex items-center gap-2 text-xs text-text-muted">
-                    <input type="checkbox" checked={!!field.distinguishing} onChange={e => updateField(field.localId, f => ({ ...f, distinguishing: e.target.checked }))} className="rounded" />
-                    Distinguishing
+                    <input type="checkbox" checked={!!field.show_in_list} onChange={e => updateField(field.localId, f => ({ ...f, show_in_list: e.target.checked }))} className="rounded" />
+                    Show in list
                   </label>
                 </div>
               </div>
@@ -413,8 +413,8 @@ export function ProfileForm({ initialProfile, submitLabel, isSubmitting, errors,
             <dd className="text-text-muted">Must be filled in when adding a supply</dd>
           </div>
           <div>
-            <dt className="font-medium text-text-primary">Distinguishing</dt>
-            <dd className="text-text-muted">Shown next to the supply name in lists and pickers to tell similar items apart</dd>
+            <dt className="font-medium text-text-primary">Show in list</dt>
+            <dd className="text-text-muted">Displays this value next to the name in lists and pickers</dd>
           </div>
         </dl>
       </div>

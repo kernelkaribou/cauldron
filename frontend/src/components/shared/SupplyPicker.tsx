@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { SupplyInlineForm } from '@/components/shared/SupplyInlineForm';
 import { useSupplies } from '@/hooks/useSupplies';
 import { useSupplyProfiles } from '@/hooks/useSupplyProfiles';
-import { getDistinguishingValues } from '@/lib/utils';
+import { getListDisplayValues } from '@/lib/utils';
 import type { SupplyProfileField } from '@/lib/types';
 
 interface SupplyPickerProps {
@@ -104,7 +104,7 @@ export function SupplyPicker({ selected, onAdd, onCreate, onRemove, onUpdate }: 
           <div className="max-h-48 space-y-1 overflow-y-auto">
             {available.slice(0, 12).map(supply => {
               const schema = supply.profile_id ? profileSchemas.get(supply.profile_id) || [] : [];
-              const distinguishing = getDistinguishingValues(supply.attributes, schema);
+              const listValues = getListDisplayValues(supply.attributes, schema);
               return (
               <button
                 key={supply.id}
@@ -113,8 +113,8 @@ export function SupplyPicker({ selected, onAdd, onCreate, onRemove, onUpdate }: 
                 className="w-full rounded-lg px-3 py-2 text-left text-sm text-text-primary transition-colors hover:bg-card"
               >
                 {supply.name}
-                {distinguishing.length > 0 && <span className="ml-1 text-text-muted">({distinguishing.join(', ')})</span>}
-                {distinguishing.length === 0 && supply.unit ? <span className="ml-1 text-text-muted">({supply.unit})</span> : null}
+                {listValues.length > 0 && <span className="ml-1 text-text-muted">({listValues.join(', ')})</span>}
+                {listValues.length === 0 && supply.unit ? <span className="ml-1 text-text-muted">({supply.unit})</span> : null}
               </button>
               );
             })}
