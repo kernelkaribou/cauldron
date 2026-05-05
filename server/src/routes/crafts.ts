@@ -103,11 +103,11 @@ function applyCraftExpansions(items: any[], requested: Set<string>): void {
     ORDER BY ct.sort_order, ct.id
   `);
   const supplyStmt = db.prepare(`
-    SELECT cm.supply_id, s.name, cs.quantity, cs.unit, cs.notes
-    FROM craft_supplies cm
-    JOIN supplies s ON m.id = cm.supply_id
-    WHERE cm.craft_id = ?
-    ORDER BY cm.id
+    SELECT cs.supply_id, s.name, cs.quantity, cs.unit, cs.notes
+    FROM craft_supplies cs
+    JOIN supplies s ON s.id = cs.supply_id
+    WHERE cs.craft_id = ?
+    ORDER BY cs.id
   `);
 
   for (const item of items) {
