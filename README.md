@@ -60,7 +60,10 @@ volumes:
 | `PUID` | `1000` | User ID the server process runs as |
 | `PGID` | `1000` | Group ID the server process runs as |
 | `JWT_SECRET` | auto-generated | Secret for signing auth tokens. If not set, a random secret is generated and persisted to `DATA_DIR/jwt_secret` — stable across restarts as long as the volume is retained |
+| `JWT_EXPIRY` | `7d` | Token/cookie lifetime (e.g., `1h`, `7d`, `30d`) |
 | `AUTH_PROXY_HEADER` | — | Trust this header for auth proxy (e.g., `Remote-User`). Only use behind a trusted reverse proxy that strips this header from client requests |
+| `TRUST_PROXY` | — | Enable trust of `X-Forwarded-*` headers. Set to `true` when behind a reverse proxy (nginx, Traefik, Authelia). Required for correct HTTPS detection behind TLS-terminating proxies |
+| `COOKIE_SECURE` | `auto` | Cookie secure flag behavior. `auto` (default): secure only when connection is HTTPS. `always`: force secure cookies (use when TLS is terminated upstream and you want to prevent any HTTP access) |
 
 ## Architecture
 

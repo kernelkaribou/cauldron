@@ -33,9 +33,10 @@ const loginSchema = z.object({
 });
 
 function cookieOptions(req: Request, maxAge?: number) {
+  const forceSecure = process.env.COOKIE_SECURE === 'always';
   return {
     httpOnly: true,
-    secure: req.secure,
+    secure: forceSecure || req.secure,
     sameSite: 'strict' as const,
     path: '/',
     ...(maxAge !== undefined ? { maxAge } : {}),

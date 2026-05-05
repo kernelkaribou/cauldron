@@ -19,8 +19,10 @@ import subresourcesRoutes from './routes/subresources.js';
 
 export const app = express();
 
-// Trust reverse proxy headers (X-Forwarded-Proto, etc.) for correct req.secure detection
-app.set('trust proxy', 1);
+// Only trust proxy headers when explicitly configured (user is behind nginx/Traefik/Authelia)
+if (process.env.TRUST_PROXY) {
+  app.set('trust proxy', process.env.TRUST_PROXY === 'true' ? 1 : process.env.TRUST_PROXY);
+}
 
 app.use(helmet({
   contentSecurityPolicy: false, // SPA handles its own CSP needs
