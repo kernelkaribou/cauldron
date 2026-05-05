@@ -28,4 +28,7 @@ if (process.env.NODE_ENV === 'production') {
 app.listen(PORT, () => {
   console.log(`Cauldron server listening on port ${PORT}`);
   console.log(`Data directory: ${DATA_DIR}`);
+  if (process.env.AUTH_PROXY_HEADER) {
+    console.warn(`⚠️  AUTH_PROXY_HEADER is set (${process.env.AUTH_PROXY_HEADER}). Ensure this app is ONLY reachable through your trusted reverse proxy. Direct access allows authentication bypass.`);
+  }
 });

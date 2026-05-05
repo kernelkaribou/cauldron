@@ -8,6 +8,11 @@ import { hashPassword } from '../auth/passwords.js';
 
 const router = Router();
 
+function parseUserId(id: string): number | null {
+  if (!/^\d+$/.test(id)) return null;
+  return parseInt(id, 10);
+}
+
 const createUserSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
@@ -67,27 +72,30 @@ router.post('/users', requireAdmin, validate(createUserSchema), async (req: Requ
   const db = getDb();
   const { email, password, name, role } = req.body;
 
-  const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
-  if (existing) {
-    res.status(409).json({ error: 'Email already exists' });
-    return;
-  }
-
   const passwordHash = await hashPassword(password);
-  const result = db.prepare(
-    'INSERT INTO users (email, password_hash, name, role) VALUES (?, ?, ?, ?)'
-  ).run(email, passwordHash, name, role || 'user');
+  try {
+    const result = db.prepare(
+      'INSERT INTO users (email, password_hash, name, role) VALUES (?, ?, ?, ?)'
+    ).run(email, passwordHash, name, role || 'user');
 
-  const user = db.prepare(
-    'SELECT id, email, name, role, password_hash, avatar, created_at FROM users WHERE id = ?'
-  ).get(result.lastInsertRowid) as UserRow;
-  res.status(201).json(formatUser(user));
+    const user = db.prepare(
+      'SELECT id, email, name, role, password_hash, avatar, created_at FROM users WHERE id = ?'
+    ).get(result.lastInsertRowid) as UserRow;
+    res.status(201).json(formatUser(user));
+  } catch (err: any) {
+    if (err?.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+      res.status(409).json({ error: 'Email already exists' });
+      return;
+    }
+    throw err;
+  }
 });
 
 // Update user (admin only)
 router.patch('/users/:id', requireAdmin, validate(updateUserSchema), (req: Request, res: Response) => {
   const db = getDb();
-  const userId = parseInt(req.params.id as string);
+  const userId = parseUserId(req.params.id as string);
+  if (!userId) { res.status(400).json({ error: 'Invalid user ID' }); return; }
   const caller = ownerId(req);
 
   const user = db.prepare('SELECT id, role FROM users WHERE id = ?').get(userId) as { id: number; role: string } | undefined;
@@ -123,7 +131,8 @@ router.patch('/users/:id', requireAdmin, validate(updateUserSchema), (req: Reque
 // Set/reset password for a user (admin only)
 router.put('/users/:id/password', requireAdmin, validate(setPasswordSchema), async (req: Request, res: Response) => {
   const db = getDb();
-  const userId = parseInt(req.params.id as string);
+  const userId = parseUserId(req.params.id as string);
+  if (!userId) { res.status(400).json({ error: 'Invalid user ID' }); return; }
 
   const user = db.prepare('SELECT id, token_version FROM users WHERE id = ?')
     .get(userId) as { id: number; token_version: number } | undefined;
@@ -143,7 +152,8 @@ router.put('/users/:id/password', requireAdmin, validate(setPasswordSchema), asy
 // Delete user (admin only, not self, not last admin, no owned data)
 router.delete('/users/:id', requireAdmin, (req: Request, res: Response) => {
   const db = getDb();
-  const userId = parseInt(req.params.id as string);
+  const userId = parseUserId(req.params.id as string);
+  if (!userId) { res.status(400).json({ error: 'Invalid user ID' }); return; }
   const caller = ownerId(req);
 
   if (userId === caller) {
@@ -163,7 +173,11 @@ router.delete('/users/:id', requireAdmin, (req: Request, res: Response) => {
   }
 
   // Check for owned data
-  const tables = ['crafts', 'projects', 'techniques', 'materials', 'curiosities'];
+  const tables = [
+    'crafts', 'projects', 'techniques', 'materials', 'curiosities',
+    'categories', 'tags', 'notes', 'photos', 'logs', 'tasks',
+    'material_vendors', 'material_stock',
+  ];
   const ownedCounts: Record<string, number> = {};
   let totalOwned = 0;
   for (const table of tables) {

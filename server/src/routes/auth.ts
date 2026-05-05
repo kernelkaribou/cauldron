@@ -63,20 +63,7 @@ router.post('/setup', setupLimiter, validate(setupSchema), async (req: Request, 
   const db = getDb();
   const { email, password, name } = req.body;
 
-  // Atomic check — use transaction to prevent race conditions
-  const createAdmin = db.transaction(() => {
-    const count = db.prepare('SELECT COUNT(*) as count FROM users').get() as { count: number };
-    if (count.count > 0) {
-      return null;
-    }
-
-    const passwordHash = null; // placeholder, set after async hash
-    return db.prepare(
-      'INSERT INTO users (email, password_hash, name, role) VALUES (?, ?, ?, ?)'
-    );
-  });
-
-  // Check first (non-transactional quick check)
+  // Quick check before expensive hash
   const count = db.prepare('SELECT COUNT(*) as count FROM users').get() as { count: number };
   if (count.count > 0) {
     res.status(403).json({ error: 'Setup already completed' });
@@ -85,7 +72,7 @@ router.post('/setup', setupLimiter, validate(setupSchema), async (req: Request, 
 
   const passwordHash = await hashPassword(password);
 
-  // Transactional insert with recheck
+  // Transactional insert with recheck (guards against race during async hash)
   const insert = db.transaction(() => {
     const recheck = db.prepare('SELECT COUNT(*) as count FROM users').get() as { count: number };
     if (recheck.count > 0) return null;
