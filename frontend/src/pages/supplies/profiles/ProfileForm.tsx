@@ -319,25 +319,31 @@ export function ProfileForm({ initialProfile, submitLabel, isSubmitting, errors,
                 </div>
 
                 {isNumberField && (
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="space-y-3">
                     <div>
-                      <label className="block text-xs text-text-muted mb-1">Unit</label>
+                      <label className="block text-xs text-text-muted mb-1">Unit (optional)</label>
                       <input value={field.unit || ''} onChange={e => updateField(field.localId, f => ({ ...f, unit: e.target.value }))} className={fieldInputClassName} placeholder="e.g., oz, mm, Ω" />
+                      <p className="text-xs text-text-muted mt-1">Shown after the number when filling in this field.</p>
                     </div>
-                    <div>
-                      <label className="block text-xs text-text-muted mb-1">Min</label>
-                      <input type="number" value={field.min} onChange={e => updateField(field.localId, f => ({ ...f, min: e.target.value }))} className={fieldInputClassName} />
-                      {currentErrors.min && <p className="text-xs text-error mt-1">{currentErrors.min}</p>}
-                    </div>
-                    <div>
-                      <label className="block text-xs text-text-muted mb-1">Max</label>
-                      <input type="number" value={field.max} onChange={e => updateField(field.localId, f => ({ ...f, max: e.target.value }))} className={fieldInputClassName} />
-                      {currentErrors.max && <p className="text-xs text-error mt-1">{currentErrors.max}</p>}
-                    </div>
-                    <label className="flex items-center gap-2 text-xs text-text-muted self-end pb-2">
-                      <input type="checkbox" checked={!!field.integer} onChange={e => updateField(field.localId, f => ({ ...f, integer: e.target.checked }))} className="rounded" />
-                      Whole numbers only
-                    </label>
+                    <details className="group">
+                      <summary className="text-xs text-text-muted cursor-pointer hover:text-accent transition-colors select-none">Advanced options</summary>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-2 pt-2 border-t border-border">
+                        <div>
+                          <label className="block text-xs text-text-muted mb-1">Min</label>
+                          <input type="number" value={field.min} onChange={e => updateField(field.localId, f => ({ ...f, min: e.target.value }))} className={fieldInputClassName} />
+                          {currentErrors.min && <p className="text-xs text-error mt-1">{currentErrors.min}</p>}
+                        </div>
+                        <div>
+                          <label className="block text-xs text-text-muted mb-1">Max</label>
+                          <input type="number" value={field.max} onChange={e => updateField(field.localId, f => ({ ...f, max: e.target.value }))} className={fieldInputClassName} />
+                          {currentErrors.max && <p className="text-xs text-error mt-1">{currentErrors.max}</p>}
+                        </div>
+                        <label className="flex items-center gap-2 text-xs text-text-muted self-end pb-2">
+                          <input type="checkbox" checked={!!field.integer} onChange={e => updateField(field.localId, f => ({ ...f, integer: e.target.checked }))} className="rounded" />
+                          Whole numbers only
+                        </label>
+                      </div>
+                    </details>
                   </div>
                 )}
 

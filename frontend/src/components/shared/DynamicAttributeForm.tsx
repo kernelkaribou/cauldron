@@ -46,23 +46,26 @@ function FieldRenderer({ field, value, onChange }: { field: SupplyProfileField; 
       return (
         <div>
           <label className="block text-sm text-text-secondary mb-1">
-            {field.label}{field.unit && <span className="text-text-muted ml-1">({field.unit})</span>}{field.required && <span className="text-error ml-0.5">*</span>}
+            {field.label}{field.required && <span className="text-error ml-0.5">*</span>}
           </label>
-          <input
-            type="number"
-            value={value ?? ''}
-            onChange={e => {
-              const raw = e.target.value;
-              if (raw === '') { onChange(undefined); return; }
-              const num = field.integer ? parseInt(raw, 10) : parseFloat(raw);
-              if (!isNaN(num)) onChange(num);
-            }}
-            step={field.integer ? '1' : 'any'}
-            min={field.min}
-            max={field.max}
-            placeholder={field.placeholder}
-            className={inputClass}
-          />
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              value={value ?? ''}
+              onChange={e => {
+                const raw = e.target.value;
+                if (raw === '') { onChange(undefined); return; }
+                const num = field.integer ? parseInt(raw, 10) : parseFloat(raw);
+                if (!isNaN(num)) onChange(num);
+              }}
+              step={field.integer ? '1' : 'any'}
+              min={field.min}
+              max={field.max}
+              placeholder={field.placeholder}
+              className={inputClass}
+            />
+            {field.unit && <span className="text-sm text-text-muted whitespace-nowrap">{field.unit}</span>}
+          </div>
         </div>
       );
 
