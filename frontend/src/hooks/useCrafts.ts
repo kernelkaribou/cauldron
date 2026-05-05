@@ -133,3 +133,12 @@ export function useUpdateCraft() {
     },
   });
 }
+
+export function useCreateCraftFromProject() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { project_id: number; title: string; description?: string; category_id?: number | null }) =>
+      apiFetch<Craft>('/crafts/from-project', { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['crafts'] }),
+  });
+}

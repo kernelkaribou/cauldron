@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { TechniqueInlineForm } from '@/components/shared/TechniqueInlineForm';
+import { SearchDropdown } from '@/components/shared/SearchDropdown';
 import { useEntityTechniques, useAddEntityTechnique, useRemoveEntityTechnique } from '@/hooks/useSubResources';
 import { useTechniques } from '@/hooks/useTechniques';
 
@@ -67,26 +68,13 @@ export function TechniqueManager({ entityType, entityId }: TechniqueManagerProps
 
       {showExisting && (
         <div className="mb-3 rounded-lg bg-page p-3">
-          <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
+          <SearchDropdown
             placeholder="Search techniques..."
-            className="mb-2 w-full rounded border border-border bg-card px-2 py-1.5 text-sm text-text-primary focus:border-accent focus:outline-none"
+            items={available.map(t => ({ id: t.id, label: t.title }))}
+            onSelect={item => handleAdd(item.id)}
+            onSearchChange={setSearch}
+            emptyMessage={search ? 'No matching techniques found.' : 'No more techniques available.'}
           />
-          {search && available.length === 0 && <p className="text-xs text-text-muted">No matching techniques found.</p>}
-          {!search && available.length === 0 && <p className="text-xs text-text-muted">No more techniques available.</p>}
-          <div className="max-h-40 space-y-1 overflow-y-auto">
-            {available.slice(0, 10).map(technique => (
-              <button
-                key={technique.id}
-                type="button"
-                onClick={() => handleAdd(technique.id)}
-                className="w-full rounded px-2 py-1.5 text-left text-sm text-text-primary transition-colors hover:bg-card"
-              >
-                {technique.title}
-              </button>
-            ))}
-          </div>
         </div>
       )}
 

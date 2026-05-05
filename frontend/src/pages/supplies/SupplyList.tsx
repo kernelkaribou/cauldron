@@ -11,7 +11,8 @@ export function SupplyList() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [reusable, setReusable] = useState<number | undefined>();
-  const { data, isLoading, error, refetch } = useSupplies(page, { search: search || undefined, reusable });
+  const [typeId, setTypeId] = useState<number | undefined>();
+  const { data, isLoading, error, refetch } = useSupplies(page, { search: search || undefined, reusable, type_id: typeId });
   const { data: typesData } = useSupplyTypes(1, { per_page: '100' });
 
   const typeSchemas = useMemo(() => {
@@ -34,10 +35,16 @@ export function SupplyList() {
       <div className="flex flex-wrap gap-3 mb-6">
         <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} placeholder="Search supplies..." className="px-3 py-2 bg-page border border-border rounded-lg text-text-primary text-sm focus:border-accent focus:outline-none w-64" />
         <select value={reusable ?? ''} onChange={e => { setReusable(e.target.value !== '' ? Number(e.target.value) : undefined); setPage(1); }} className="px-3 py-2 bg-page border border-border rounded-lg text-text-primary text-sm focus:border-accent focus:outline-none">
-          <option value="">All types</option>
-          <option value="0">Consumable</option>
-          <option value="1">Reusable (Tools)</option>
+          <option value="">All</option>
+          <option value="0">Consumables</option>
+          <option value="1">Tools & Equipment</option>
         </select>
+        {typesData && typesData.items.length > 0 && (
+          <select value={typeId ?? ''} onChange={e => { setTypeId(e.target.value !== '' ? Number(e.target.value) : undefined); setPage(1); }} className="px-3 py-2 bg-page border border-border rounded-lg text-text-primary text-sm focus:border-accent focus:outline-none">
+            <option value="">All Types</option>
+            {typesData.items.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+          </select>
+        )}
       </div>
       {error && <ErrorBanner message={(error as Error).message} onRetry={() => refetch()} />}
       {isLoading && <p className="text-text-muted">Loading...</p>}

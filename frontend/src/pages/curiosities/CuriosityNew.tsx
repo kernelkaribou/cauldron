@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCreateCuriosity } from '@/hooks/useCuriosities';
 import { CategorySelect } from '@/components/shared/CategorySelect';
+import { EntityFormShell, FormField } from '@/components/shared/EntityFormShell';
 import { ApiError } from '@/lib/api';
 
 export function CuriosityNew() {
@@ -30,40 +31,27 @@ export function CuriosityNew() {
   }
 
   return (
-    <div className="max-w-xl">
-      <h1 className="text-xl font-semibold text-text-primary mb-6">New Curiosity</h1>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-        <div>
-          <label className="block text-sm text-text-secondary mb-1">Title</label>
-          <input value={title} onChange={e => setTitle(e.target.value)} required className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none" />
-          {errors.title && <p className="text-xs text-error mt-1">{errors.title}</p>}
-        </div>
-        <div>
-          <label className="block text-sm text-text-secondary mb-1">URL</label>
-          <input value={url} onChange={e => setUrl(e.target.value)} required type="url" className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none" />
-          {errors.url && <p className="text-xs text-error mt-1">{errors.url}</p>}
-        </div>
-        <div>
-          <label className="block text-sm text-text-secondary mb-1">Type</label>
-          <select value={type} onChange={e => setType(e.target.value)} className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none">
-            <option value="link">Link</option>
-            <option value="video">Video</option>
-            <option value="image">Image</option>
-            <option value="article">Article</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm text-text-secondary mb-1">Description</label>
-          <textarea value={description} onChange={e => setDescription(e.target.value)} rows={4} className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none resize-y" />
-        </div>
-        <div>
-          <label className="block text-sm text-text-secondary mb-1">Category</label>
-          <CategorySelect categoryId={categoryId} onCategoryChange={setCategoryId} />
-        </div>
-        <button type="submit" disabled={createCuriosity.isPending} className="px-4 py-2 bg-accent text-white rounded-lg font-medium hover:bg-accent-light transition-colors disabled:opacity-50">
-          {createCuriosity.isPending ? 'Creating...' : 'Create Curiosity'}
-        </button>
-      </form>
-    </div>
+    <EntityFormShell title="New Curiosity" onSubmit={handleSubmit} submitLabel="Create Curiosity" submitting={createCuriosity.isPending}>
+      <FormField label="Title" error={errors.title}>
+        <input value={title} onChange={e => setTitle(e.target.value)} required className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none" />
+      </FormField>
+      <FormField label="URL" error={errors.url}>
+        <input value={url} onChange={e => setUrl(e.target.value)} required type="url" className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none" />
+      </FormField>
+      <FormField label="Type">
+        <select value={type} onChange={e => setType(e.target.value)} className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none">
+          <option value="link">Link</option>
+          <option value="video">Video</option>
+          <option value="image">Image</option>
+          <option value="article">Article</option>
+        </select>
+      </FormField>
+      <FormField label="Description">
+        <textarea value={description} onChange={e => setDescription(e.target.value)} rows={4} className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none resize-y" />
+      </FormField>
+      <FormField label="Category">
+        <CategorySelect categoryId={categoryId} onCategoryChange={setCategoryId} />
+      </FormField>
+    </EntityFormShell>
   );
 }

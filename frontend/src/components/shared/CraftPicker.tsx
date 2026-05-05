@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useCrafts } from '@/hooks/useCrafts';
+import { SearchDropdown } from '@/components/shared/SearchDropdown';
 
 interface CraftSelection {
   id: number;
@@ -19,11 +20,9 @@ export function CraftPicker({ selected, onChange }: CraftPickerProps) {
   function addCraft(craft: { id: number; title: string }) {
     if (selected.some(s => s.id === craft.id)) return;
     onChange([...selected, { id: craft.id, title: craft.title, quantity: 1 }]);
-    setSearch('');
   }
 
   function removeCraft(id: number) {
-    if (selected.length <= 1) return;
     onChange(selected.filter(s => s.id !== id));
   }
 
@@ -35,7 +34,7 @@ export function CraftPicker({ selected, onChange }: CraftPickerProps) {
 
   return (
     <div>
-      <label className="block text-sm text-text-secondary mb-1">Crafts <span className="text-error">*</span></label>
+      <label className="block text-sm text-text-secondary mb-1">Crafts</label>
 
       {selected.length > 0 && (
         <div className="space-y-2 mb-3">
@@ -50,37 +49,19 @@ export function CraftPicker({ selected, onChange }: CraftPickerProps) {
                 onChange={e => updateQuantity(craft.id, parseInt(e.target.value, 10) || 1)}
                 className="w-14 px-2 py-1 bg-card border border-border rounded text-xs text-text-primary focus:border-accent focus:outline-none"
               />
-              {selected.length > 1 && (
-                <button onClick={() => removeCraft(craft.id)} className="text-xs text-text-muted hover:text-error">×</button>
-              )}
+              <button onClick={() => removeCraft(craft.id)} className="text-xs text-text-muted hover:text-error">×</button>
             </div>
           ))}
         </div>
       )}
 
-      <div className="relative">
-        <input
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder="Search crafts to add..."
-          className="w-full px-3 py-2 bg-page border border-border rounded-lg text-sm text-text-primary focus:border-accent focus:outline-none"
-        />
-        {search && availableCrafts.length > 0 && (
-          <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-10 max-h-40 overflow-y-auto">
-            {availableCrafts.map(craft => (
-              <button key={craft.id} onClick={() => addCraft(craft)} className="w-full px-3 py-2 text-left text-sm text-text-primary hover:bg-page transition-colors">
-                {craft.title}
-              </button>
-            ))}
-          </div>
-        )}
-        {search && availableCrafts.length === 0 && (
-          <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-10 p-3">
-            <p className="text-xs text-text-muted">No matching crafts found.</p>
-          </div>
-        )}
-      </div>
-      {selected.length === 0 && <p className="text-xs text-error mt-1">At least one craft is required</p>}
+      <SearchDropdown
+        placeholder="Search crafts to add..."
+        items={availableCrafts.map(c => ({ id: c.id, label: c.title }))}
+        onSelect={item => addCraft({ id: item.id, title: item.label })}
+        onSearchChange={setSearch}
+        emptyMessage="No matching crafts found."
+      />
     </div>
   );
 }

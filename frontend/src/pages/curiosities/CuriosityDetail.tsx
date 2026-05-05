@@ -1,5 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { useCuriosity, useDeleteCuriosity } from '@/hooks/useCuriosities';
+import { useCreateProjectFromCuriosity } from '@/hooks/useProjects';
 import { ErrorBanner } from '@/components/shared/ErrorBanner';
 import { DetailPageShell, MetadataCard, TagsCard } from '@/components/shared/DetailPageShell';
 import { TagSelect } from '@/components/shared/TagSelect';
@@ -13,8 +15,10 @@ export function CuriosityDetail() {
   const curiosityId = Number(id);
   const { data: curiosity, isLoading, error, refetch } = useCuriosity(curiosityId);
   const deleteCuriosity = useDeleteCuriosity();
+  const createProject = useCreateProjectFromCuriosity();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const [converting, setConverting] = useState(false);
 
   if (isLoading) return <p className="text-text-muted">Loading...</p>;
   if (error) return <ErrorBanner message={(error as Error).message} onRetry={() => refetch()} />;
@@ -24,6 +28,21 @@ export function CuriosityDetail() {
     if (!confirm('Delete this curiosity?')) return;
     await deleteCuriosity.mutateAsync(curiosityId);
     navigate('/curiosities');
+  }
+
+  async function handleStartProject() {
+    if (!curiosity) return;
+    setConverting(true);
+    try {
+      const project = await createProject.mutateAsync({
+        curiosity_id: curiosityId,
+        title: curiosity.title,
+        description: curiosity.description || undefined,
+      });
+      navigate(`/projects/${project.id}`);
+    } catch {
+      setConverting(false);
+    }
   }
 
   return (
@@ -45,6 +64,16 @@ export function CuriosityDetail() {
             <p className="text-text-primary whitespace-pre-wrap">{curiosity.description}</p>
           </div>
         )}
+        <div className="p-4 bg-card border border-border rounded-xl">
+          <button
+            onClick={handleStartProject}
+            disabled={converting}
+            className="w-full px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent-dark disabled:opacity-50 font-medium"
+          >
+            {converting ? 'Creating...' : 'Start a Project'}
+          </button>
+          <p className="text-xs text-text-muted mt-2">Create a new project draft from this curiosity</p>
+        </div>
         <NotesSection entityType="curiosity" entityId={curiosityId} />
         <PhotoGallery entityType="curiosity" entityId={curiosityId} />
       </>}
