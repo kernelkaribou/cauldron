@@ -12,6 +12,7 @@ const profileFieldSchema = z.object({
   min: z.number().optional(),
   max: z.number().optional(),
   placeholder: z.string().max(100).optional(),
+  distinguishing: z.boolean().optional(),
 });
 
 const profileSchemaValidator = z.array(profileFieldSchema).max(50);

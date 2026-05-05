@@ -1,6 +1,9 @@
 import { useMemo, useState } from 'react';
 import { SupplyInlineForm } from '@/components/shared/SupplyInlineForm';
 import { useSupplies } from '@/hooks/useSupplies';
+import { useSupplyProfiles } from '@/hooks/useSupplyProfiles';
+import { getDistinguishingValues } from '@/lib/utils';
+import type { SupplyProfileField } from '@/lib/types';
 
 interface SupplyPickerProps {
   selected: Array<{ mode: 'existing'; id: number; name: string; quantity?: number; unit?: string; notes?: string }>;
@@ -15,6 +18,15 @@ export function SupplyPicker({ selected, onAdd, onCreate, onRemove, onUpdate }: 
   const [showCreate, setShowCreate] = useState(false);
   const [search, setSearch] = useState('');
   const { data, isLoading } = useSupplies(1, { search: search.trim() || undefined });
+  const { data: profilesData } = useSupplyProfiles(1, { per_page: '100' });
+
+  const profileSchemas = useMemo(() => {
+    const map = new Map<number, SupplyProfileField[]>();
+    for (const p of profilesData?.items ?? []) {
+      try { map.set(p.id, JSON.parse(p.schema)); } catch { /* skip */ }
+    }
+    return map;
+  }, [profilesData]);
 
   const available = useMemo(() => {
     const selectedIds = new Set(selected.map(item => item.id));
@@ -90,7 +102,10 @@ export function SupplyPicker({ selected, onAdd, onCreate, onRemove, onUpdate }: 
           )}
 
           <div className="max-h-48 space-y-1 overflow-y-auto">
-            {available.slice(0, 12).map(supply => (
+            {available.slice(0, 12).map(supply => {
+              const schema = supply.profile_id ? profileSchemas.get(supply.profile_id) || [] : [];
+              const distinguishing = getDistinguishingValues(supply.attributes, schema);
+              return (
               <button
                 key={supply.id}
                 type="button"
@@ -98,9 +113,11 @@ export function SupplyPicker({ selected, onAdd, onCreate, onRemove, onUpdate }: 
                 className="w-full rounded-lg px-3 py-2 text-left text-sm text-text-primary transition-colors hover:bg-card"
               >
                 {supply.name}
-                {supply.unit ? <span className="ml-1 text-text-muted">({supply.unit})</span> : null}
+                {distinguishing.length > 0 && <span className="ml-1 text-text-muted">({distinguishing.join(', ')})</span>}
+                {distinguishing.length === 0 && supply.unit ? <span className="ml-1 text-text-muted">({supply.unit})</span> : null}
               </button>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}

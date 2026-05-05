@@ -1,15 +1,26 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useSupplies } from '@/hooks/useSupplies';
+import { useSupplyProfiles } from '@/hooks/useSupplyProfiles';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { ErrorBanner } from '@/components/shared/ErrorBanner';
-import { formatDate } from '@/lib/utils';
+import { formatDate, getDistinguishingValues } from '@/lib/utils';
+import type { SupplyProfileField } from '@/lib/types';
 
 export function SupplyList() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [reusable, setReusable] = useState<number | undefined>();
   const { data, isLoading, error, refetch } = useSupplies(page, { search: search || undefined, reusable });
+  const { data: profilesData } = useSupplyProfiles(1, { per_page: '100' });
+
+  const profileSchemas = useMemo(() => {
+    const map = new Map<number, SupplyProfileField[]>();
+    for (const p of profilesData?.items ?? []) {
+      try { map.set(p.id, JSON.parse(p.schema)); } catch { /* skip */ }
+    }
+    return map;
+  }, [profilesData]);
 
   return (
     <div>
@@ -34,9 +45,15 @@ export function SupplyList() {
       {data && data.items.length > 0 && (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {data.items.map(supply => (
+            {data.items.map(supply => {
+              const schema = supply.profile_id ? profileSchemas.get(supply.profile_id) || [] : [];
+              const distinguishing = getDistinguishingValues(supply.attributes, schema);
+              return (
               <Link key={supply.id} to={`/supplies/${supply.id}`} className="block p-4 bg-card border border-border rounded-xl hover:border-accent hover:-translate-y-0.5 transition-all">
-                <h3 className="font-medium text-text-primary mb-1">{supply.name}</h3>
+                <h3 className="font-medium text-text-primary mb-1">
+                  {supply.name}
+                  {distinguishing.length > 0 && <span className="text-text-muted font-normal ml-1">({distinguishing.join(', ')})</span>}
+                </h3>
                 <div className="flex items-center gap-2 text-xs text-text-muted flex-wrap">
                   {supply.brand && <span>{supply.brand}</span>}
                   {supply.unit && <span>{supply.unit}</span>}
@@ -50,7 +67,8 @@ export function SupplyList() {
                   </div>
                 )}
               </Link>
-            ))}
+              );
+            })}
           </div>
           {data.total_pages > page && (
             <div className="text-center mt-6">

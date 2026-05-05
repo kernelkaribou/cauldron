@@ -51,6 +51,7 @@ function createEmptyField(): EditableField {
     key: '',
     type: 'text',
     required: false,
+    distinguishing: false,
     options: undefined,
     unit: undefined,
     integer: false,
@@ -68,6 +69,7 @@ function toEditableField(field: SupplyProfileField): EditableField {
     type: field.type,
     options: field.options,
     required: !!field.required,
+    distinguishing: !!field.distinguishing,
     unit: field.unit || '',
     integer: !!field.integer,
     min: field.min !== undefined ? String(field.min) : '',
@@ -99,6 +101,7 @@ function serializeField(field: EditableField): SupplyProfileField {
   };
 
   if (field.required) serialized.required = true;
+  if (field.distinguishing) serialized.distinguishing = true;
   if (field.placeholder?.trim()) serialized.placeholder = field.placeholder.trim();
 
   if (field.type === 'number') {
@@ -363,10 +366,16 @@ export function ProfileForm({ initialProfile, submitLabel, isSubmitting, errors,
                   </div>
                 )}
 
-                <label className="flex items-center gap-2 text-xs text-text-muted">
-                  <input type="checkbox" checked={!!field.required} onChange={e => updateField(field.localId, f => ({ ...f, required: e.target.checked }))} className="rounded" />
-                  Required
-                </label>
+                <div className="flex items-center gap-4">
+                  <label className="flex items-center gap-2 text-xs text-text-muted">
+                    <input type="checkbox" checked={!!field.required} onChange={e => updateField(field.localId, f => ({ ...f, required: e.target.checked }))} className="rounded" />
+                    Required
+                  </label>
+                  <label className="flex items-center gap-2 text-xs text-text-muted">
+                    <input type="checkbox" checked={!!field.distinguishing} onChange={e => updateField(field.localId, f => ({ ...f, distinguishing: e.target.checked }))} className="rounded" />
+                    Distinguishing
+                  </label>
+                </div>
               </div>
             );
           })}
@@ -383,17 +392,32 @@ export function ProfileForm({ initialProfile, submitLabel, isSubmitting, errors,
       </div>
     </form>
 
-    <aside className="hidden lg:block p-4 bg-card border border-border rounded-xl sticky top-6">
-      <h3 className="text-sm font-medium text-text-primary mb-3">Field Types</h3>
-      <dl className="space-y-3 text-xs">
-        {fieldTypes.map(type => (
-          <div key={type.value}>
-            <dt className="font-medium text-text-primary">{type.label}</dt>
-            <dd className="text-text-muted">{type.description}</dd>
-            <dd className="text-text-muted italic mt-0.5">e.g. {type.examples}</dd>
+    <aside className="hidden lg:block p-4 bg-card border border-border rounded-xl sticky top-6 space-y-5">
+      <div>
+        <h3 className="text-sm font-medium text-text-primary mb-3">Field Types</h3>
+        <dl className="space-y-3 text-xs">
+          {fieldTypes.map(type => (
+            <div key={type.value}>
+              <dt className="font-medium text-text-primary">{type.label}</dt>
+              <dd className="text-text-muted">{type.description}</dd>
+              <dd className="text-text-muted italic mt-0.5">e.g. {type.examples}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+      <div className="pt-3 border-t border-border">
+        <h3 className="text-sm font-medium text-text-primary mb-2">Options</h3>
+        <dl className="space-y-2 text-xs">
+          <div>
+            <dt className="font-medium text-text-primary">Required</dt>
+            <dd className="text-text-muted">Must be filled in when adding a supply</dd>
           </div>
-        ))}
-      </dl>
+          <div>
+            <dt className="font-medium text-text-primary">Distinguishing</dt>
+            <dd className="text-text-muted">Shown next to the supply name in lists and pickers to tell similar items apart</dd>
+          </div>
+        </dl>
+      </div>
     </aside>
     </div>
   );

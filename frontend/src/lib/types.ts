@@ -223,6 +223,7 @@ export interface SupplyProfileField {
   min?: number;
   max?: number;
   placeholder?: string;
+  distinguishing?: boolean;
 }
 
 export interface SupplyProfile {
