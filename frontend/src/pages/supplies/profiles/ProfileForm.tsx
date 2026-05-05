@@ -252,7 +252,7 @@ export function ProfileForm({ initialProfile, submitLabel, isSubmitting, errors,
             }}
             required
             className={fieldInputClassName}
-            placeholder="e.g., Yarn, Resistors, Fabric"
+            placeholder="e.g. Yarn, Fabric, Wood"
           />
           <p className="text-xs text-text-muted mt-1">A short name for this type of supply.</p>
           {(nameError || errors?.name) && <p className="text-xs text-error mt-1">{nameError || errors?.name}</p>}
@@ -322,7 +322,7 @@ export function ProfileForm({ initialProfile, submitLabel, isSubmitting, errors,
                   <div className="space-y-3">
                     <div>
                       <label className="block text-xs text-text-muted mb-1">Unit (optional)</label>
-                      <input value={field.unit || ''} onChange={e => updateField(field.localId, f => ({ ...f, unit: e.target.value }))} className={fieldInputClassName} placeholder="e.g., oz, mm, Ω" />
+                      <input value={field.unit || ''} onChange={e => updateField(field.localId, f => ({ ...f, unit: e.target.value }))} className={fieldInputClassName} placeholder="e.g. oz, mm, Ω" />
                       <p className="text-xs text-text-muted mt-1">Shown after the number when filling in this field.</p>
                     </div>
                     <details className="group">
@@ -357,7 +357,7 @@ export function ProfileForm({ initialProfile, submitLabel, isSubmitting, errors,
                         options: e.target.value.split(',').map(option => option.trim()).filter(Boolean),
                       }))}
                       className={fieldInputClassName}
-                      placeholder="e.g., Lace, DK, Worsted, Bulky"
+                      placeholder="e.g. Lace, DK, Worsted, Bulky"
                     />
                     {currentErrors.options && <p className="text-xs text-error mt-1">{currentErrors.options}</p>}
                   </div>
