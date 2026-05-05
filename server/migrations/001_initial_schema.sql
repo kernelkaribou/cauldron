@@ -48,7 +48,7 @@ CREATE TABLE technique_resources (
   type TEXT CHECK(type IN ('video','article','other'))
 );
 
-CREATE TABLE supply_profiles (
+CREATE TABLE supply_types (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   schema TEXT NOT NULL DEFAULT '[]' CHECK(json_valid(schema) AND json_type(schema) = 'array'),
@@ -66,7 +66,7 @@ CREATE TABLE supplies (
   unit TEXT,
   reusable INTEGER DEFAULT 0,
   price REAL DEFAULT 0,
-  profile_id INTEGER REFERENCES supply_profiles(id) ON DELETE SET NULL,
+  type_id INTEGER REFERENCES supply_types(id) ON DELETE SET NULL,
   attributes TEXT NOT NULL DEFAULT '{}' CHECK(json_valid(attributes) AND json_type(attributes) = 'object'),
   owner_id INTEGER NOT NULL REFERENCES users(id),
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
@@ -236,9 +236,9 @@ CREATE TABLE entity_tags (
 );
 
 -- Indexes
-CREATE INDEX idx_supply_profiles_owner ON supply_profiles(owner_id);
+CREATE INDEX idx_supply_types_owner ON supply_types(owner_id);
 CREATE INDEX idx_supplies_owner ON supplies(owner_id);
-CREATE INDEX idx_supplies_profile ON supplies(profile_id);
+CREATE INDEX idx_supplies_type ON supplies(type_id);
 CREATE INDEX idx_supplies_brand ON supplies(brand);
 CREATE INDEX idx_supply_vendors_supply ON supply_vendors(supply_id);
 CREATE INDEX idx_supply_stock_supply ON supply_stock(supply_id);

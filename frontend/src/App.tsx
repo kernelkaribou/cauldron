@@ -23,9 +23,9 @@ import { SupplyList } from '@/pages/supplies/SupplyList';
 import { SupplyNew } from '@/pages/supplies/SupplyNew';
 import { SupplyDetail } from '@/pages/supplies/SupplyDetail';
 import { SupplyEdit } from '@/pages/supplies/SupplyEdit';
-import { ProfileList } from '@/pages/supplies/profiles/ProfileList';
-import { ProfileNew } from '@/pages/supplies/profiles/ProfileNew';
-import { ProfileEdit } from '@/pages/supplies/profiles/ProfileEdit';
+import { TypeList } from '@/pages/supplies/types/TypeList';
+import { TypeNew } from '@/pages/supplies/types/TypeNew';
+import { TypeEdit } from '@/pages/supplies/types/TypeEdit';
 import { CuriosityList } from '@/pages/curiosities/CuriosityList';
 import { CuriosityNew } from '@/pages/curiosities/CuriosityNew';
 import { CuriosityDetail } from '@/pages/curiosities/CuriosityDetail';
@@ -67,9 +67,9 @@ function App() {
                 <Route path="/projects/:id/edit" element={<ProjectEdit />} />
                 <Route path="/supplies" element={<SupplyList />} />
                 <Route path="/supplies/new" element={<SupplyNew />} />
-                <Route path="/supplies/profiles" element={<ProfileList />} />
-                <Route path="/supplies/profiles/new" element={<ProfileNew />} />
-                <Route path="/supplies/profiles/:id/edit" element={<ProfileEdit />} />
+                <Route path="/supplies/types" element={<TypeList />} />
+                <Route path="/supplies/types/new" element={<TypeNew />} />
+                <Route path="/supplies/types/:id/edit" element={<TypeEdit />} />
                 <Route path="/supplies/:id" element={<SupplyDetail />} />
                 <Route path="/supplies/:id/edit" element={<SupplyEdit />} />
                 <Route path="/curiosities" element={<CuriosityList />} />

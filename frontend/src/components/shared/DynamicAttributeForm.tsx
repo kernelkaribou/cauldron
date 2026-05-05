@@ -1,7 +1,7 @@
-import type { SupplyProfileField } from '@/lib/types';
+import type { SupplyTypeField } from '@/lib/types';
 
 interface DynamicAttributeFormProps {
-  schema: SupplyProfileField[];
+  schema: SupplyTypeField[];
   values: Record<string, any>;
   onChange: (values: Record<string, any>) => void;
 }
@@ -15,7 +15,7 @@ export function DynamicAttributeForm({ schema, values, onChange }: DynamicAttrib
 
   return (
     <div className="border border-border rounded-xl p-4 space-y-4">
-      <h3 className="text-sm font-medium text-text-secondary">Profile Attributes</h3>
+      <h3 className="text-sm font-medium text-text-secondary">Attributes</h3>
       {schema.map(field => (
         <FieldRenderer key={field.key} field={field} value={values[field.key]} onChange={(v) => updateValue(field.key, v)} />
       ))}
@@ -23,7 +23,7 @@ export function DynamicAttributeForm({ schema, values, onChange }: DynamicAttrib
   );
 }
 
-function FieldRenderer({ field, value, onChange }: { field: SupplyProfileField; value: any; onChange: (v: any) => void }) {
+function FieldRenderer({ field, value, onChange }: { field: SupplyTypeField; value: any; onChange: (v: any) => void }) {
   const inputClass = "w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none text-sm";
 
   switch (field.type) {
@@ -107,7 +107,7 @@ function FieldRenderer({ field, value, onChange }: { field: SupplyProfileField; 
   }
 }
 
-function MultiselectField({ field, value, onChange }: { field: SupplyProfileField; value: any; onChange: (v: any) => void }) {
+function MultiselectField({ field, value, onChange }: { field: SupplyTypeField; value: any; onChange: (v: any) => void }) {
   const selected: string[] = Array.isArray(value) ? value : [];
 
   function toggle(opt: string) {

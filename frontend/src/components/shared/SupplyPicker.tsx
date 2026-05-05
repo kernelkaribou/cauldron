@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react';
 import { SupplyInlineForm } from '@/components/shared/SupplyInlineForm';
 import { useSupplies } from '@/hooks/useSupplies';
-import { useSupplyProfiles } from '@/hooks/useSupplyProfiles';
+import { useSupplyTypes } from '@/hooks/useSupplyTypes';
 import { getListDisplayValues } from '@/lib/utils';
-import type { SupplyProfileField } from '@/lib/types';
+import type { SupplyTypeField } from '@/lib/types';
 
 interface SupplyPickerProps {
   selected: Array<{ mode: 'existing'; id: number; name: string; quantity?: number; unit?: string; notes?: string }>;
@@ -18,15 +18,15 @@ export function SupplyPicker({ selected, onAdd, onCreate, onRemove, onUpdate }: 
   const [showCreate, setShowCreate] = useState(false);
   const [search, setSearch] = useState('');
   const { data, isLoading } = useSupplies(1, { search: search.trim() || undefined });
-  const { data: profilesData } = useSupplyProfiles(1, { per_page: '100' });
+  const { data: typesData } = useSupplyTypes(1, { per_page: '100' });
 
-  const profileSchemas = useMemo(() => {
-    const map = new Map<number, SupplyProfileField[]>();
-    for (const p of profilesData?.items ?? []) {
+  const typeSchemas = useMemo(() => {
+    const map = new Map<number, SupplyTypeField[]>();
+    for (const p of typesData?.items ?? []) {
       try { map.set(p.id, JSON.parse(p.schema)); } catch { /* skip */ }
     }
     return map;
-  }, [profilesData]);
+  }, [typesData]);
 
   const available = useMemo(() => {
     const selectedIds = new Set(selected.map(item => item.id));
@@ -103,7 +103,7 @@ export function SupplyPicker({ selected, onAdd, onCreate, onRemove, onUpdate }: 
 
           <div className="max-h-48 space-y-1 overflow-y-auto">
             {available.slice(0, 12).map(supply => {
-              const schema = supply.profile_id ? profileSchemas.get(supply.profile_id) || [] : [];
+              const schema = supply.type_id ? typeSchemas.get(supply.type_id) || [] : [];
               const listValues = getListDisplayValues(supply.attributes, schema);
               return (
               <button

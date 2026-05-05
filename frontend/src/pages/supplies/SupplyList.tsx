@@ -1,33 +1,33 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useSupplies } from '@/hooks/useSupplies';
-import { useSupplyProfiles } from '@/hooks/useSupplyProfiles';
+import { useSupplyTypes } from '@/hooks/useSupplyTypes';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { ErrorBanner } from '@/components/shared/ErrorBanner';
 import { formatDate, getListDisplayValues } from '@/lib/utils';
-import type { SupplyProfileField } from '@/lib/types';
+import type { SupplyTypeField } from '@/lib/types';
 
 export function SupplyList() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [reusable, setReusable] = useState<number | undefined>();
   const { data, isLoading, error, refetch } = useSupplies(page, { search: search || undefined, reusable });
-  const { data: profilesData } = useSupplyProfiles(1, { per_page: '100' });
+  const { data: typesData } = useSupplyTypes(1, { per_page: '100' });
 
-  const profileSchemas = useMemo(() => {
-    const map = new Map<number, SupplyProfileField[]>();
-    for (const p of profilesData?.items ?? []) {
+  const typeSchemas = useMemo(() => {
+    const map = new Map<number, SupplyTypeField[]>();
+    for (const p of typesData?.items ?? []) {
       try { map.set(p.id, JSON.parse(p.schema)); } catch { /* skip */ }
     }
     return map;
-  }, [profilesData]);
+  }, [typesData]);
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-semibold text-text-primary">Supplies</h1>
         <div className="flex items-center gap-3">
-          <Link to="/supplies/profiles" className="px-4 py-2 border border-border rounded-lg text-text-secondary hover:border-accent hover:text-accent transition-colors text-sm">Manage Profiles</Link>
+          <Link to="/supplies/types" className="px-4 py-2 border border-border rounded-lg text-text-secondary hover:border-accent hover:text-accent transition-colors text-sm">Manage Types</Link>
           <Link to="/supplies/new" className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent-light transition-colors text-sm">New Supply</Link>
         </div>
       </div>
@@ -46,7 +46,7 @@ export function SupplyList() {
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {data.items.map(supply => {
-              const schema = supply.profile_id ? profileSchemas.get(supply.profile_id) || [] : [];
+              const schema = supply.type_id ? typeSchemas.get(supply.type_id) || [] : [];
               const listValues = getListDisplayValues(supply.attributes, schema);
               return (
               <Link key={supply.id} to={`/supplies/${supply.id}`} className="block p-4 bg-card border border-border rounded-xl hover:border-accent hover:-translate-y-0.5 transition-all">

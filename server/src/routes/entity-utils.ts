@@ -26,7 +26,7 @@ const entityConfigs: Record<OwnedEntityType, EntityConfig> = {
 
 const ALLOWED_TABLES = new Set([
   'projects', 'crafts', 'techniques', 'supplies', 'curiosities', 'logs',
-  'notes', 'tasks', 'photos', 'supply_stock', 'supply_vendors', 'supply_profiles',
+  'notes', 'tasks', 'photos', 'supply_stock', 'supply_vendors', 'supply_types',
 ]);
 
 export function assertOwned(

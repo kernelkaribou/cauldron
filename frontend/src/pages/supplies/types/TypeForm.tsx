@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import type { SupplyProfile, SupplyProfileField } from '@/lib/types';
+import type { SupplyType, SupplyTypeField } from '@/lib/types';
 
 const fieldInputClassName = 'w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none';
 const secondaryButtonClassName = 'px-3 py-2 border border-border rounded-lg text-text-secondary hover:border-accent hover:text-accent transition-colors text-sm disabled:opacity-50';
-const fieldTypes: Array<{ value: SupplyProfileField['type']; label: string; description: string; examples: string }> = [
+const fieldTypes: Array<{ value: SupplyTypeField['type']; label: string; description: string; examples: string }> = [
   { value: 'text', label: 'Text', description: 'A short text value', examples: 'Color, Material, Finish' },
   { value: 'number', label: 'Number', description: 'A numeric value with optional unit', examples: 'Weight, Length, Resistance' },
   { value: 'select', label: 'Dropdown', description: 'Pick one option from a list', examples: 'Gauge, Size, Grade' },
@@ -11,7 +11,7 @@ const fieldTypes: Array<{ value: SupplyProfileField['type']; label: string; desc
   { value: 'boolean', label: 'Yes / No', description: 'A simple on/off toggle', examples: 'Washable, Food Safe, Lead Free' },
 ];
 
-interface EditableField extends Omit<SupplyProfileField, 'min' | 'max'> {
+interface EditableField extends Omit<SupplyTypeField, 'min' | 'max'> {
   localId: string;
   min: string;
   max: string;
@@ -24,8 +24,8 @@ interface FieldErrorState {
   max?: string;
 }
 
-interface ProfileFormProps {
-  initialProfile?: SupplyProfile;
+interface TypeFormProps {
+  initialType?: SupplyType;
   submitLabel: string;
   isSubmitting: boolean;
   errors?: Record<string, string>;
@@ -37,7 +37,7 @@ let nextFieldId = 0;
 
 function createFieldId() {
   nextFieldId += 1;
-  return `supply-profile-field-${nextFieldId}`;
+  return `supply-type-field-${nextFieldId}`;
 }
 
 function labelToKey(label: string): string {
@@ -61,7 +61,7 @@ function createEmptyField(): EditableField {
   };
 }
 
-function toEditableField(field: SupplyProfileField): EditableField {
+function toEditableField(field: SupplyTypeField): EditableField {
   return {
     localId: createFieldId(),
     label: field.label || '',
@@ -78,23 +78,23 @@ function toEditableField(field: SupplyProfileField): EditableField {
   };
 }
 
-function parseInitialFields(initialProfile?: SupplyProfile): { fields: EditableField[]; schemaError?: string } {
-  if (!initialProfile?.schema) return { fields: [] };
+function parseInitialFields(initialType?: SupplyType): { fields: EditableField[]; schemaError?: string } {
+  if (!initialType?.schema) return { fields: [] };
 
   try {
-    const parsed = JSON.parse(initialProfile.schema);
+    const parsed = JSON.parse(initialType.schema);
     if (!Array.isArray(parsed)) {
-      return { fields: [], schemaError: 'The saved profile has an issue. Please re-add your fields and save again.' };
+      return { fields: [], schemaError: 'The saved type has an issue. Please re-add your fields and save again.' };
     }
 
-    return { fields: parsed.map(field => toEditableField(field as SupplyProfileField)) };
+    return { fields: parsed.map(field => toEditableField(field as SupplyTypeField)) };
   } catch {
-    return { fields: [], schemaError: 'The saved profile has an issue. Please re-add your fields and save again.' };
+    return { fields: [], schemaError: 'The saved type has an issue. Please re-add your fields and save again.' };
   }
 }
 
-function serializeField(field: EditableField): SupplyProfileField {
-  const serialized: SupplyProfileField = {
+function serializeField(field: EditableField): SupplyTypeField {
+  const serialized: SupplyTypeField = {
     key: field.key.trim() || labelToKey(field.label),
     label: field.label.trim(),
     type: field.type,
@@ -119,21 +119,21 @@ function serializeField(field: EditableField): SupplyProfileField {
   return serialized;
 }
 
-export function ProfileForm({ initialProfile, submitLabel, isSubmitting, errors, onSubmit, onCancel }: ProfileFormProps) {
-  const [name, setName] = useState(initialProfile?.name || '');
+export function TypeForm({ initialType, submitLabel, isSubmitting, errors, onSubmit, onCancel }: TypeFormProps) {
+  const [name, setName] = useState(initialType?.name || '');
   const [fields, setFields] = useState<EditableField[]>([]);
   const [nameError, setNameError] = useState<string | undefined>();
   const [fieldErrors, setFieldErrors] = useState<Record<string, FieldErrorState>>({});
   const [schemaError, setSchemaError] = useState<string | undefined>();
 
   useEffect(() => {
-    const parsed = parseInitialFields(initialProfile);
-    setName(initialProfile?.name || '');
+    const parsed = parseInitialFields(initialType);
+    setName(initialType?.name || '');
     setFields(parsed.fields);
     setNameError(undefined);
     setFieldErrors({});
     setSchemaError(parsed.schemaError);
-  }, [initialProfile]);
+  }, [initialType]);
 
   function updateField(localId: string, updater: (field: EditableField) => EditableField) {
     setFields(currentFields => currentFields.map(field => (field.localId === localId ? updater(field) : field)));
@@ -147,7 +147,7 @@ export function ProfileForm({ initialProfile, submitLabel, isSubmitting, errors,
     }));
   }
 
-  function handleTypeChange(localId: string, type: SupplyProfileField['type']) {
+  function handleTypeChange(localId: string, type: SupplyTypeField['type']) {
     updateField(localId, field => ({
       ...field,
       type,
@@ -190,7 +190,7 @@ export function ProfileForm({ initialProfile, submitLabel, isSubmitting, errors,
     let hasErrors = false;
 
     if (!name.trim()) {
-      setNameError('Give your profile a name');
+      setNameError('Give your type a name');
       hasErrors = true;
     } else {
       setNameError(undefined);
@@ -246,7 +246,7 @@ export function ProfileForm({ initialProfile, submitLabel, isSubmitting, errors,
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
       <div className="p-5 bg-card border border-border rounded-xl space-y-5">
         <div>
-          <label className="block text-sm font-medium text-text-primary mb-1">Profile Name</label>
+          <label className="block text-sm font-medium text-text-primary mb-1">Type Name</label>
           <input
             value={name}
             onChange={e => {
@@ -313,7 +313,7 @@ export function ProfileForm({ initialProfile, submitLabel, isSubmitting, errors,
                   </div>
                   <div>
                     <label className="block text-xs text-text-muted mb-1">Type</label>
-                    <select value={field.type} onChange={e => handleTypeChange(field.localId, e.target.value as SupplyProfileField['type'])} className={fieldInputClassName}>
+                    <select value={field.type} onChange={e => handleTypeChange(field.localId, e.target.value as SupplyTypeField['type'])} className={fieldInputClassName}>
                       {fieldTypes.map(type => (
                         <option key={type.value} value={type.value}>{type.label}</option>
                       ))}

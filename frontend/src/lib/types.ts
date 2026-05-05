@@ -103,7 +103,7 @@ export interface Supply {
   reusable: number;
   price: number;
   brand: string | null;
-  profile_id: number | null;
+  type_id: number | null;
   attributes: string | null;
   owner_id: number;
   created_at: string;
@@ -212,7 +212,7 @@ export interface SearchResult {
   type: 'craft' | 'technique' | 'project' | 'supply' | 'curiosity';
 }
 
-export interface SupplyProfileField {
+export interface SupplyTypeField {
   key: string;
   label: string;
   type: 'text' | 'number' | 'select' | 'multiselect' | 'boolean';
@@ -226,7 +226,7 @@ export interface SupplyProfileField {
   show_in_list?: boolean;
 }
 
-export interface SupplyProfile {
+export interface SupplyType {
   id: number;
   name: string;
   schema: string;

@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSupply, useDeleteSupply } from '@/hooks/useSupplies';
-import { useSupplyProfile } from '@/hooks/useSupplyProfiles';
+import { useSupplyType } from '@/hooks/useSupplyTypes';
 import { ErrorBanner } from '@/components/shared/ErrorBanner';
 import { DetailPageShell, MetadataCard, TagsCard } from '@/components/shared/DetailPageShell';
 import { TagSelect } from '@/components/shared/TagSelect';
@@ -10,7 +10,7 @@ import { PhotoGallery } from '@/components/shared/PhotoGallery';
 import { NotesSection } from '@/components/shared/NotesSection';
 import { formatDate } from '@/lib/utils';
 import { useQueryClient } from '@tanstack/react-query';
-import type { SupplyProfileField } from '@/lib/types';
+import type { SupplyTypeField } from '@/lib/types';
 
 export function SupplyDetail() {
   const { id } = useParams();
@@ -19,14 +19,14 @@ export function SupplyDetail() {
   const deleteSupply = useDeleteSupply();
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const { data: profile } = useSupplyProfile(supply?.profile_id ?? 0);
+  const { data: supplyType } = useSupplyType(supply?.type_id ?? 0);
 
   if (isLoading) return <p className="text-text-muted">Loading...</p>;
   if (error) return <ErrorBanner message={(error as Error).message} onRetry={() => refetch()} />;
   if (!supply) return <p className="text-text-muted">Supply not found</p>;
 
   const attrs: Record<string, any> = supply.attributes ? JSON.parse(supply.attributes) : {};
-  const schema: SupplyProfileField[] = profile?.schema ? JSON.parse(profile.schema) : [];
+  const schema: SupplyTypeField[] = supplyType?.schema ? JSON.parse(supplyType.schema) : [];
 
   async function handleDelete() {
     if (!confirm('Delete this supply?')) return;
@@ -55,7 +55,7 @@ export function SupplyDetail() {
         {Object.keys(attrs).length > 0 && schema.length > 0 && (
           <div className="p-4 bg-card border border-border rounded-xl">
             <h2 className="text-sm font-medium text-text-secondary mb-3">
-              {profile?.name ?? 'Profile'} Attributes
+              {supplyType?.name ?? 'Type'} Attributes
             </h2>
             <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
               {schema.map(field => {
@@ -84,7 +84,7 @@ export function SupplyDetail() {
           ...(supply.unit ? [{ label: 'Unit', value: supply.unit }] : []),
           ...(supply.price > 0 ? [{ label: 'Price', value: `$${supply.price.toFixed(2)}` }] : []),
           { label: 'Reusable', value: supply.reusable ? 'Yes' : 'No' },
-          ...(profile ? [{ label: 'Profile', value: profile.name }] : []),
+          ...(supplyType ? [{ label: 'Type', value: supplyType.name }] : []),
           { label: 'Created', value: formatDate(supply.created_at) },
           { label: 'Updated', value: formatDate(supply.updated_at) },
         ]} />

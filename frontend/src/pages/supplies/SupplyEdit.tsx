@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSupply, useUpdateSupply } from '@/hooks/useSupplies';
-import { useSupplyProfiles } from '@/hooks/useSupplyProfiles';
+import { useSupplyTypes } from '@/hooks/useSupplyTypes';
 import { DynamicAttributeForm } from '@/components/shared/DynamicAttributeForm';
 import { ApiError } from '@/lib/api';
-import type { SupplyProfileField, SupplyProfile } from '@/lib/types';
+import type { SupplyTypeField, SupplyType } from '@/lib/types';
 
 export function SupplyEdit() {
   const { id } = useParams();
@@ -18,14 +18,14 @@ export function SupplyEdit() {
   const [price, setPrice] = useState('');
   const [brand, setBrand] = useState('');
   const [reusable, setReusable] = useState(false);
-  const [profileId, setProfileId] = useState<number | null>(null);
+  const [typeId, setTypeId] = useState<number | null>(null);
   const [attributes, setAttributes] = useState<Record<string, any>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const { data: profilesData } = useSupplyProfiles(1, { per_page: '100' });
+  const { data: typesData } = useSupplyTypes(1, { per_page: '100' });
 
-  const profiles: SupplyProfile[] = profilesData?.items ?? [];
-  const selectedProfile = profiles.find(p => p.id === profileId);
-  const schema: SupplyProfileField[] = selectedProfile ? JSON.parse(selectedProfile.schema) : [];
+  const types: SupplyType[] = typesData?.items ?? [];
+  const selectedType = types.find(p => p.id === typeId);
+  const schema: SupplyTypeField[] = selectedType ? JSON.parse(selectedType.schema) : [];
 
   useEffect(() => {
     if (supply) {
@@ -35,16 +35,16 @@ export function SupplyEdit() {
       setPrice(supply.price ? String(supply.price) : '');
       setBrand(supply.brand || '');
       setReusable(!!supply.reusable);
-      setProfileId(supply.profile_id);
+      setTypeId(supply.type_id);
       setAttributes(supply.attributes ? JSON.parse(supply.attributes) : {});
     }
   }, [supply]);
 
   if (isLoading) return <p className="text-text-muted">Loading...</p>;
 
-  function handleProfileChange(id: string) {
+  function handleTypeChange(id: string) {
     const numId = id ? Number(id) : null;
-    setProfileId(numId);
+    setTypeId(numId);
     setAttributes({});
   }
 
@@ -62,7 +62,7 @@ export function SupplyEdit() {
           price: price ? parseFloat(price) : 0,
           brand: brand || undefined,
           reusable: reusable ? 1 : 0,
-          profile_id: profileId,
+          type_id: typeId,
           attributes: hasAttrs ? JSON.stringify(attributes) : undefined,
         },
       });
@@ -77,6 +77,14 @@ export function SupplyEdit() {
     <div className="max-w-xl">
       <h1 className="text-xl font-semibold text-text-primary mb-6">Edit Supply</h1>
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <div>
+          <label className="block text-sm text-text-secondary mb-1">Type</label>
+          <select value={typeId ?? ''} onChange={e => handleTypeChange(e.target.value)} required className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none">
+            <option value="">Select a type...</option>
+            {types.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+          </select>
+          {errors.type_id && <p className="text-xs text-error mt-1">{errors.type_id}</p>}
+        </div>
         <div>
           <label className="block text-sm text-text-secondary mb-1">Name</label>
           <input value={name} onChange={e => setName(e.target.value)} required className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none" />
@@ -102,15 +110,6 @@ export function SupplyEdit() {
           <input type="checkbox" checked={reusable} onChange={e => setReusable(e.target.checked)} className="rounded" />
           Reusable (tool/equipment)
         </label>
-        {profiles.length > 0 && (
-          <div>
-            <label className="block text-sm text-text-secondary mb-1">Profile</label>
-            <select value={profileId ?? ''} onChange={e => handleProfileChange(e.target.value)} className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none">
-              <option value="">No profile</option>
-              {profiles.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-            </select>
-          </div>
-        )}
         {schema.length > 0 && (
           <DynamicAttributeForm schema={schema} values={attributes} onChange={setAttributes} />
         )}

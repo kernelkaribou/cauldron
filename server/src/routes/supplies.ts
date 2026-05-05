@@ -9,7 +9,7 @@ const createSchema = z.object({
   unit: z.string().max(50).optional(),
   reusable: z.number().int().min(0).max(1).optional(),
   price: z.number().min(0).optional(),
-  profile_id: z.number().int().positive().nullable().optional(),
+  type_id: z.number().int().positive(),
   attributes: z.string().optional(),
 });
 
@@ -20,59 +20,46 @@ const updateSchema = z.object({
   unit: z.string().max(50).optional(),
   reusable: z.number().int().min(0).max(1).optional(),
   price: z.number().min(0).optional(),
-  profile_id: z.number().int().positive().nullable().optional(),
+  type_id: z.number().int().positive().optional(),
   attributes: z.string().optional(),
 });
 
-interface ProfileRow { id: number; schema: string; owner_id: number }
-interface ProfileField { key: string; type: string; options?: string[]; unit?: string; integer?: boolean; min?: number; max?: number; required?: boolean }
+interface TypeRow { id: number; schema: string; owner_id: number }
+interface TypeField { key: string; type: string; options?: string[]; unit?: string; integer?: boolean; min?: number; max?: number; required?: boolean }
 
-function validateAttributesAgainstProfile(
+function validateAttributesAgainstType(
   db: ReturnType<typeof import('../db.js').getDb>,
   data: Record<string, any>,
   ownerId: number,
   existing?: Record<string, any>
 ): string | null {
-  // Resolve the effective state by merging existing row with patch
-  const effectiveProfileId = data.profile_id !== undefined ? data.profile_id : existing?.profile_id ?? null;
+  const effectiveTypeId = data.type_id !== undefined ? data.type_id : existing?.type_id ?? null;
   const effectiveAttributes = data.attributes !== undefined ? data.attributes : existing?.attributes ?? null;
 
-  // If clearing profile_id, also clear attributes
-  if (effectiveProfileId === null || effectiveProfileId === undefined) {
-    if (effectiveAttributes && effectiveAttributes !== '{}' && effectiveAttributes !== null) {
-      // On update: if user is setting profile_id to null, auto-clear attributes
-      if (data.profile_id === null && existing?.attributes) {
-        data.attributes = '{}';
-      } else if (!existing) {
-        // On create: reject attributes without profile
-        return 'Attributes require a profile_id';
-      }
-    }
+  if (effectiveTypeId === null || effectiveTypeId === undefined) {
     return null;
   }
 
-  // Verify profile exists and is owned by this user
-  const profile = db.prepare(
-    'SELECT id, schema, owner_id FROM supply_profiles WHERE id = ? AND owner_id = ?'
-  ).get(effectiveProfileId, ownerId) as ProfileRow | undefined;
+  // Verify type exists and is owned by this user
+  const supplyType = db.prepare(
+    'SELECT id, schema, owner_id FROM supply_types WHERE id = ? AND owner_id = ?'
+  ).get(effectiveTypeId, ownerId) as TypeRow | undefined;
 
-  if (!profile) {
-    return 'Profile not found or not owned by you';
+  if (!supplyType) {
+    return 'Supply type not found or not owned by you';
   }
 
-  // Determine which attributes to validate (patch or existing)
+  // Determine which attributes to validate
   const attrStr = data.attributes !== undefined ? data.attributes : existing?.attributes ?? null;
   if (!attrStr || attrStr === '{}' || attrStr === null) {
-    // Check if any required fields exist in the profile
-    const fields: ProfileField[] = JSON.parse(profile.schema);
+    const fields: TypeField[] = JSON.parse(supplyType.schema);
     const hasRequired = fields.some(f => f.required);
     if (hasRequired) {
-      return `Profile "${profile.id}" has required fields that must be provided`;
+      return `This supply type has required fields that must be provided`;
     }
     return null;
   }
 
-  // Parse and validate attributes
   let attrs: Record<string, any>;
   try {
     attrs = JSON.parse(attrStr);
@@ -84,17 +71,15 @@ function validateAttributesAgainstProfile(
     return 'Attributes must be a JSON object';
   }
 
-  const fields: ProfileField[] = JSON.parse(profile.schema);
+  const fields: TypeField[] = JSON.parse(supplyType.schema);
   const validKeys = new Set(fields.map(f => f.key));
 
-  // Check all attribute keys are defined in profile
   for (const key of Object.keys(attrs)) {
     if (!validKeys.has(key)) {
       return `Unknown attribute key: "${key}"`;
     }
   }
 
-  // Type validation for each field
   for (const field of fields) {
     const val = attrs[field.key];
     if (val === undefined || val === null) {
@@ -135,7 +120,7 @@ function validateAttributesAgainstProfile(
 const router = createCrudRouter({
   table: 'supplies',
   searchColumns: ['name', 'description', 'brand'],
-  filterColumns: ['reusable', 'profile_id'],
+  filterColumns: ['reusable', 'type_id'],
   sortColumns: ['name', 'created_at', 'updated_at', 'price', 'brand'],
   createSchema,
   updateSchema,
@@ -146,7 +131,7 @@ const router = createCrudRouter({
       key: 'id',
     },
   },
-  beforeSave: (db, data, owner) => validateAttributesAgainstProfile(db, data, owner),
+  beforeSave: (db, data, owner) => validateAttributesAgainstType(db, data, owner),
   beforeDelete: (db, id, ownerId) => {
     const craftsWithOnlyThis = db.prepare(`
       SELECT cs.craft_id

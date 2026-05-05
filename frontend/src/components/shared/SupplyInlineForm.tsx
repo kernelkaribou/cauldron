@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useCreateSupply } from '@/hooks/useSupplies';
+import { useSupplyTypes } from '@/hooks/useSupplyTypes';
 import { ApiError } from '@/lib/api';
+import type { SupplyType } from '@/lib/types';
 
 interface SupplyInlineFormProps {
   onCreated: (supply: { id: number; name: string; unit?: string }) => void;
@@ -9,22 +11,24 @@ interface SupplyInlineFormProps {
 
 export function SupplyInlineForm({ onCreated, onCancel }: SupplyInlineFormProps) {
   const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
+  const [typeId, setTypeId] = useState<number | null>(null);
   const [unit, setUnit] = useState('');
   const [reusable, setReusable] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const createSupply = useCreateSupply();
+  const { data: typesData } = useSupplyTypes(1, { per_page: '100' });
+  const types: SupplyType[] = typesData?.items ?? [];
 
   async function handleSave() {
-    if (!name.trim()) return;
+    if (!name.trim() || !typeId) return;
     setErrors({});
 
     try {
       const supply = await createSupply.mutateAsync({
         name: name.trim(),
-        description: description.trim() || undefined,
         unit: unit.trim() || undefined,
         reusable: reusable ? 1 : 0,
+        type_id: typeId,
       });
       onCreated({ id: supply.id, name: supply.name, unit: supply.unit || undefined });
     } catch (err) {
@@ -32,13 +36,26 @@ export function SupplyInlineForm({ onCreated, onCancel }: SupplyInlineFormProps)
         setErrors(err.details);
         return;
       }
-
       setErrors({ form: 'Unable to create supply right now.' });
     }
   }
 
   return (
     <div className="space-y-4 rounded-xl border border-border bg-page p-4">
+      <div>
+        <label className="mb-1 block text-sm text-text-secondary">Type</label>
+        <select
+          value={typeId ?? ''}
+          onChange={e => setTypeId(e.target.value ? Number(e.target.value) : null)}
+          required
+          className="w-full rounded-lg border border-border bg-card px-3 py-2 text-text-primary focus:border-accent focus:outline-none"
+        >
+          <option value="">Select a type...</option>
+          {types.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+        </select>
+        {errors.type_id && <p className="mt-1 text-xs text-error">{errors.type_id}</p>}
+      </div>
+
       <div>
         <label className="mb-1 block text-sm text-text-secondary">Name</label>
         <input
@@ -48,16 +65,6 @@ export function SupplyInlineForm({ onCreated, onCancel }: SupplyInlineFormProps)
           className="w-full rounded-lg border border-border bg-card px-3 py-2 text-text-primary focus:border-accent focus:outline-none"
         />
         {errors.name && <p className="mt-1 text-xs text-error">{errors.name}</p>}
-      </div>
-
-      <div>
-        <label className="mb-1 block text-sm text-text-secondary">Description</label>
-        <textarea
-          value={description}
-          onChange={e => setDescription(e.target.value)}
-          rows={4}
-          className="w-full resize-y rounded-lg border border-border bg-card px-3 py-2 text-sm text-text-primary focus:border-accent focus:outline-none"
-        />
       </div>
 
       <div>
@@ -86,7 +93,7 @@ export function SupplyInlineForm({ onCreated, onCancel }: SupplyInlineFormProps)
         <button
           type="button"
           onClick={handleSave}
-          disabled={createSupply.isPending || !name.trim()}
+          disabled={createSupply.isPending || !name.trim() || !typeId}
           className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-light disabled:opacity-50"
         >
           {createSupply.isPending ? 'Saving...' : 'Save'}
