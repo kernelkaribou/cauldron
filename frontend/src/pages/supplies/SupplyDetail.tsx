@@ -38,7 +38,6 @@ export function SupplyDetail() {
     <DetailPageShell
       title={supply.name}
       subtitle={<>
-        {supply.material && <span>Material: {supply.material}</span>}
         {supply.brand && <span>Brand: {supply.brand}</span>}
         {supply.unit && <span>Unit: {supply.unit}</span>}
         {supply.price > 0 && <span>${supply.price.toFixed(2)}</span>}
@@ -81,7 +80,6 @@ export function SupplyDetail() {
       </>}
       sidebar={<>
         <MetadataCard items={[
-          ...(supply.material ? [{ label: 'Material', value: supply.material }] : []),
           ...(supply.brand ? [{ label: 'Brand', value: supply.brand }] : []),
           ...(supply.unit ? [{ label: 'Unit', value: supply.unit }] : []),
           ...(supply.price > 0 ? [{ label: 'Price', value: `$${supply.price.toFixed(2)}` }] : []),

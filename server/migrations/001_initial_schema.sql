@@ -62,7 +62,6 @@ CREATE TABLE supplies (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   description TEXT,
-  material TEXT,
   brand TEXT,
   unit TEXT,
   reusable INTEGER DEFAULT 0,
@@ -240,7 +239,6 @@ CREATE TABLE entity_tags (
 CREATE INDEX idx_supply_profiles_owner ON supply_profiles(owner_id);
 CREATE INDEX idx_supplies_owner ON supplies(owner_id);
 CREATE INDEX idx_supplies_profile ON supplies(profile_id);
-CREATE INDEX idx_supplies_material ON supplies(material);
 CREATE INDEX idx_supplies_brand ON supplies(brand);
 CREATE INDEX idx_supply_vendors_supply ON supply_vendors(supply_id);
 CREATE INDEX idx_supply_stock_supply ON supply_stock(supply_id);

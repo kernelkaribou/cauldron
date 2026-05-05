@@ -38,7 +38,6 @@ export function SupplyList() {
               <Link key={supply.id} to={`/supplies/${supply.id}`} className="block p-4 bg-card border border-border rounded-xl hover:border-accent hover:-translate-y-0.5 transition-all">
                 <h3 className="font-medium text-text-primary mb-1">{supply.name}</h3>
                 <div className="flex items-center gap-2 text-xs text-text-muted flex-wrap">
-                  {supply.material && <span>{supply.material}</span>}
                   {supply.brand && <span>{supply.brand}</span>}
                   {supply.unit && <span>{supply.unit}</span>}
                   {supply.price > 0 && <span>${supply.price.toFixed(2)}</span>}

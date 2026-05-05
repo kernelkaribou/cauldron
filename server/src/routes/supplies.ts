@@ -5,7 +5,6 @@ import { deleteNotesForEntity, deletePhotosForEntity } from './entity-utils.js';
 const createSchema = z.object({
   name: z.string().min(1).max(200),
   description: z.string().optional(),
-  material: z.string().max(100).optional(),
   brand: z.string().max(200).optional(),
   unit: z.string().max(50).optional(),
   reusable: z.number().int().min(0).max(1).optional(),
@@ -17,7 +16,6 @@ const createSchema = z.object({
 const updateSchema = z.object({
   name: z.string().min(1).max(200).optional(),
   description: z.string().optional(),
-  material: z.string().max(100).optional(),
   brand: z.string().max(200).optional(),
   unit: z.string().max(50).optional(),
   reusable: z.number().int().min(0).max(1).optional(),
@@ -136,9 +134,9 @@ function validateAttributesAgainstProfile(
 
 const router = createCrudRouter({
   table: 'supplies',
-  searchColumns: ['name', 'description', 'material', 'brand'],
-  filterColumns: ['reusable', 'material', 'profile_id'],
-  sortColumns: ['name', 'created_at', 'updated_at', 'price', 'material', 'brand'],
+  searchColumns: ['name', 'description', 'brand'],
+  filterColumns: ['reusable', 'profile_id'],
+  sortColumns: ['name', 'created_at', 'updated_at', 'price', 'brand'],
   createSchema,
   updateSchema,
   expandConfig: {

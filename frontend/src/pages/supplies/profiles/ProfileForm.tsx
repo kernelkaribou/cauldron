@@ -3,12 +3,12 @@ import type { SupplyProfile, SupplyProfileField } from '@/lib/types';
 
 const fieldInputClassName = 'w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none';
 const secondaryButtonClassName = 'px-3 py-2 border border-border rounded-lg text-text-secondary hover:border-accent hover:text-accent transition-colors text-sm disabled:opacity-50';
-const fieldTypes: Array<{ value: SupplyProfileField['type']; label: string; description: string }> = [
-  { value: 'text', label: 'Text', description: 'A short text value' },
-  { value: 'number', label: 'Number', description: 'A numeric value with optional unit' },
-  { value: 'select', label: 'Dropdown', description: 'Pick one option from a list' },
-  { value: 'multiselect', label: 'Multiple Choice', description: 'Pick one or more options' },
-  { value: 'boolean', label: 'Yes / No', description: 'A simple toggle' },
+const fieldTypes: Array<{ value: SupplyProfileField['type']; label: string; description: string; examples: string }> = [
+  { value: 'text', label: 'Text', description: 'A short text value', examples: 'Color, Material, Finish' },
+  { value: 'number', label: 'Number', description: 'A numeric value with optional unit', examples: 'Weight, Length, Resistance' },
+  { value: 'select', label: 'Dropdown', description: 'Pick one option from a list', examples: 'Gauge, Size, Grade' },
+  { value: 'multiselect', label: 'Multiple Choice', description: 'Pick one or more options', examples: 'Suitable For, Colors Available' },
+  { value: 'boolean', label: 'Yes / No', description: 'A simple on/off toggle', examples: 'Washable, Food Safe, Lead Free' },
 ];
 
 interface EditableField extends Omit<SupplyProfileField, 'min' | 'max'> {
@@ -273,8 +273,7 @@ export function ProfileForm({ initialProfile, submitLabel, isSubmitting, errors,
         <div className="space-y-4">
           {fields.length === 0 && (
             <div className="p-6 border border-dashed border-border rounded-xl text-sm text-text-muted text-center">
-              No custom fields yet. Click "Add Field" to define what you want to track.
-              <br /><span className="text-xs">For example: Color, Weight, Gauge, Size, Thread Count</span>
+              No custom fields yet. Click "Add Field" to start defining what you want to track.
             </div>
           )}
 
@@ -305,12 +304,12 @@ export function ProfileForm({ initialProfile, submitLabel, isSubmitting, errors,
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs text-text-muted mb-1">Field Name</label>
-                    <input value={field.label} onChange={e => handleLabelChange(field.localId, e.target.value)} className={fieldInputClassName} placeholder="e.g., Color, Weight, Gauge" />
+                    <label className="block text-xs text-text-muted mb-1">Name</label>
+                    <input value={field.label} onChange={e => handleLabelChange(field.localId, e.target.value)} className={fieldInputClassName} />
                     {currentErrors.label && <p className="text-xs text-error mt-1">{currentErrors.label}</p>}
                   </div>
                   <div>
-                    <label className="block text-xs text-text-muted mb-1">Input Type</label>
+                    <label className="block text-xs text-text-muted mb-1">Type</label>
                     <select value={field.type} onChange={e => handleTypeChange(field.localId, e.target.value as SupplyProfileField['type'])} className={fieldInputClassName}>
                       {fieldTypes.map(type => (
                         <option key={type.value} value={type.value}>{type.label}</option>
@@ -386,11 +385,12 @@ export function ProfileForm({ initialProfile, submitLabel, isSubmitting, errors,
 
     <aside className="hidden lg:block p-4 bg-card border border-border rounded-xl sticky top-6">
       <h3 className="text-sm font-medium text-text-primary mb-3">Field Types</h3>
-      <dl className="space-y-2 text-xs">
+      <dl className="space-y-3 text-xs">
         {fieldTypes.map(type => (
           <div key={type.value}>
             <dt className="font-medium text-text-primary">{type.label}</dt>
             <dd className="text-text-muted">{type.description}</dd>
+            <dd className="text-text-muted italic mt-0.5">e.g. {type.examples}</dd>
           </div>
         ))}
       </dl>

@@ -11,7 +11,6 @@ export function SupplyNew() {
   const [description, setDescription] = useState('');
   const [unit, setUnit] = useState('');
   const [price, setPrice] = useState('');
-  const [material, setMaterial] = useState('');
   const [brand, setBrand] = useState('');
   const [reusable, setReusable] = useState(false);
   const [profileId, setProfileId] = useState<number | null>(null);
@@ -41,7 +40,6 @@ export function SupplyNew() {
         description: description || undefined,
         unit: unit || undefined,
         price: price ? parseFloat(price) : 0,
-        material: material || undefined,
         brand: brand || undefined,
         reusable: reusable ? 1 : 0,
         profile_id: profileId,
@@ -74,10 +72,6 @@ export function SupplyNew() {
         <div>
           <label className="block text-sm text-text-secondary mb-1">Price</label>
           <input type="number" min="0" step="0.01" value={price} onChange={e => setPrice(e.target.value)} placeholder="0.00" className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none" />
-        </div>
-        <div>
-          <label className="block text-sm text-text-secondary mb-1">Material</label>
-          <input value={material} onChange={e => setMaterial(e.target.value)} placeholder="e.g., wool, cotton, oak" className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none" />
         </div>
         <div>
           <label className="block text-sm text-text-secondary mb-1">Brand</label>

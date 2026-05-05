@@ -102,7 +102,6 @@ export interface Supply {
   unit: string | null;
   reusable: number;
   price: number;
-  material: string | null;
   brand: string | null;
   profile_id: number | null;
   attributes: string | null;
