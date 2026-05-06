@@ -15,7 +15,7 @@ export function AppLayout() {
       <header className="hidden md:flex items-center h-14 px-6 bg-card border-b border-border sticky top-0 z-50">
         {/* Brand */}
         <Link to="/" className="flex items-center gap-2.5 mr-8 shrink-0">
-          <img src="/icon-64.webp" alt="Cauldron" className="w-7 h-7 rounded-lg" />
+          <img src="/icon-64.webp" alt="Cauldron" className="w-9 h-9 rounded-lg" />
           <span className="text-accent-light font-serif text-lg font-semibold tracking-wide">Cauldron</span>
         </Link>
 
