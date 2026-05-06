@@ -34,7 +34,6 @@ export function AppLayout() {
                 }`
               }
             >
-              <span className="text-sm">{item.glyph}</span>
               {item.label}
             </NavLink>
           ))}
