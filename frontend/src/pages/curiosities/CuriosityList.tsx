@@ -36,7 +36,7 @@ export function CuriosityList() {
           <div className="columns-1 md:columns-2 xl:columns-3 gap-5 space-y-5">
             {data.items.map(cur => (
               <Link key={cur.id} to={`/curiosities/${cur.id}`} className="block bg-card border border-border rounded-2xl hover:border-accent hover:-translate-y-0.5 hover:shadow-md transition-all break-inside-avoid overflow-hidden">
-                <CoverThumb photoId={cur.cover_photo_id} alt={cur.title} className="w-full h-32 rounded-t-2xl" />
+                <CoverThumb photoId={cur.cover_photo_id} alt={cur.title} className="w-full aspect-square rounded-t-2xl" />
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="font-medium text-text-primary">{cur.title}</h3>

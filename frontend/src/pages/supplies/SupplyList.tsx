@@ -58,7 +58,7 @@ export function SupplyList() {
               const listValues = getListDisplayValues(supply.attributes, schema);
               return (
               <Link key={supply.id} to={`/supplies/${supply.id}`} className="block bg-card border border-border rounded-2xl hover:border-accent hover:-translate-y-0.5 hover:shadow-md transition-all break-inside-avoid overflow-hidden">
-                <CoverThumb photoId={supply.cover_photo_id} alt={supply.name} className="w-full h-32 rounded-t-2xl" />
+                <CoverThumb photoId={supply.cover_photo_id} alt={supply.name} className="w-full aspect-square rounded-t-2xl" />
                 <div className="p-4">
                   <h3 className="font-medium text-text-primary mb-1">
                     {supply.name}

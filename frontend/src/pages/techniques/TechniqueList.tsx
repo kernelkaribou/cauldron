@@ -35,7 +35,7 @@ export function TechniqueList() {
           <div className="columns-1 md:columns-2 xl:columns-3 gap-5 space-y-5">
             {data.items.map(technique => (
               <Link key={technique.id} to={`/techniques/${technique.id}`} className="block bg-card border border-border rounded-2xl hover:border-accent hover:-translate-y-0.5 hover:shadow-md transition-all break-inside-avoid overflow-hidden">
-                <CoverThumb photoId={technique.cover_photo_id} alt={technique.title} className="w-full h-32 rounded-t-2xl" />
+                <CoverThumb photoId={technique.cover_photo_id} alt={technique.title} className="w-full aspect-square rounded-t-2xl" />
                 <div className="p-4">
                   <h3 className="font-medium text-text-primary mb-1">{technique.title}</h3>
                   <div className="flex items-center gap-2 mb-2 flex-wrap">

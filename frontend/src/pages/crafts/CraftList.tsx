@@ -56,7 +56,7 @@ export function CraftList() {
                 to={`/crafts/${craft.id}`}
                 className="block bg-card border border-border rounded-2xl hover:border-accent hover:-translate-y-0.5 hover:shadow-md transition-all break-inside-avoid overflow-hidden"
               >
-                <CoverThumb photoId={craft.cover_photo_id} alt={craft.title} className="w-full h-32 rounded-t-2xl" />
+                <CoverThumb photoId={craft.cover_photo_id} alt={craft.title} className="w-full aspect-square rounded-t-2xl" />
                 <div className="p-4">
                   <h3 className="font-medium text-text-primary mb-1">{craft.title}</h3>
                   {craft.category && <p className="text-xs text-accent-light mb-2">{craft.category.name}</p>}

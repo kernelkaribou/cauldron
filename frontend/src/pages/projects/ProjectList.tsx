@@ -39,7 +39,7 @@ export function ProjectList() {
 
               return (
                 <Link key={project.id} to={`/projects/${project.id}`} className="block bg-card border border-border rounded-2xl hover:border-accent hover:-translate-y-0.5 hover:shadow-md transition-all overflow-hidden">
-                  <CoverThumb photoId={project.cover_photo_id} alt={project.title} className="w-full h-32 rounded-t-2xl" />
+                  <CoverThumb photoId={project.cover_photo_id} alt={project.title} className="w-full aspect-square rounded-t-2xl" />
                   <div className="p-4">
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="font-medium text-text-primary">{project.title}</h3>
