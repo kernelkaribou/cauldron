@@ -31,6 +31,9 @@ export function Login() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-page relative z-10">
       <div className="w-full max-w-md p-10 bg-card rounded-2xl border border-border shadow-lg">
+        <div className="flex justify-center mb-4">
+          <img src="/icon-128.webp" alt="Cauldron" className="w-16 h-16 rounded-xl" />
+        </div>
         <h1 className="font-serif text-3xl font-semibold text-accent-light mb-2 text-center">Cauldron</h1>
         <p className="text-sm text-text-muted text-center mb-8">Your creative studio awaits</p>
         {error && (

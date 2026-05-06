@@ -15,8 +15,9 @@ export function AppLayout() {
       <aside className="hidden md:flex flex-col w-56 fixed inset-y-0 left-0 bg-card border-r border-border z-40">
         {/* Brand */}
         <div className="h-16 flex items-center px-5 border-b border-border-subtle">
-          <Link to="/" className="text-accent-light font-serif text-xl font-semibold tracking-wide">
-            Cauldron
+          <Link to="/" className="flex items-center gap-2.5">
+            <img src="/icon-64.webp" alt="Cauldron" className="w-8 h-8 rounded-lg" />
+            <span className="text-accent-light font-serif text-xl font-semibold tracking-wide">Cauldron</span>
           </Link>
         </div>
 
@@ -65,8 +66,9 @@ export function AppLayout() {
 
       {/* Mobile Topbar */}
       <header className="md:hidden fixed top-0 left-0 right-0 h-14 bg-card border-b border-border z-50 flex items-center px-4">
-        <Link to="/" className="text-accent-light font-serif font-semibold text-lg">
-          Cauldron
+        <Link to="/" className="flex items-center gap-2">
+          <img src="/icon-64.webp" alt="Cauldron" className="w-7 h-7 rounded-lg" />
+          <span className="text-accent-light font-serif font-semibold text-lg">Cauldron</span>
         </Link>
         <div className="ml-auto flex items-center gap-3">
           <GlobalSearch />
