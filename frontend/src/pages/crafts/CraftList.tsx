@@ -4,6 +4,7 @@ import { useCrafts } from '@/hooks/useCrafts';
 import { useCategories } from '@/hooks/useCategories';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { ErrorBanner } from '@/components/shared/ErrorBanner';
+import { CoverThumb } from '@/components/shared/CoverThumb';
 import { formatDate, formatDuration } from '@/lib/utils';
 
 export function CraftList() {
@@ -53,20 +54,23 @@ export function CraftList() {
               <Link
                 key={craft.id}
                 to={`/crafts/${craft.id}`}
-                className="block p-5 bg-card border border-border rounded-2xl hover:border-accent hover:-translate-y-0.5 hover:shadow-md transition-all break-inside-avoid"
+                className="block bg-card border border-border rounded-2xl hover:border-accent hover:-translate-y-0.5 hover:shadow-md transition-all break-inside-avoid overflow-hidden"
               >
-                <h3 className="font-medium text-text-primary mb-1">{craft.title}</h3>
-                {craft.category && <p className="text-xs text-accent-light mb-2">{craft.category.name}</p>}
-                {craft.description && <p className="text-sm text-text-secondary line-clamp-3 mb-2">{craft.description}</p>}
-                <div className="flex items-center gap-3 text-xs text-text-muted">
-                  {craft.duration_minutes > 0 && <span>{formatDuration(craft.duration_minutes)}</span>}
-                  <span>{formatDate(craft.created_at)}</span>
-                </div>
-                {craft.tags && craft.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mt-3">
-                    {craft.tags.map(tag => <span key={tag.id} className="px-2 py-0.5 bg-accent-bg text-accent-light text-xs rounded-xl">{tag.name}</span>)}
+                <CoverThumb photoId={craft.cover_photo_id} alt={craft.title} className="w-full h-32 rounded-t-2xl" />
+                <div className="p-4">
+                  <h3 className="font-medium text-text-primary mb-1">{craft.title}</h3>
+                  {craft.category && <p className="text-xs text-accent-light mb-2">{craft.category.name}</p>}
+                  {craft.description && <p className="text-sm text-text-secondary line-clamp-3 mb-2">{craft.description}</p>}
+                  <div className="flex items-center gap-3 text-xs text-text-muted">
+                    {craft.duration_minutes > 0 && <span>{formatDuration(craft.duration_minutes)}</span>}
+                    <span>{formatDate(craft.created_at)}</span>
                   </div>
-                )}
+                  {craft.tags && craft.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mt-3">
+                      {craft.tags.map(tag => <span key={tag.id} className="px-2 py-0.5 bg-accent-bg text-accent-light text-xs rounded-xl">{tag.name}</span>)}
+                    </div>
+                  )}
+                </div>
               </Link>
             ))}
           </div>

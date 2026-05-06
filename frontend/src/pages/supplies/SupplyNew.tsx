@@ -58,7 +58,7 @@ export function SupplyNew() {
       {types.length === 0 ? (
         <div className="p-6 bg-card border border-dashed border-border rounded-xl text-center">
           <p className="text-text-secondary mb-3">You need to create a supply type first.</p>
-          <button onClick={() => navigate('/supplies/types/new')} className="px-5 py-2.5 bg-accent text-white rounded-xl hover:bg-accent-dark transition-all text-sm">
+          <button onClick={() => navigate('/supplies/types/new?return=/supplies/new')} className="px-5 py-2.5 bg-accent text-white rounded-xl hover:bg-accent-dark transition-all text-sm">
             Create a Type
           </button>
         </div>

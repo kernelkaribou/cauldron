@@ -85,7 +85,7 @@ export function GlobalSearch() {
           onChange={e => { setQuery(e.target.value); setOpen(true); }}
           onFocus={() => setOpen(true)}
           onKeyDown={handleKeyDown}
-          placeholder="Search... (⌘K)"
+          placeholder="Search..."
           className="w-48 md:w-64 px-4 py-2 bg-card border border-border rounded-xl text-sm text-text-primary placeholder-text-muted focus:border-accent focus:outline-none focus:w-80 transition-all"
         />
       </div>

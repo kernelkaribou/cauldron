@@ -29,6 +29,7 @@ export interface Technique {
   owner_id: number;
   created_at: string;
   updated_at: string;
+  cover_photo_id?: number | null;
   category?: Category | null;
   tags?: Tag[];
 }
@@ -68,6 +69,7 @@ export interface Craft {
   owner_id: number;
   created_at: string;
   updated_at: string;
+  cover_photo_id?: number | null;
   category?: Category | null;
   tags?: Tag[];
   techniques?: CraftTechnique[];
@@ -91,6 +93,7 @@ export interface Project {
   owner_id: number;
   created_at: string;
   updated_at: string;
+  cover_photo_id?: number | null;
   crafts?: ProjectCraft[];
   tags?: Tag[];
 }
@@ -108,6 +111,7 @@ export interface Supply {
   owner_id: number;
   created_at: string;
   updated_at: string;
+  cover_photo_id?: number | null;
   tags?: Tag[];
 }
 
@@ -132,6 +136,7 @@ export interface Curiosity {
   owner_id: number;
   created_at: string;
   updated_at: string;
+  cover_photo_id?: number | null;
   category?: Category | null;
   tags?: Tag[];
 }

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useCuriosities } from '@/hooks/useCuriosities';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { ErrorBanner } from '@/components/shared/ErrorBanner';
+import { CoverThumb } from '@/components/shared/CoverThumb';
 import { formatDate } from '@/lib/utils';
 
 export function CuriosityList() {
@@ -34,14 +35,17 @@ export function CuriosityList() {
         <>
           <div className="columns-1 md:columns-2 xl:columns-3 gap-5 space-y-5">
             {data.items.map(cur => (
-              <Link key={cur.id} to={`/curiosities/${cur.id}`} className="block p-5 bg-card border border-border rounded-2xl hover:border-accent hover:-translate-y-0.5 hover:shadow-md transition-all break-inside-avoid">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-medium text-text-primary">{cur.title}</h3>
-                  <span className="px-2 py-0.5 bg-accent-bg text-accent-light text-xs rounded-xl shrink-0 ml-2">{cur.type}</span>
+              <Link key={cur.id} to={`/curiosities/${cur.id}`} className="block bg-card border border-border rounded-2xl hover:border-accent hover:-translate-y-0.5 hover:shadow-md transition-all break-inside-avoid overflow-hidden">
+                <CoverThumb photoId={cur.cover_photo_id} alt={cur.title} className="w-full h-32 rounded-t-2xl" />
+                <div className="p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-medium text-text-primary">{cur.title}</h3>
+                    <span className="px-2 py-0.5 bg-accent-bg text-accent-light text-xs rounded-xl shrink-0 ml-2">{cur.type}</span>
+                  </div>
+                  {cur.description && <p className="text-sm text-text-secondary line-clamp-3 mb-2">{cur.description}</p>}
+                  {cur.url && <p className="text-xs text-accent-light truncate mb-2">{cur.url}</p>}
+                  <p className="text-xs text-text-muted">{formatDate(cur.created_at)}</p>
                 </div>
-                {cur.description && <p className="text-sm text-text-secondary line-clamp-3 mb-2">{cur.description}</p>}
-                {cur.url && <p className="text-xs text-accent-light truncate mb-2">{cur.url}</p>}
-                <p className="text-xs text-text-muted">{formatDate(cur.created_at)}</p>
               </Link>
             ))}
           </div>

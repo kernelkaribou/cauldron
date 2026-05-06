@@ -4,6 +4,7 @@ import { useTechniques } from '@/hooks/useTechniques';
 import { useCategories } from '@/hooks/useCategories';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { ErrorBanner } from '@/components/shared/ErrorBanner';
+import { CoverThumb } from '@/components/shared/CoverThumb';
 import { formatDate } from '@/lib/utils';
 
 export function TechniqueList() {
@@ -33,19 +34,22 @@ export function TechniqueList() {
         <>
           <div className="columns-1 md:columns-2 xl:columns-3 gap-5 space-y-5">
             {data.items.map(technique => (
-              <Link key={technique.id} to={`/techniques/${technique.id}`} className="block p-5 bg-card border border-border rounded-2xl hover:border-accent hover:-translate-y-0.5 hover:shadow-md transition-all break-inside-avoid">
-                <h3 className="font-medium text-text-primary mb-1">{technique.title}</h3>
-                <div className="flex items-center gap-2 mb-2 flex-wrap">
-                  {technique.category && <span className="text-xs text-accent-light">{technique.category.name}</span>}
-                  {technique.difficulty && <span className="px-2 py-0.5 bg-card-elevated border border-border-subtle text-text-secondary text-xs rounded-xl capitalize">{technique.difficulty}</span>}
-                </div>
-                {technique.content && <p className="text-sm text-text-secondary line-clamp-3 mb-2">{technique.content}</p>}
-                <p className="text-xs text-text-muted">{formatDate(technique.created_at)}</p>
-                {technique.tags && technique.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mt-3">
-                    {technique.tags.map(tag => <span key={tag.id} className="px-2 py-0.5 bg-accent-bg text-accent-light text-xs rounded-xl">{tag.name}</span>)}
+              <Link key={technique.id} to={`/techniques/${technique.id}`} className="block bg-card border border-border rounded-2xl hover:border-accent hover:-translate-y-0.5 hover:shadow-md transition-all break-inside-avoid overflow-hidden">
+                <CoverThumb photoId={technique.cover_photo_id} alt={technique.title} className="w-full h-32 rounded-t-2xl" />
+                <div className="p-4">
+                  <h3 className="font-medium text-text-primary mb-1">{technique.title}</h3>
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
+                    {technique.category && <span className="text-xs text-accent-light">{technique.category.name}</span>}
+                    {technique.difficulty && <span className="px-2 py-0.5 bg-card-elevated border border-border-subtle text-text-secondary text-xs rounded-xl capitalize">{technique.difficulty}</span>}
                   </div>
-                )}
+                  {technique.content && <p className="text-sm text-text-secondary line-clamp-3 mb-2">{technique.content}</p>}
+                  <p className="text-xs text-text-muted">{formatDate(technique.created_at)}</p>
+                  {technique.tags && technique.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mt-3">
+                      {technique.tags.map(tag => <span key={tag.id} className="px-2 py-0.5 bg-accent-bg text-accent-light text-xs rounded-xl">{tag.name}</span>)}
+                    </div>
+                  )}
+                </div>
               </Link>
             ))}
           </div>

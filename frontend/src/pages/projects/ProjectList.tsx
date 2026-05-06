@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useProjects } from '@/hooks/useProjects';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { ErrorBanner } from '@/components/shared/ErrorBanner';
+import { CoverThumb } from '@/components/shared/CoverThumb';
 import { STATUS_CONFIG } from '@/lib/theme';
 import { formatDate, pluralize } from '@/lib/utils';
 import type { Project } from '@/lib/types';
@@ -37,16 +38,19 @@ export function ProjectList() {
               const craftCount = project.crafts?.length || 0;
 
               return (
-                <Link key={project.id} to={`/projects/${project.id}`} className="block p-5 bg-card border border-border rounded-2xl hover:border-accent hover:-translate-y-0.5 hover:shadow-md transition-all">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-medium text-text-primary">{project.title}</h3>
-                    <span className={`px-2.5 py-0.5 rounded-xl text-xs ${sc.color} ${sc.bg}`}>{sc.label}</span>
-                  </div>
-                  {project.description && <p className="text-sm text-text-secondary line-clamp-2 mb-2">{project.description}</p>}
-                  <div className="flex items-center gap-3 text-xs text-text-muted">
-                    {craftCount > 0 && <span>{craftCount} {pluralize(craftCount, 'craft')}</span>}
-                    {project.due_date && <span className="text-ochre">Due: {formatDate(project.due_date)}</span>}
-                    <span>{formatDate(project.created_at)}</span>
+                <Link key={project.id} to={`/projects/${project.id}`} className="block bg-card border border-border rounded-2xl hover:border-accent hover:-translate-y-0.5 hover:shadow-md transition-all overflow-hidden">
+                  <CoverThumb photoId={project.cover_photo_id} alt={project.title} className="w-full h-32 rounded-t-2xl" />
+                  <div className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-medium text-text-primary">{project.title}</h3>
+                      <span className={`px-2.5 py-0.5 rounded-xl text-xs ${sc.color} ${sc.bg}`}>{sc.label}</span>
+                    </div>
+                    {project.description && <p className="text-sm text-text-secondary line-clamp-2 mb-2">{project.description}</p>}
+                    <div className="flex items-center gap-3 text-xs text-text-muted">
+                      {craftCount > 0 && <span>{craftCount} {pluralize(craftCount, 'craft')}</span>}
+                      {project.due_date && <span className="text-ochre">Due: {formatDate(project.due_date)}</span>}
+                      <span>{formatDate(project.created_at)}</span>
+                    </div>
                   </div>
                 </Link>
               );

@@ -312,6 +312,19 @@ function handleRouteError(res: Response, error: unknown): void {
   throw error;
 }
 
+function enrichProjectCovers(db: ReturnType<typeof getDb>, items: any[], owner: number): void {
+  if (items.length === 0) return;
+  const ids = items.map(i => i.id);
+  const placeholders = ids.map(() => '?').join(',');
+  const covers = db.prepare(
+    `SELECT id, entity_id FROM photos WHERE owner_id = ? AND entity_type = 'project' AND entity_id IN (${placeholders}) AND is_cover = 1`
+  ).all(owner, ...ids) as Array<{ id: number; entity_id: number }>;
+  const coverMap = new Map(covers.map(c => [c.entity_id, c.id]));
+  for (const item of items) {
+    item.cover_photo_id = coverMap.get(item.id) ?? null;
+  }
+}
+
 router.post('/', validate(createSchema), (req: Request, res: Response) => {
   const owner = ownerId(req);
   const data = req.body as CreateProjectInput;
@@ -377,6 +390,7 @@ router.get('/', (req: Request, res: Response) => {
   const { total } = db.prepare(countSql).get(...params) as { total: number };
 
   applyProjectExpansions(items, parseExpand(req), owner);
+  enrichProjectCovers(db, items, owner);
 
   res.json({
     items,
@@ -398,6 +412,7 @@ router.get('/:id', (req: Request, res: Response) => {
   }
 
   applyProjectExpansions([project], parseExpand(req), owner);
+  enrichProjectCovers(db, [project], owner);
   res.json(project);
 });
 
