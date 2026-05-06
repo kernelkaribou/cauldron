@@ -58,14 +58,14 @@ export function TechniquePicker({ selected, onAdd, onCreate, onRemove }: Techniq
           <button
             type="button"
             onClick={toggleExisting}
-            className="rounded-lg border border-border px-3 py-2 text-xs text-text-secondary transition-colors hover:border-accent hover:text-accent"
+            className="rounded-xl border border-border px-4 py-2.5 text-xs text-text-secondary transition-all hover:border-accent hover:text-accent"
           >
             {showExisting ? 'Close Search' : 'Add Existing'}
           </button>
           <button
             type="button"
             onClick={toggleCreate}
-            className="rounded-lg border border-border px-3 py-2 text-xs text-text-secondary transition-colors hover:border-accent hover:text-accent"
+            className="rounded-xl border border-border px-4 py-2.5 text-xs text-text-secondary transition-all hover:border-accent hover:text-accent"
           >
             {showCreate ? 'Close Form' : 'Create New'}
           </button>
@@ -78,7 +78,7 @@ export function TechniquePicker({ selected, onAdd, onCreate, onRemove }: Techniq
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search techniques..."
-            className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-text-primary focus:border-accent focus:outline-none"
+            className="w-full rounded-xl border border-border bg-card px-4 py-2.5 text-sm text-text-primary focus:border-accent focus:outline-none"
           />
 
           {isLoading && <p className="text-xs text-text-muted">Loading techniques...</p>}
@@ -94,7 +94,7 @@ export function TechniquePicker({ selected, onAdd, onCreate, onRemove }: Techniq
                 key={technique.id}
                 type="button"
                 onClick={() => handleSelect(technique.id, technique.title)}
-                className="w-full rounded-lg px-3 py-2 text-left text-sm text-text-primary transition-colors hover:bg-card"
+                className="w-full rounded-xl px-4 py-2.5 text-left text-sm text-text-primary transition-all hover:bg-card"
               >
                 {technique.title}
               </button>
@@ -110,7 +110,7 @@ export function TechniquePicker({ selected, onAdd, onCreate, onRemove }: Techniq
       ) : (
         <div className="space-y-2">
           {selected.map((technique, index) => (
-            <div key={technique.id} className="flex items-center justify-between rounded-lg border border-border bg-page p-3">
+            <div key={technique.id} className="flex items-center justify-between rounded-xl border border-border bg-page p-3">
               <div>
                 <p className="text-sm font-medium text-text-primary">{technique.title}</p>
                 <p className="text-xs text-text-muted">Sort order: {index + 1}</p>
@@ -119,7 +119,7 @@ export function TechniquePicker({ selected, onAdd, onCreate, onRemove }: Techniq
                 type="button"
                 onClick={() => onRemove(technique.id)}
                 disabled={selected.length === 1}
-                className="rounded-lg border border-border px-3 py-1.5 text-xs text-text-secondary transition-colors hover:border-error hover:text-error disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-xl border border-border px-3 py-1.5 text-xs text-text-secondary transition-all hover:border-error hover:text-error disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Remove
               </button>

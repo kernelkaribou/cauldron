@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import type { SupplyType, SupplyTypeField } from '@/lib/types';
 
-const fieldInputClassName = 'w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none';
-const secondaryButtonClassName = 'px-3 py-2 border border-border rounded-lg text-text-secondary hover:border-accent hover:text-accent transition-colors text-sm disabled:opacity-50';
+const fieldInputClassName = 'w-full px-4 py-2.5 bg-page border border-border rounded-xl text-text-primary focus:border-accent focus:outline-none';
+const secondaryButtonClassName = 'px-4 py-2.5 border border-border rounded-xl text-text-secondary hover:border-accent hover:text-accent transition-all text-sm disabled:opacity-50';
 const fieldTypes: Array<{ value: SupplyTypeField['type']; label: string; description: string; examples: string }> = [
   { value: 'text', label: 'Text', description: 'A short text value', examples: 'Color, Material, Finish' },
   { value: 'number', label: 'Number', description: 'A numeric value with optional unit', examples: 'Weight, Length, Resistance' },
@@ -266,7 +266,7 @@ export function TypeForm({ initialType, submitLabel, isSubmitting, errors, onSub
             <h2 className="text-sm font-medium text-text-primary">Custom Fields</h2>
             <p className="text-xs text-text-muted mt-1">Define what details you want to track for this type of supply.</p>
           </div>
-          <button type="button" onClick={addField} className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent-light transition-colors text-sm">
+          <button type="button" onClick={addField} className="px-5 py-2.5 bg-accent text-white rounded-xl hover:bg-accent-dark transition-all text-sm">
             Add Field
           </button>
         </div>
@@ -299,7 +299,7 @@ export function TypeForm({ initialType, submitLabel, isSubmitting, errors, onSub
                     <button type="button" onClick={() => moveField(field.localId, 1)} disabled={index === fields.length - 1} className={secondaryButtonClassName} aria-label="Move down">
                       ↓
                     </button>
-                    <button type="button" onClick={() => removeField(field.localId)} className="px-3 py-2 border border-border rounded-lg text-text-secondary hover:border-red-500 hover:text-red-400 transition-colors text-sm" aria-label="Remove">
+                    <button type="button" onClick={() => removeField(field.localId)} className="px-4 py-2.5 border border-border rounded-xl text-text-secondary hover:border-red-500 hover:text-red-400 transition-all text-sm" aria-label="Remove">
                       ×
                     </button>
                   </div>
@@ -329,7 +329,7 @@ export function TypeForm({ initialType, submitLabel, isSubmitting, errors, onSub
                       <p className="text-xs text-text-muted mt-1">Shown after the number when filling in this field.</p>
                     </div>
                     <details className="group">
-                      <summary className="text-xs text-text-muted cursor-pointer hover:text-accent transition-colors select-none">Advanced options</summary>
+                      <summary className="text-xs text-text-muted cursor-pointer hover:text-accent transition-all select-none">Advanced options</summary>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-2 pt-2 border-t border-border">
                         <div>
                           <label className="block text-xs text-text-muted mb-1">Min</label>
@@ -383,10 +383,10 @@ export function TypeForm({ initialType, submitLabel, isSubmitting, errors, onSub
       </div>
 
       <div className="flex gap-3">
-        <button type="submit" disabled={isSubmitting} className="px-4 py-2 bg-accent text-white rounded-lg font-medium hover:bg-accent-light transition-colors disabled:opacity-50">
+        <button type="submit" disabled={isSubmitting} className="px-5 py-2.5 bg-accent text-white rounded-xl font-medium hover:bg-accent-dark transition-all disabled:opacity-50">
           {isSubmitting ? 'Saving...' : submitLabel}
         </button>
-        <button type="button" onClick={onCancel} className="px-4 py-2 border border-border rounded-lg text-text-secondary hover:border-accent transition-colors">
+        <button type="button" onClick={onCancel} className="px-4 py-2 border border-border rounded-xl text-text-secondary hover:border-accent transition-all">
           Cancel
         </button>
       </div>

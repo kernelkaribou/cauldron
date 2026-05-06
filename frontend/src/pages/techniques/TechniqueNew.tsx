@@ -29,13 +29,13 @@ export function TechniqueNew() {
   return (
     <EntityFormShell title="New Technique" onSubmit={handleSubmit} submitLabel="Create Technique" submitting={createTechnique.isPending}>
       <FormField label="Title" error={errors.title}>
-        <input value={title} onChange={e => setTitle(e.target.value)} required className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none" />
+        <input value={title} onChange={e => setTitle(e.target.value)} required className="w-full px-4 py-2.5 bg-page border border-border rounded-xl text-text-primary focus:border-accent focus:outline-none" />
       </FormField>
       <FormField label="Content (Markdown)">
-        <textarea value={content} onChange={e => setContent(e.target.value)} rows={8} className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none resize-y font-mono text-sm" />
+        <textarea value={content} onChange={e => setContent(e.target.value)} rows={8} className="w-full px-4 py-2.5 bg-page border border-border rounded-xl text-text-primary focus:border-accent focus:outline-none resize-y font-mono text-sm" />
       </FormField>
       <FormField label="Difficulty">
-        <select value={difficulty ?? ''} onChange={e => setDifficulty((e.target.value || null) as Technique['difficulty'])} className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none">
+        <select value={difficulty ?? ''} onChange={e => setDifficulty((e.target.value || null) as Technique['difficulty'])} className="w-full px-4 py-2.5 bg-page border border-border rounded-xl text-text-primary focus:border-accent focus:outline-none">
           <option value="">Not set</option>
           <option value="beginner">Beginner</option>
           <option value="intermediate">Intermediate</option>

@@ -24,7 +24,7 @@ export function DynamicAttributeForm({ schema, values, onChange }: DynamicAttrib
 }
 
 function FieldRenderer({ field, value, onChange }: { field: SupplyTypeField; value: any; onChange: (v: any) => void }) {
-  const inputClass = "w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none text-sm";
+  const inputClass = "w-full px-4 py-2.5 bg-page border border-border rounded-xl text-text-primary focus:border-accent focus:outline-none text-sm";
 
   switch (field.type) {
     case 'text':
@@ -130,7 +130,7 @@ function MultiselectField({ field, value, onChange }: { field: SupplyTypeField; 
             key={opt}
             type="button"
             onClick={() => toggle(opt)}
-            className={`px-2.5 py-1 text-xs rounded-lg border transition-colors ${
+            className={`px-2.5 py-1 text-xs rounded-xl border transition-all ${
               selected.includes(opt)
                 ? 'bg-accent text-white border-accent'
                 : 'bg-page text-text-secondary border-border hover:border-accent'

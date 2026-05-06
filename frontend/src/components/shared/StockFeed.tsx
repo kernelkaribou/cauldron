@@ -64,7 +64,7 @@ export function StockFeed({ supplyId, unit }: StockFeedProps) {
       )}
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="mb-4 p-3 bg-page rounded-lg space-y-2">
+        <form onSubmit={handleSubmit} className="mb-4 p-3 bg-page rounded-xl space-y-2">
           <select value={type} onChange={e => setType(e.target.value as typeof type)} className="w-full px-2 py-1.5 bg-card border border-border rounded text-sm text-text-primary focus:border-accent focus:outline-none">
             <option value="purchase">Purchase</option>
             <option value="usage">Usage</option>
@@ -78,7 +78,7 @@ export function StockFeed({ supplyId, unit }: StockFeedProps) {
             <input type="date" value={date} onChange={e => setDate(e.target.value)} className="px-2 py-1.5 bg-card border border-border rounded text-sm text-text-primary focus:border-accent focus:outline-none" />
           </div>
           <input value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notes (optional)" className="w-full px-2 py-1.5 bg-card border border-border rounded text-sm text-text-primary focus:border-accent focus:outline-none" />
-          <button type="submit" disabled={addStock.isPending} className="px-3 py-1.5 bg-accent text-white rounded text-xs hover:bg-accent-light disabled:opacity-50">Add Entry</button>
+          <button type="submit" disabled={addStock.isPending} className="px-3 py-1.5 bg-accent text-white rounded text-xs hover:bg-accent-dark disabled:opacity-50">Add Entry</button>
         </form>
       )}
 
@@ -86,7 +86,7 @@ export function StockFeed({ supplyId, unit }: StockFeedProps) {
       {stockData?.items.length === 0 && !isLoading && <p className="text-xs text-text-muted">No stock entries.</p>}
       <div className="space-y-1">
         {stockData?.items.map((entry: StockEntry) => (
-          <div key={entry.id} className="flex items-center justify-between p-2 bg-page rounded-lg text-sm">
+          <div key={entry.id} className="flex items-center justify-between p-2 bg-page rounded-xl text-sm">
             <div className="flex items-center gap-2">
               <span className={`text-xs font-medium ${typeColors[entry.type] || ''}`}>{entry.type}</span>
               <span className="text-text-primary">{entry.quantity}{unit ? ` ${unit}` : ''}{entry.unit_cost > 0 ? ` @ $${entry.unit_cost}` : ''}</span>

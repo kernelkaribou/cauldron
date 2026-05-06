@@ -67,7 +67,7 @@ export function TechniqueManager({ entityType, entityId }: TechniqueManagerProps
       </div>
 
       {showExisting && (
-        <div className="mb-3 rounded-lg bg-page p-3">
+        <div className="mb-3 rounded-xl bg-page p-3">
           <SearchDropdown
             placeholder="Search techniques..."
             items={available.map(t => ({ id: t.id, label: t.title }))}
@@ -84,7 +84,7 @@ export function TechniqueManager({ entityType, entityId }: TechniqueManagerProps
       {data?.items.length === 0 && !isLoading && <p className="text-xs text-text-muted">No techniques attached.</p>}
       <div className="space-y-2">
         {data?.items.map(technique => (
-          <div key={technique.technique_id} className="rounded-lg bg-page p-2">
+          <div key={technique.technique_id} className="rounded-xl bg-page p-2">
             <div className="flex items-center justify-between gap-2">
               <button
                 type="button"

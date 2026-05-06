@@ -77,7 +77,7 @@ export function ProjectDetail() {
             <button
               onClick={handleSaveAsCraft}
               disabled={savingCraft}
-              className="w-full px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent-dark disabled:opacity-50 font-medium"
+              className="w-full px-5 py-2.5 bg-accent text-white rounded-xl hover:bg-accent-dark disabled:opacity-50 font-medium"
             >
               {savingCraft ? 'Creating...' : 'Save as Craft Template'}
             </button>
@@ -98,7 +98,7 @@ export function ProjectDetail() {
                 <span className={`px-2 py-0.5 rounded text-xs ${sc.color} ${sc.bg}`}>{sc.label}</span>
                 <div className="flex gap-1">
                   {(Object.keys(STATUS_CONFIG) as Project['status'][]).filter(s => s !== project.status).map(s => (
-                    <button key={s} onClick={() => handleStatusChange(s)} className={`px-1.5 py-0.5 rounded text-[10px] border border-border hover:border-accent transition-colors ${STATUS_CONFIG[s].color}`}>
+                    <button key={s} onClick={() => handleStatusChange(s)} className={`px-1.5 py-0.5 rounded text-[10px] border border-border hover:border-accent transition-all ${STATUS_CONFIG[s].color}`}>
                       {STATUS_CONFIG[s].label}
                     </button>
                   ))}

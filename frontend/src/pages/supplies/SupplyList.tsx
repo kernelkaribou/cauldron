@@ -25,22 +25,22 @@ export function SupplyList() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-semibold text-text-primary">Supplies</h1>
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-2xl font-semibold text-text-primary">Supplies</h1>
         <div className="flex items-center gap-3">
-          <Link to="/supplies/types" className="px-4 py-2 border border-border rounded-lg text-text-secondary hover:border-accent hover:text-accent transition-colors text-sm">Manage Types</Link>
-          <Link to="/supplies/new" className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent-light transition-colors text-sm">New Supply</Link>
+          <Link to="/supplies/types" className="px-4 py-2.5 border border-border rounded-xl text-text-secondary hover:border-accent hover:text-accent transition-all text-sm">Manage Types</Link>
+          <Link to="/supplies/new" className="px-5 py-2.5 bg-accent text-white rounded-xl hover:bg-accent-dark transition-all text-sm font-medium shadow-sm">New Supply</Link>
         </div>
       </div>
-      <div className="flex flex-wrap gap-3 mb-6">
-        <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} placeholder="Search supplies..." className="px-3 py-2 bg-page border border-border rounded-lg text-text-primary text-sm focus:border-accent focus:outline-none w-64" />
-        <select value={reusable ?? ''} onChange={e => { setReusable(e.target.value !== '' ? Number(e.target.value) : undefined); setPage(1); }} className="px-3 py-2 bg-page border border-border rounded-lg text-text-primary text-sm focus:border-accent focus:outline-none">
+      <div className="flex flex-wrap gap-3 mb-8">
+        <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} placeholder="Search supplies..." className="px-4 py-2.5 bg-card border border-border rounded-xl text-text-primary text-sm focus:border-accent focus:outline-none w-72" />
+        <select value={reusable ?? ''} onChange={e => { setReusable(e.target.value !== '' ? Number(e.target.value) : undefined); setPage(1); }} className="px-4 py-2.5 bg-card border border-border rounded-xl text-text-primary text-sm focus:border-accent focus:outline-none">
           <option value="">All</option>
           <option value="0">Consumables</option>
           <option value="1">Tools & Equipment</option>
         </select>
         {typesData && typesData.items.length > 0 && (
-          <select value={typeId ?? ''} onChange={e => { setTypeId(e.target.value !== '' ? Number(e.target.value) : undefined); setPage(1); }} className="px-3 py-2 bg-page border border-border rounded-lg text-text-primary text-sm focus:border-accent focus:outline-none">
+          <select value={typeId ?? ''} onChange={e => { setTypeId(e.target.value !== '' ? Number(e.target.value) : undefined); setPage(1); }} className="px-4 py-2.5 bg-card border border-border rounded-xl text-text-primary text-sm focus:border-accent focus:outline-none">
             <option value="">All Types</option>
             {typesData.items.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
           </select>
@@ -51,26 +51,26 @@ export function SupplyList() {
       {data && data.items.length === 0 && <EmptyState title="No supplies yet" actionLabel="New Supply" actionTo="/supplies/new" />}
       {data && data.items.length > 0 && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="columns-1 md:columns-2 xl:columns-3 2xl:columns-4 gap-5 space-y-5">
             {data.items.map(supply => {
               const schema = supply.type_id ? typeSchemas.get(supply.type_id) || [] : [];
               const listValues = getListDisplayValues(supply.attributes, schema);
               return (
-              <Link key={supply.id} to={`/supplies/${supply.id}`} className="block p-4 bg-card border border-border rounded-xl hover:border-accent hover:-translate-y-0.5 transition-all">
+              <Link key={supply.id} to={`/supplies/${supply.id}`} className="block p-5 bg-card border border-border rounded-2xl hover:border-accent hover:-translate-y-0.5 hover:shadow-md transition-all break-inside-avoid">
                 <h3 className="font-medium text-text-primary mb-1">
                   {supply.name}
-                  {listValues.length > 0 && <span className="text-text-muted font-normal ml-1">({listValues.join(', ')})</span>}
+                  {listValues.length > 0 && <span className="text-text-muted font-normal ml-1.5 text-sm">({listValues.join(', ')})</span>}
                 </h3>
-                <div className="flex items-center gap-2 text-xs text-text-muted flex-wrap">
-                  {supply.brand && <span>{supply.brand}</span>}
+                <div className="flex items-center gap-2 text-xs text-text-muted flex-wrap mt-2">
+                  {supply.brand && <span className="px-2 py-0.5 bg-card-elevated rounded-xl">{supply.brand}</span>}
                   {supply.unit && <span>{supply.unit}</span>}
-                  {supply.price > 0 && <span>${supply.price.toFixed(2)}</span>}
-                  {supply.reusable ? <span className="text-accent-light">Reusable</span> : null}
+                  {supply.price > 0 && <span className="text-ochre">${supply.price.toFixed(2)}</span>}
+                  {supply.reusable ? <span className="text-sage">Tool</span> : null}
                   <span>{formatDate(supply.created_at)}</span>
                 </div>
                 {supply.tags && supply.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {supply.tags.map(tag => <span key={tag.id} className="px-1.5 py-0.5 bg-accent-bg text-accent-light text-xs rounded">{tag.name}</span>)}
+                  <div className="flex flex-wrap gap-1.5 mt-3">
+                    {supply.tags.map(tag => <span key={tag.id} className="px-2 py-0.5 bg-accent-bg text-accent-light text-xs rounded-xl">{tag.name}</span>)}
                   </div>
                 )}
               </Link>
@@ -78,8 +78,8 @@ export function SupplyList() {
             })}
           </div>
           {data.total_pages > page && (
-            <div className="text-center mt-6">
-              <button onClick={() => setPage(p => p + 1)} className="px-4 py-2 border border-border rounded-lg text-text-secondary hover:border-accent hover:text-accent transition-colors text-sm">Load more</button>
+            <div className="text-center mt-8">
+              <button onClick={() => setPage(p => p + 1)} className="px-5 py-2.5 border border-border rounded-xl text-text-secondary hover:border-accent hover:text-accent transition-all text-sm">Load more</button>
             </div>
           )}
         </>

@@ -40,10 +40,10 @@ export function NotesSection({ entityType, entityId }: NotesSectionProps) {
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="mb-4 p-3 bg-page rounded-lg space-y-2">
+        <form onSubmit={handleSubmit} className="mb-4 p-3 bg-page rounded-xl space-y-2">
           <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Title" required className="w-full px-2 py-1.5 bg-card border border-border rounded text-sm text-text-primary focus:border-accent focus:outline-none" />
           <textarea value={content} onChange={e => setContent(e.target.value)} placeholder="Write your thoughts (Markdown supported)..." rows={4} className="w-full px-2 py-1.5 bg-card border border-border rounded text-sm text-text-primary focus:border-accent focus:outline-none resize-y font-mono" />
-          <button type="submit" disabled={createNote.isPending} className="px-3 py-1.5 bg-accent text-white rounded text-xs hover:bg-accent-light disabled:opacity-50">Save Note</button>
+          <button type="submit" disabled={createNote.isPending} className="px-3 py-1.5 bg-accent text-white rounded text-xs hover:bg-accent-dark disabled:opacity-50">Save Note</button>
         </form>
       )}
 
@@ -51,7 +51,7 @@ export function NotesSection({ entityType, entityId }: NotesSectionProps) {
       {data?.items.length === 0 && !isLoading && <p className="text-xs text-text-muted">No notes yet.</p>}
       <div className="space-y-2">
         {data?.items.map((note: Note) => (
-          <div key={note.id} className="p-2 bg-page rounded-lg">
+          <div key={note.id} className="p-2 bg-page rounded-xl">
             <div className="flex items-center justify-between">
               <button onClick={() => setExpanded(expanded === note.id ? null : note.id)} className="text-sm font-medium text-text-primary hover:text-accent text-left flex-1">{note.title}</button>
               <div className="flex items-center gap-2 ml-2">

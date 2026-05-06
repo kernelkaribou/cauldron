@@ -79,7 +79,7 @@ export function SupplyEdit() {
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
         <div>
           <label className="block text-sm text-text-secondary mb-1">Type</label>
-          <select value={typeId ?? ''} onChange={e => handleTypeChange(e.target.value)} required className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none">
+          <select value={typeId ?? ''} onChange={e => handleTypeChange(e.target.value)} required className="w-full px-4 py-2.5 bg-page border border-border rounded-xl text-text-primary focus:border-accent focus:outline-none">
             <option value="">Select a type...</option>
             {types.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
           </select>
@@ -87,24 +87,24 @@ export function SupplyEdit() {
         </div>
         <div>
           <label className="block text-sm text-text-secondary mb-1">Name</label>
-          <input value={name} onChange={e => setName(e.target.value)} required className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none" />
+          <input value={name} onChange={e => setName(e.target.value)} required className="w-full px-4 py-2.5 bg-page border border-border rounded-xl text-text-primary focus:border-accent focus:outline-none" />
           {errors.name && <p className="text-xs text-error mt-1">{errors.name}</p>}
         </div>
         <div>
           <label className="block text-sm text-text-secondary mb-1">Description</label>
-          <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none resize-y" />
+          <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} className="w-full px-4 py-2.5 bg-page border border-border rounded-xl text-text-primary focus:border-accent focus:outline-none resize-y" />
         </div>
         <div>
           <label className="block text-sm text-text-secondary mb-1">Unit</label>
-          <input value={unit} onChange={e => setUnit(e.target.value)} className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none" />
+          <input value={unit} onChange={e => setUnit(e.target.value)} className="w-full px-4 py-2.5 bg-page border border-border rounded-xl text-text-primary focus:border-accent focus:outline-none" />
         </div>
         <div>
           <label className="block text-sm text-text-secondary mb-1">Price</label>
-          <input type="number" min="0" step="0.01" value={price} onChange={e => setPrice(e.target.value)} placeholder="0.00" className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none" />
+          <input type="number" min="0" step="0.01" value={price} onChange={e => setPrice(e.target.value)} placeholder="0.00" className="w-full px-4 py-2.5 bg-page border border-border rounded-xl text-text-primary focus:border-accent focus:outline-none" />
         </div>
         <div>
           <label className="block text-sm text-text-secondary mb-1">Brand</label>
-          <input value={brand} onChange={e => setBrand(e.target.value)} placeholder="Optional brand name" className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none" />
+          <input value={brand} onChange={e => setBrand(e.target.value)} placeholder="Optional brand name" className="w-full px-4 py-2.5 bg-page border border-border rounded-xl text-text-primary focus:border-accent focus:outline-none" />
         </div>
         <label className="flex items-center gap-2 text-sm text-text-secondary">
           <input type="checkbox" checked={reusable} onChange={e => setReusable(e.target.checked)} className="rounded" />
@@ -115,8 +115,8 @@ export function SupplyEdit() {
         )}
         {errors._ && <p className="text-xs text-error">{errors._}</p>}
         <div className="flex gap-3">
-          <button type="submit" disabled={updateSupply.isPending} className="px-4 py-2 bg-accent text-white rounded-lg font-medium hover:bg-accent-light transition-colors disabled:opacity-50">Save Changes</button>
-          <button type="button" onClick={() => navigate(`/supplies/${supplyId}`)} className="px-4 py-2 border border-border rounded-lg text-text-secondary hover:border-accent transition-colors">Cancel</button>
+          <button type="submit" disabled={updateSupply.isPending} className="px-5 py-2.5 bg-accent text-white rounded-xl font-medium hover:bg-accent-dark transition-all disabled:opacity-50">Save Changes</button>
+          <button type="button" onClick={() => navigate(`/supplies/${supplyId}`)} className="px-4 py-2 border border-border rounded-xl text-text-secondary hover:border-accent transition-all">Cancel</button>
         </div>
       </form>
     </div>

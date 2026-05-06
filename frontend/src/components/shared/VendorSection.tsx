@@ -35,11 +35,11 @@ export function VendorSection({ supplyId }: VendorSectionProps) {
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="mb-4 p-3 bg-page rounded-lg space-y-2">
+        <form onSubmit={handleSubmit} className="mb-4 p-3 bg-page rounded-xl space-y-2">
           <input value={name} onChange={e => setName(e.target.value)} placeholder="Vendor name" required className="w-full px-2 py-1.5 bg-card border border-border rounded text-sm text-text-primary focus:border-accent focus:outline-none" />
           <input value={url} onChange={e => setUrl(e.target.value)} placeholder="URL (optional)" type="url" className="w-full px-2 py-1.5 bg-card border border-border rounded text-sm text-text-primary focus:border-accent focus:outline-none" />
           <input value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notes (optional)" className="w-full px-2 py-1.5 bg-card border border-border rounded text-sm text-text-primary focus:border-accent focus:outline-none" />
-          <button type="submit" disabled={addVendor.isPending} className="px-3 py-1.5 bg-accent text-white rounded text-xs hover:bg-accent-light disabled:opacity-50">Add Vendor</button>
+          <button type="submit" disabled={addVendor.isPending} className="px-3 py-1.5 bg-accent text-white rounded text-xs hover:bg-accent-dark disabled:opacity-50">Add Vendor</button>
         </form>
       )}
 
@@ -47,7 +47,7 @@ export function VendorSection({ supplyId }: VendorSectionProps) {
       {data?.items.length === 0 && !isLoading && <p className="text-xs text-text-muted">No vendors yet.</p>}
       <div className="space-y-2">
         {data?.items.map((vendor: SupplyVendor) => (
-          <div key={vendor.id} className="flex items-center justify-between p-2 bg-page rounded-lg">
+          <div key={vendor.id} className="flex items-center justify-between p-2 bg-page rounded-xl">
             <div className="flex-1 min-w-0">
               <p className="text-sm text-text-primary font-medium">
                 {vendor.url ? <a href={vendor.url} target="_blank" rel="noopener noreferrer" className="text-accent hover:text-accent-light">{vendor.name}</a> : vendor.name}

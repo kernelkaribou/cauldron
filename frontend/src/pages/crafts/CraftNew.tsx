@@ -55,7 +55,7 @@ export function CraftNew() {
               value={title}
               onChange={e => setTitle(e.target.value)}
               required
-              className="w-full rounded-lg border border-border bg-page px-3 py-2 text-text-primary focus:border-accent focus:outline-none"
+              className="w-full rounded-xl border border-border bg-page px-4 py-2.5 text-text-primary focus:border-accent focus:outline-none"
             />
             {errors.title && <p className="mt-1 text-xs text-error">{errors.title}</p>}
           </div>
@@ -66,7 +66,7 @@ export function CraftNew() {
               value={description}
               onChange={e => setDescription(e.target.value)}
               rows={4}
-              className="w-full resize-y rounded-lg border border-border bg-page px-3 py-2 text-text-primary focus:border-accent focus:outline-none"
+              className="w-full resize-y rounded-xl border border-border bg-page px-4 py-2.5 text-text-primary focus:border-accent focus:outline-none"
             />
           </div>
 
@@ -82,7 +82,7 @@ export function CraftNew() {
               value={duration}
               onChange={e => setDuration(e.target.value)}
               min="0"
-              className="w-full rounded-lg border border-border bg-page px-3 py-2 text-text-primary focus:border-accent focus:outline-none"
+              className="w-full rounded-xl border border-border bg-page px-4 py-2.5 text-text-primary focus:border-accent focus:outline-none"
             />
           </div>
         </div>
@@ -108,14 +108,14 @@ export function CraftNew() {
           <button
             type="submit"
             disabled={isSubmitDisabled}
-            className="rounded-lg bg-accent px-4 py-2 font-medium text-white transition-colors hover:bg-accent-light disabled:opacity-50"
+            className="rounded-xl bg-accent px-4 py-2 font-medium text-white transition-all hover:bg-accent-dark disabled:opacity-50"
           >
             {createCraft.isPending ? 'Creating...' : 'Create Craft'}
           </button>
           <button
             type="button"
             onClick={() => navigate('/crafts')}
-            className="rounded-lg border border-border px-4 py-2 text-text-secondary transition-colors hover:border-accent"
+            className="rounded-xl border border-border px-4 py-2 text-text-secondary transition-all hover:border-accent"
           >
             Cancel
           </button>

@@ -26,7 +26,7 @@ export function CategorySelect({ categoryId, onCategoryChange }: Props) {
         <select
           value={categoryId ?? ''}
           onChange={e => onCategoryChange(e.target.value ? Number(e.target.value) : null)}
-          className="flex-1 px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none"
+          className="flex-1 px-4 py-2.5 bg-page border border-border rounded-xl text-text-primary focus:border-accent focus:outline-none"
         >
           <option value="">No category</option>
           {data?.items.map(category => (
@@ -36,7 +36,7 @@ export function CategorySelect({ categoryId, onCategoryChange }: Props) {
         <button
           type="button"
           onClick={() => setShowNew(!showNew)}
-          className="px-3 py-2 border border-border rounded-lg text-text-secondary hover:text-accent hover:border-accent transition-colors"
+          className="px-4 py-2.5 border border-border rounded-xl text-text-secondary hover:text-accent hover:border-accent transition-all"
         >
           +
         </button>
@@ -47,13 +47,13 @@ export function CategorySelect({ categoryId, onCategoryChange }: Props) {
             value={newName}
             onChange={e => setNewName(e.target.value)}
             placeholder="New category name"
-            className="flex-1 px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none text-sm"
+            className="flex-1 px-4 py-2.5 bg-page border border-border rounded-xl text-text-primary focus:border-accent focus:outline-none text-sm"
             onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleCreate())}
           />
           <button
             type="button"
             onClick={handleCreate}
-            className="px-3 py-2 bg-accent text-white rounded-lg text-sm hover:bg-accent-light"
+            className="px-4 py-2.5 bg-accent text-white rounded-xl text-sm hover:bg-accent-dark"
           >
             Add
           </button>

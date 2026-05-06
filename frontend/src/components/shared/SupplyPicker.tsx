@@ -71,14 +71,14 @@ export function SupplyPicker({ selected, onAdd, onCreate, onRemove, onUpdate }: 
           <button
             type="button"
             onClick={toggleExisting}
-            className="rounded-lg border border-border px-3 py-2 text-xs text-text-secondary transition-colors hover:border-accent hover:text-accent"
+            className="rounded-xl border border-border px-4 py-2.5 text-xs text-text-secondary transition-all hover:border-accent hover:text-accent"
           >
             {showExisting ? 'Close Search' : 'Add Existing'}
           </button>
           <button
             type="button"
             onClick={toggleCreate}
-            className="rounded-lg border border-border px-3 py-2 text-xs text-text-secondary transition-colors hover:border-accent hover:text-accent"
+            className="rounded-xl border border-border px-4 py-2.5 text-xs text-text-secondary transition-all hover:border-accent hover:text-accent"
           >
             {showCreate ? 'Close Form' : 'Create New'}
           </button>
@@ -91,7 +91,7 @@ export function SupplyPicker({ selected, onAdd, onCreate, onRemove, onUpdate }: 
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search supplies..."
-            className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-text-primary focus:border-accent focus:outline-none"
+            className="w-full rounded-xl border border-border bg-card px-4 py-2.5 text-sm text-text-primary focus:border-accent focus:outline-none"
           />
 
           {isLoading && <p className="text-xs text-text-muted">Loading supplies...</p>}
@@ -110,7 +110,7 @@ export function SupplyPicker({ selected, onAdd, onCreate, onRemove, onUpdate }: 
                 key={supply.id}
                 type="button"
                 onClick={() => handleSelect(supply.id, supply.name, supply.unit)}
-                className="w-full rounded-lg px-3 py-2 text-left text-sm text-text-primary transition-colors hover:bg-card"
+                className="w-full rounded-xl px-4 py-2.5 text-left text-sm text-text-primary transition-all hover:bg-card"
               >
                 {supply.name}
                 {listValues.length > 0 && <span className="ml-1 text-text-muted">({listValues.join(', ')})</span>}
@@ -129,7 +129,7 @@ export function SupplyPicker({ selected, onAdd, onCreate, onRemove, onUpdate }: 
       ) : (
         <div className="space-y-3">
           {selected.map(supply => (
-            <div key={supply.id} className="rounded-lg border border-border bg-page p-3">
+            <div key={supply.id} className="rounded-xl border border-border bg-page p-3">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
                   <p className="text-sm font-medium text-text-primary">{supply.name}</p>
@@ -139,7 +139,7 @@ export function SupplyPicker({ selected, onAdd, onCreate, onRemove, onUpdate }: 
                   type="button"
                   onClick={() => onRemove(supply.id)}
                   disabled={selected.length === 1}
-                  className="rounded-lg border border-border px-3 py-1.5 text-xs text-text-secondary transition-colors hover:border-error hover:text-error disabled:cursor-not-allowed disabled:opacity-50"
+                  className="rounded-xl border border-border px-3 py-1.5 text-xs text-text-secondary transition-all hover:border-error hover:text-error disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Remove
                 </button>
@@ -165,7 +165,7 @@ export function SupplyPicker({ selected, onAdd, onCreate, onRemove, onUpdate }: 
                         onUpdate(supply.id, { quantity });
                       }
                     }}
-                    className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-text-primary focus:border-accent focus:outline-none"
+                    className="w-full rounded-xl border border-border bg-card px-4 py-2.5 text-sm text-text-primary focus:border-accent focus:outline-none"
                   />
                 </div>
 
@@ -175,7 +175,7 @@ export function SupplyPicker({ selected, onAdd, onCreate, onRemove, onUpdate }: 
                     value={supply.unit ?? ''}
                     onChange={e => onUpdate(supply.id, { unit: e.target.value || undefined })}
                     placeholder="e.g., oz"
-                    className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-text-primary focus:border-accent focus:outline-none"
+                    className="w-full rounded-xl border border-border bg-card px-4 py-2.5 text-sm text-text-primary focus:border-accent focus:outline-none"
                   />
                 </div>
               </div>

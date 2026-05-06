@@ -91,7 +91,7 @@ export function SupplyManager({ entityType, entityId }: SupplyManagerProps) {
       </div>
 
       {showExisting && (
-        <div className="mb-3 rounded-lg bg-page p-3 space-y-2">
+        <div className="mb-3 rounded-xl bg-page p-3 space-y-2">
           {!selectedId ? (
             <SearchDropdown
               placeholder="Search supplies..."
@@ -126,7 +126,7 @@ export function SupplyManager({ entityType, entityId }: SupplyManagerProps) {
                 <button
                   type="button"
                   onClick={handleAdd}
-                  className="rounded bg-accent px-3 py-1.5 text-xs text-white hover:bg-accent-light"
+                  className="rounded bg-accent px-3 py-1.5 text-xs text-white hover:bg-accent-dark"
                 >
                   Add
                 </button>
@@ -149,7 +149,7 @@ export function SupplyManager({ entityType, entityId }: SupplyManagerProps) {
       {data?.items.length === 0 && !isLoading && <p className="text-xs text-text-muted">No supplies attached.</p>}
       <div className="space-y-1">
         {data?.items.map(item => (
-          <div key={item.supply_id} className="group flex items-center justify-between rounded-lg bg-page p-2">
+          <div key={item.supply_id} className="group flex items-center justify-between rounded-xl bg-page p-2">
             <span className="text-sm text-text-primary">
               {item.name}
               {item.quantity > 0 && <span className="ml-1 text-text-muted">({item.quantity}{item.unit ? ` ${item.unit}` : ''})</span>}

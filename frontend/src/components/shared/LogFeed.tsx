@@ -44,7 +44,7 @@ function LogPhotos({ logId }: { logId: number }) {
           ))}
         </div>
       )}
-      <label className="inline-flex items-center gap-1.5 px-2 py-1 text-xs text-text-muted hover:text-accent-light cursor-pointer rounded border border-border/50 hover:border-accent transition-colors">
+      <label className="inline-flex items-center gap-1.5 px-2 py-1 text-xs text-text-muted hover:text-accent-light cursor-pointer rounded border border-border/50 hover:border-accent transition-all">
         <input ref={fileRef} type="file" accept="image/*" onChange={handleUpload} className="hidden" />
         📷 Attach Photo
       </label>
@@ -86,13 +86,13 @@ export function LogFeed({ craftId, projectId }: LogFeedProps) {
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="mb-4 p-3 bg-page rounded-lg space-y-2">
+        <form onSubmit={handleSubmit} className="mb-4 p-3 bg-page rounded-xl space-y-2">
           <textarea value={content} onChange={e => setContent(e.target.value)} placeholder="What did you do?" rows={2} className="w-full px-2 py-1.5 bg-card border border-border rounded text-sm text-text-primary focus:border-accent focus:outline-none resize-y" />
           <textarea value={links} onChange={e => setLinks(e.target.value)} placeholder="Links (optional, separated by spaces, commas, or new lines)" rows={2} className="w-full px-2 py-1.5 bg-card border border-border rounded text-sm text-text-primary focus:border-accent focus:outline-none resize-y" />
           <div className="flex gap-2">
             <input type="number" value={duration} onChange={e => setDuration(e.target.value)} placeholder="Minutes" min="0" className="w-24 px-2 py-1.5 bg-card border border-border rounded text-sm text-text-primary focus:border-accent focus:outline-none" />
             <input type="date" value={date} onChange={e => setDate(e.target.value)} className="px-2 py-1.5 bg-card border border-border rounded text-sm text-text-primary focus:border-accent focus:outline-none" />
-            <button type="submit" disabled={createLog.isPending} className="px-3 py-1.5 bg-accent text-white rounded text-xs hover:bg-accent-light disabled:opacity-50">Add</button>
+            <button type="submit" disabled={createLog.isPending} className="px-3 py-1.5 bg-accent text-white rounded text-xs hover:bg-accent-dark disabled:opacity-50">Add</button>
           </div>
         </form>
       )}
@@ -104,7 +104,7 @@ export function LogFeed({ craftId, projectId }: LogFeedProps) {
           const logLinks = parseLinks(log.links || '');
 
           return (
-            <div key={log.id} className="flex items-start justify-between p-2 bg-page rounded-lg">
+            <div key={log.id} className="flex items-start justify-between p-2 bg-page rounded-xl">
               <div className="flex-1 min-w-0">
                 {log.content && <p className="text-sm text-text-primary">{log.content}</p>}
                 <div className="flex gap-2 text-xs text-text-muted mt-1">

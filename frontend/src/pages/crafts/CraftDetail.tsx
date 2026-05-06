@@ -59,7 +59,7 @@ export function CraftDetail() {
       editPath={`/crafts/${craftId}/edit`}
       onDelete={handleDelete}
       headerActions={
-        <button onClick={handleStartProject} className="px-3 py-1.5 bg-accent text-white rounded-lg text-sm hover:bg-accent-light transition-colors">
+        <button onClick={handleStartProject} className="px-3 py-1.5 bg-accent text-white rounded-xl text-sm hover:bg-accent-dark transition-all">
           Start a Project
         </button>
       }

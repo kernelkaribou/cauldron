@@ -86,7 +86,7 @@ export function GlobalSearch() {
           onFocus={() => setOpen(true)}
           onKeyDown={handleKeyDown}
           placeholder="Search... (⌘K)"
-          className="w-40 md:w-56 px-3 py-1.5 bg-page border border-border rounded-lg text-sm text-text-primary placeholder-text-muted focus:border-accent focus:outline-none focus:w-64 transition-all"
+          className="w-48 md:w-64 px-4 py-2 bg-card border border-border rounded-xl text-sm text-text-primary placeholder-text-muted focus:border-accent focus:outline-none focus:w-80 transition-all"
         />
       </div>
       {open && results.length > 0 && (
@@ -95,7 +95,7 @@ export function GlobalSearch() {
             <button
               key={`${result.type}-${result.id}`}
               onClick={() => handleSelect(result)}
-              className={`w-full text-left px-3 py-2 flex items-center gap-2 text-sm transition-colors ${i === selectedIndex ? 'bg-accent/10 text-accent' : 'text-text-primary hover:bg-page'}`}
+              className={`w-full text-left px-4 py-2.5 flex items-center gap-2 text-sm transition-all ${i === selectedIndex ? 'bg-accent/10 text-accent' : 'text-text-primary hover:bg-page'}`}
             >
               <span className="text-text-muted">{TYPE_GLYPHS[result.type] || '•'}</span>
               <span className="flex-1 truncate">{result.title}</span>

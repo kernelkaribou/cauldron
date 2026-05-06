@@ -36,7 +36,7 @@ export function PhotoGallery({ entityType, entityId }: PhotoGalleryProps) {
       <div className="flex gap-2 mb-3">
         <input ref={fileRef} type="file" accept="image/*" className="text-xs text-text-secondary file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:bg-accent file:text-white file:cursor-pointer" />
         <input value={caption} onChange={e => setCaption(e.target.value)} placeholder="Caption" className="flex-1 px-2 py-1 bg-page border border-border rounded text-xs text-text-primary focus:border-accent focus:outline-none" />
-        <button onClick={handleUpload} disabled={uploadPhoto.isPending} className="px-3 py-1 bg-accent text-white rounded text-xs hover:bg-accent-light disabled:opacity-50">
+        <button onClick={handleUpload} disabled={uploadPhoto.isPending} className="px-3 py-1 bg-accent text-white rounded text-xs hover:bg-accent-dark disabled:opacity-50">
           {uploadPhoto.isPending ? '...' : 'Upload'}
         </button>
       </div>
@@ -50,7 +50,7 @@ export function PhotoGallery({ entityType, entityId }: PhotoGalleryProps) {
               src={`/api/photos/file/${photo.id}/thumb_400.webp`}
               alt={photo.caption || ''}
               onClick={() => setViewImage(`/api/photos/file/${photo.id}/${photo.image}`)}
-              className={`w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity ${photo.is_cover ? 'ring-2 ring-accent' : ''}`}
+              className={`w-full h-full object-cover rounded-xl cursor-pointer hover:opacity-80 transition-opacity ${photo.is_cover ? 'ring-2 ring-accent' : ''}`}
             />
             <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
               {!photo.is_cover && (
@@ -72,7 +72,7 @@ export function PhotoGallery({ entityType, entityId }: PhotoGalleryProps) {
 
       {viewImage && (
         <div onClick={() => setViewImage(null)} className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 cursor-pointer">
-          <img src={viewImage} alt="Full size" className="max-w-full max-h-full object-contain rounded-lg" />
+          <img src={viewImage} alt="Full size" className="max-w-full max-h-full object-contain rounded-xl" />
         </div>
       )}
     </div>

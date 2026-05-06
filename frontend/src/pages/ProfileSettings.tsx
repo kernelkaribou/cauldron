@@ -47,35 +47,35 @@ export function ProfileSettings() {
   }
 
   return (
-    <div className="max-w-xl">
-      <h1 className="text-xl font-semibold text-text-primary mb-6">Profile Settings</h1>
-      {message && <p className="text-sm text-green-400 mb-4">{message}</p>}
-      {error && <p className="text-sm text-error mb-4">{error}</p>}
+    <div className="max-w-2xl">
+      <h1 className="text-2xl font-semibold text-text-primary mb-8">Profile Settings</h1>
+      {message && <p className="text-sm text-sage mb-4">{message}</p>}
+      {error && <p className="text-sm text-terracotta mb-4">{error}</p>}
 
-      <form onSubmit={handleUpdateProfile} className="mb-8 p-4 bg-card border border-border rounded-xl space-y-4">
-        <h2 className="text-sm font-medium text-text-secondary">Profile</h2>
+      <form onSubmit={handleUpdateProfile} className="mb-8 p-6 bg-card border border-border rounded-2xl space-y-5">
+        <h2 className="text-sm font-medium text-text-secondary uppercase tracking-wide">Profile</h2>
         <div>
           <label className="block text-sm text-text-secondary mb-1">Display Name</label>
-          <input value={name} onChange={e => setName(e.target.value)} className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none" />
+          <input value={name} onChange={e => setName(e.target.value)} className="w-full px-4 py-2.5 bg-page border border-border rounded-xl text-text-primary focus:border-accent focus:outline-none" />
         </div>
         <div>
           <label className="block text-sm text-text-secondary mb-1">Email</label>
-          <input value={user?.email || ''} disabled className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-muted" />
+          <input value={user?.email || ''} disabled className="w-full px-4 py-2.5 bg-page border border-border rounded-xl text-text-muted" />
         </div>
-        <button type="submit" disabled={saving} className="px-4 py-2 bg-accent text-white rounded-lg text-sm hover:bg-accent-light disabled:opacity-50">Save Profile</button>
+        <button type="submit" disabled={saving} className="px-5 py-2.5 bg-accent text-white rounded-xl text-sm hover:bg-accent-dark disabled:opacity-50">Save Profile</button>
       </form>
 
-      <form onSubmit={handleChangePassword} className="p-4 bg-card border border-border rounded-xl space-y-4">
-        <h2 className="text-sm font-medium text-text-secondary">Change Password</h2>
+      <form onSubmit={handleChangePassword} className="p-6 bg-card border border-border rounded-2xl space-y-5">
+        <h2 className="text-sm font-medium text-text-secondary uppercase tracking-wide">Change Password</h2>
         <div>
           <label className="block text-sm text-text-secondary mb-1">Current Password</label>
-          <input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none" />
+          <input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} className="w-full px-4 py-2.5 bg-page border border-border rounded-xl text-text-primary focus:border-accent focus:outline-none" />
         </div>
         <div>
           <label className="block text-sm text-text-secondary mb-1">New Password</label>
-          <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none" />
+          <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full px-4 py-2.5 bg-page border border-border rounded-xl text-text-primary focus:border-accent focus:outline-none" />
         </div>
-        <button type="submit" disabled={saving} className="px-4 py-2 bg-accent text-white rounded-lg text-sm hover:bg-accent-light disabled:opacity-50">Change Password</button>
+        <button type="submit" disabled={saving} className="px-5 py-2.5 bg-accent text-white rounded-xl text-sm hover:bg-accent-dark disabled:opacity-50">Change Password</button>
       </form>
     </div>
   );

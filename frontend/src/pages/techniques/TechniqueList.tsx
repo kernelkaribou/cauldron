@@ -15,13 +15,13 @@ export function TechniqueList() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-semibold text-text-primary">Techniques</h1>
-        <Link to="/techniques/new" className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent-light transition-colors text-sm">New Technique</Link>
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-2xl font-semibold text-text-primary">Techniques</h1>
+        <Link to="/techniques/new" className="px-5 py-2.5 bg-accent text-white rounded-xl hover:bg-accent-dark transition-all text-sm font-medium shadow-sm">New Technique</Link>
       </div>
-      <div className="flex flex-wrap gap-3 mb-6">
-        <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} placeholder="Search techniques..." className="px-3 py-2 bg-page border border-border rounded-lg text-text-primary text-sm focus:border-accent focus:outline-none w-64" />
-        <select value={categoryId ?? ''} onChange={e => { setCategoryId(e.target.value ? Number(e.target.value) : undefined); setPage(1); }} className="px-3 py-2 bg-page border border-border rounded-lg text-text-primary text-sm focus:border-accent focus:outline-none">
+      <div className="flex flex-wrap gap-3 mb-8">
+        <input value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} placeholder="Search techniques..." className="px-4 py-2.5 bg-card border border-border rounded-xl text-text-primary text-sm focus:border-accent focus:outline-none w-72" />
+        <select value={categoryId ?? ''} onChange={e => { setCategoryId(e.target.value ? Number(e.target.value) : undefined); setPage(1); }} className="px-4 py-2.5 bg-card border border-border rounded-xl text-text-primary text-sm focus:border-accent focus:outline-none">
           <option value="">All categories</option>
           {categories?.items.map(category => <option key={category.id} value={category.id}>{category.name}</option>)}
         </select>
@@ -31,27 +31,27 @@ export function TechniqueList() {
       {data && data.items.length === 0 && <EmptyState title="No techniques yet" actionLabel="New Technique" actionTo="/techniques/new" />}
       {data && data.items.length > 0 && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="columns-1 md:columns-2 xl:columns-3 gap-5 space-y-5">
             {data.items.map(technique => (
-              <Link key={technique.id} to={`/techniques/${technique.id}`} className="block p-4 bg-card border border-border rounded-xl hover:border-accent hover:-translate-y-0.5 transition-all">
+              <Link key={technique.id} to={`/techniques/${technique.id}`} className="block p-5 bg-card border border-border rounded-2xl hover:border-accent hover:-translate-y-0.5 hover:shadow-md transition-all break-inside-avoid">
                 <h3 className="font-medium text-text-primary mb-1">{technique.title}</h3>
                 <div className="flex items-center gap-2 mb-2 flex-wrap">
-                  {technique.category && <p className="text-xs text-accent-light">{technique.category.name}</p>}
-                  {technique.difficulty && <span className="px-1.5 py-0.5 bg-page border border-border text-text-secondary text-xs rounded capitalize">{technique.difficulty}</span>}
+                  {technique.category && <span className="text-xs text-accent-light">{technique.category.name}</span>}
+                  {technique.difficulty && <span className="px-2 py-0.5 bg-card-elevated border border-border-subtle text-text-secondary text-xs rounded-xl capitalize">{technique.difficulty}</span>}
                 </div>
-                {technique.content && <p className="text-sm text-text-secondary line-clamp-2 mb-2">{technique.content}</p>}
+                {technique.content && <p className="text-sm text-text-secondary line-clamp-3 mb-2">{technique.content}</p>}
                 <p className="text-xs text-text-muted">{formatDate(technique.created_at)}</p>
                 {technique.tags && technique.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {technique.tags.map(tag => <span key={tag.id} className="px-1.5 py-0.5 bg-accent-bg text-accent-light text-xs rounded">{tag.name}</span>)}
+                  <div className="flex flex-wrap gap-1.5 mt-3">
+                    {technique.tags.map(tag => <span key={tag.id} className="px-2 py-0.5 bg-accent-bg text-accent-light text-xs rounded-xl">{tag.name}</span>)}
                   </div>
                 )}
               </Link>
             ))}
           </div>
           {data.total_pages > page && (
-            <div className="text-center mt-6">
-              <button onClick={() => setPage(p => p + 1)} className="px-4 py-2 border border-border rounded-lg text-text-secondary hover:border-accent hover:text-accent transition-colors text-sm">Load more</button>
+            <div className="text-center mt-8">
+              <button onClick={() => setPage(p => p + 1)} className="px-5 py-2.5 border border-border rounded-xl text-text-secondary hover:border-accent hover:text-accent transition-all text-sm">Load more</button>
             </div>
           )}
         </>

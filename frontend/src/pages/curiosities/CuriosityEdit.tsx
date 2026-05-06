@@ -45,13 +45,13 @@ export function CuriosityEdit() {
   return (
     <EntityFormShell title="Edit Curiosity" onSubmit={handleSubmit} submitLabel="Save Changes" submitting={updateCuriosity.isPending} onCancel={() => navigate(`/curiosities/${curiosityId}`)}>
       <FormField label="Title" error={errors.title}>
-        <input value={title} onChange={e => setTitle(e.target.value)} required className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none" />
+        <input value={title} onChange={e => setTitle(e.target.value)} required className="w-full px-4 py-2.5 bg-page border border-border rounded-xl text-text-primary focus:border-accent focus:outline-none" />
       </FormField>
       <FormField label="URL" error={errors.url}>
-        <input value={url} onChange={e => setUrl(e.target.value)} required type="url" className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none" />
+        <input value={url} onChange={e => setUrl(e.target.value)} required type="url" className="w-full px-4 py-2.5 bg-page border border-border rounded-xl text-text-primary focus:border-accent focus:outline-none" />
       </FormField>
       <FormField label="Type">
-        <select value={type} onChange={e => setType(e.target.value)} className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none">
+        <select value={type} onChange={e => setType(e.target.value)} className="w-full px-4 py-2.5 bg-page border border-border rounded-xl text-text-primary focus:border-accent focus:outline-none">
           <option value="link">Link</option>
           <option value="video">Video</option>
           <option value="image">Image</option>
@@ -59,7 +59,7 @@ export function CuriosityEdit() {
         </select>
       </FormField>
       <FormField label="Description">
-        <textarea value={description} onChange={e => setDescription(e.target.value)} rows={4} className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none resize-y" />
+        <textarea value={description} onChange={e => setDescription(e.target.value)} rows={4} className="w-full px-4 py-2.5 bg-page border border-border rounded-xl text-text-primary focus:border-accent focus:outline-none resize-y" />
       </FormField>
       <FormField label="Category">
         <CategorySelect categoryId={categoryId} onCategoryChange={setCategoryId} />

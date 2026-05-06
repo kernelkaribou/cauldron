@@ -39,7 +39,7 @@ export function CraftPicker({ selected, onChange }: CraftPickerProps) {
       {selected.length > 0 && (
         <div className="space-y-2 mb-3">
           {selected.map(craft => (
-            <div key={craft.id} className="flex items-center gap-2 p-2 bg-page border border-border rounded-lg">
+            <div key={craft.id} className="flex items-center gap-2 p-2 bg-page border border-border rounded-xl">
               <span className="flex-1 text-sm text-text-primary">{craft.title}</span>
               <label className="text-xs text-text-muted">Qty:</label>
               <input
