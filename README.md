@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/icon.webp" alt="Cauldron" width="96" />
+</p>
+
 # Cauldron
 
 A self-hosted hobbyist toolkit for tracking projects, crafts, techniques, and materials.

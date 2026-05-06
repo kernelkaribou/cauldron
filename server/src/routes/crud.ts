@@ -120,6 +120,22 @@ export function createCrudRouter(options: CrudOptions): Router {
   const router = Router();
   const { table } = options;
 
+  const entityType = tagEntityTypeByTable[table];
+
+  function enrichWithCoverPhotos(db: ReturnType<typeof getDb>, items: any[], owner: number): void {
+    if (!entityType || items.length === 0) return;
+    const ids = items.map(i => i.id);
+    const placeholders = ids.map(() => '?').join(',');
+    const covers = db.prepare(
+      `SELECT id, entity_id FROM photos WHERE owner_id = ? AND entity_type = ? AND entity_id IN (${placeholders}) AND is_cover = 1`
+    ).all(owner, entityType, ...ids) as Array<{ id: number; entity_id: number }>;
+
+    const coverMap = new Map(covers.map(c => [c.entity_id, c.id]));
+    for (const item of items) {
+      item.cover_photo_id = coverMap.get(item.id) ?? null;
+    }
+  }
+
   // List
   router.get('/', (req: Request, res: Response) => {
     const db = getDb();
@@ -133,6 +149,7 @@ export function createCrudRouter(options: CrudOptions): Router {
     const { total } = db.prepare(countSql).get(...countParams) as { total: number };
 
     applyExpansions(items, req, options);
+    enrichWithCoverPhotos(db, items, ownerId(req));
 
     res.json({
       items,
@@ -156,6 +173,7 @@ export function createCrudRouter(options: CrudOptions): Router {
     }
 
     applyExpansions([item], req, options);
+    enrichWithCoverPhotos(db, [item], owner);
     res.json(item);
   });
 

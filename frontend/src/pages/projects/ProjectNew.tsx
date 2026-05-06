@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCreateProject } from '@/hooks/useProjects';
 import { CraftPicker } from '@/components/shared/CraftPicker';
+import { EntityFormShell, FormField } from '@/components/shared/EntityFormShell';
 import { ApiError } from '@/lib/api';
 
 export function ProjectNew() {
@@ -16,16 +17,12 @@ export function ProjectNew() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErrors({});
-    if (crafts.length === 0) {
-      setErrors({ crafts: 'At least one craft is required' });
-      return;
-    }
     try {
       const project = await createProject.mutateAsync({
         title,
         description: description || undefined,
         due_date: dueDate || undefined,
-        crafts: crafts.map(c => ({ id: c.id, quantity: c.quantity })),
+        crafts: crafts.length > 0 ? crafts.map(c => ({ id: c.id, quantity: c.quantity })) : undefined,
       });
       navigate(`/projects/${project.id}`);
     } catch (err) {
@@ -34,28 +31,25 @@ export function ProjectNew() {
   }
 
   return (
-    <div className="max-w-xl">
-      <h1 className="text-xl font-semibold text-text-primary mb-6">New Project</h1>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-        <div>
-          <label className="block text-sm text-text-secondary mb-1">Title</label>
-          <input value={title} onChange={e => setTitle(e.target.value)} required className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none" />
-          {errors.title && <p className="text-xs text-error mt-1">{errors.title}</p>}
-        </div>
-        <div>
-          <label className="block text-sm text-text-secondary mb-1">Description</label>
-          <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none resize-y" />
-        </div>
-        <div>
-          <label className="block text-sm text-text-secondary mb-1">Due Date</label>
-          <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} className="px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none" />
-        </div>
-        <CraftPicker selected={crafts} onChange={setCrafts} />
-        {errors.crafts && <p className="text-xs text-error">{errors.crafts}</p>}
-        <button type="submit" disabled={createProject.isPending || crafts.length === 0} className="px-4 py-2 bg-accent text-white rounded-lg font-medium hover:bg-accent-light transition-colors disabled:opacity-50">
-          {createProject.isPending ? 'Creating...' : 'Create Project'}
-        </button>
-      </form>
-    </div>
+    <EntityFormShell
+      title="New Project"
+      onSubmit={handleSubmit}
+      submitLabel="Create Project"
+      submitting={createProject.isPending}
+      disabled={!title.trim()}
+      hint="You can add techniques, supplies, and more after creating the project."
+      error={errors._}
+    >
+      <FormField label="Title" error={errors.title}>
+        <input value={title} onChange={e => setTitle(e.target.value)} required className="w-full px-4 py-2.5 bg-page border border-border rounded-xl text-text-primary focus:border-accent focus:outline-none" />
+      </FormField>
+      <FormField label="Description">
+        <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} className="w-full px-4 py-2.5 bg-page border border-border rounded-xl text-text-primary focus:border-accent focus:outline-none resize-y" />
+      </FormField>
+      <FormField label="Due Date">
+        <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} className="px-4 py-2.5 bg-page border border-border rounded-xl text-text-primary focus:border-accent focus:outline-none" />
+      </FormField>
+      <CraftPicker selected={crafts} onChange={setCrafts} />
+    </EntityFormShell>
   );
 }

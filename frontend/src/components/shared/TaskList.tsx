@@ -33,14 +33,14 @@ export function TaskList({ projectId }: TaskListProps) {
 
       <form onSubmit={handleAdd} className="flex gap-2 mb-3">
         <input value={newTitle} onChange={e => setNewTitle(e.target.value)} placeholder="Add a task..." className="flex-1 px-2 py-1.5 bg-page border border-border rounded text-sm text-text-primary focus:border-accent focus:outline-none" />
-        <button type="submit" disabled={createTask.isPending} className="px-3 py-1.5 bg-accent text-white rounded text-xs hover:bg-accent-light disabled:opacity-50">Add</button>
+        <button type="submit" disabled={createTask.isPending} className="px-3 py-1.5 bg-accent text-white rounded text-xs hover:bg-accent-dark disabled:opacity-50">Add</button>
       </form>
 
       {isLoading && <p className="text-xs text-text-muted">Loading...</p>}
       {data?.items.length === 0 && !isLoading && <p className="text-xs text-text-muted">No tasks yet.</p>}
       <div className="space-y-1">
         {data?.items.map((task: Task) => (
-          <div key={task.id} className="flex items-center gap-2 p-2 bg-page rounded-lg group">
+          <div key={task.id} className="flex items-center gap-2 p-2 bg-page rounded-xl group">
             <button onClick={() => toggleDone(task)} className={`w-4 h-4 rounded border flex-shrink-0 flex items-center justify-center text-xs ${task.done ? 'bg-accent border-accent text-white' : 'border-border hover:border-accent'}`}>
               {task.done ? '✓' : ''}
             </button>

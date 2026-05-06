@@ -428,4 +428,79 @@ router.delete('/:id', (req: Request, res: Response) => {
   res.status(204).send();
 });
 
+// Create a craft template from a project's techniques and supplies
+const fromProjectSchema = z.object({
+  project_id: z.number().int().positive(),
+  title: z.string().min(1).max(200),
+  description: nullableText,
+  category_id: nullableCategoryId,
+});
+
+router.post('/from-project', validate(fromProjectSchema), (req: Request, res: Response) => {
+  const db = getDb();
+  const owner = ownerId(req);
+  const { project_id, title, description, category_id } = req.body as z.infer<typeof fromProjectSchema>;
+
+  const project = db.prepare('SELECT * FROM projects WHERE id = ? AND owner_id = ?').get(project_id, owner) as any;
+  if (!project) {
+    res.status(404).json({ error: 'Project not found' });
+    return;
+  }
+
+  if (project.status !== 'complete') {
+    res.status(400).json({ error: 'Only completed projects can be saved as craft templates' });
+    return;
+  }
+
+  const projectTechniques = db.prepare(
+    'SELECT technique_id, sort_order, notes FROM project_techniques WHERE project_id = ?'
+  ).all(project_id) as Array<{ technique_id: number; sort_order: number; notes: string | null }>;
+
+  const projectSupplies = db.prepare(
+    'SELECT supply_id, quantity, unit, notes FROM project_supplies WHERE project_id = ?'
+  ).all(project_id) as Array<{ supply_id: number; quantity: number | null; unit: string | null; notes: string | null }>;
+
+  if (projectTechniques.length === 0 || projectSupplies.length === 0) {
+    res.status(400).json({ error: 'Project must have at least one technique and one supply to create a craft from' });
+    return;
+  }
+
+  try {
+    const craftId = db.transaction(() => {
+      const createdCraftId = insertRow('crafts', {
+        title,
+        description: description ?? null,
+        category_id: category_id ?? null,
+        owner_id: owner,
+      });
+
+      const techniques: TechniqueInput[] = projectTechniques.map(t => ({
+        mode: 'existing' as const,
+        id: t.technique_id,
+        sort_order: t.sort_order,
+        notes: t.notes,
+      }));
+
+      const supplies: SupplyInput[] = projectSupplies.map(s => ({
+        mode: 'existing' as const,
+        id: s.supply_id,
+        quantity: s.quantity ?? undefined,
+        unit: s.unit,
+        notes: s.notes,
+      }));
+
+      replaceCraftTechniques(createdCraftId, owner, techniques);
+      replaceCraftSupplies(createdCraftId, owner, supplies);
+      ensureCraftInvariant(createdCraftId);
+
+      return createdCraftId;
+    })();
+
+    const craft = db.prepare('SELECT * FROM crafts WHERE id = ? AND owner_id = ?').get(craftId, owner);
+    res.status(201).json(craft);
+  } catch (error) {
+    handleRouteError(res, error);
+  }
+});
+
 export default router;

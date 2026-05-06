@@ -50,7 +50,7 @@ export function TagSelect({ entityType, entityId, tags, onUpdate }: Props) {
       <div className="flex gap-2">
         <select
           onChange={e => { if (e.target.value) addTag(Number(e.target.value)); e.target.value = ''; }}
-          className="flex-1 px-2 py-1.5 bg-page border border-border rounded-lg text-text-primary text-sm focus:border-accent focus:outline-none"
+          className="flex-1 px-2 py-1.5 bg-page border border-border rounded-xl text-text-primary text-sm focus:border-accent focus:outline-none"
         >
           <option value="">Add tag...</option>
           {available.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
@@ -59,7 +59,7 @@ export function TagSelect({ entityType, entityId, tags, onUpdate }: Props) {
           value={newName}
           onChange={e => setNewName(e.target.value)}
           placeholder="New tag"
-          className="w-24 px-2 py-1.5 bg-page border border-border rounded-lg text-text-primary text-sm focus:border-accent focus:outline-none"
+          className="w-24 px-2 py-1.5 bg-page border border-border rounded-xl text-text-primary text-sm focus:border-accent focus:outline-none"
           onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), createAndAdd())}
         />
       </div>

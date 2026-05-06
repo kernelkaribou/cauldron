@@ -19,7 +19,7 @@ const createSchema = z.object({
   description: nullableText,
   status: projectStatusSchema.optional(),
   due_date: nullableText,
-  crafts: z.array(projectCraftSchema).min(1),
+  crafts: z.array(projectCraftSchema).optional(),
 });
 
 const updateSchema = z.object({
@@ -27,7 +27,7 @@ const updateSchema = z.object({
   description: nullableText,
   status: projectStatusSchema.optional(),
   due_date: nullableText,
-  crafts: z.array(projectCraftSchema).min(1).optional(),
+  crafts: z.array(projectCraftSchema).optional(),
 });
 
 const fromCraftSchema = z.object({
@@ -36,6 +36,12 @@ const fromCraftSchema = z.object({
   description: nullableText,
   status: projectStatusSchema.optional(),
   due_date: nullableText,
+});
+
+const fromCuriositySchema = z.object({
+  curiosity_id: z.number().int().positive(),
+  title: z.string().min(1).max(200),
+  description: nullableText,
 });
 
 type ProjectCraftInput = z.infer<typeof projectCraftSchema>;
@@ -173,15 +179,18 @@ function createProject(owner: number, data: CreateProjectInput): number {
   const db = getDb();
 
   return db.transaction(() => {
-    const craftIds = ensureOwnedCrafts(owner, data.crafts);
     const result = db.prepare(
       'INSERT INTO projects (title, description, status, due_date, owner_id) VALUES (?, ?, ?, ?, ?)'
     ).run(data.title, data.description ?? null, data.status ?? 'planning', data.due_date ?? null, owner);
 
     const projectId = Number(result.lastInsertRowid);
-    insertProjectCrafts(projectId, data.crafts);
-    snapshotProjectTechniques(projectId, craftIds);
-    snapshotProjectSupplies(projectId, craftIds);
+
+    if (data.crafts && data.crafts.length > 0) {
+      const craftIds = ensureOwnedCrafts(owner, data.crafts);
+      insertProjectCrafts(projectId, data.crafts);
+      snapshotProjectTechniques(projectId, craftIds);
+      snapshotProjectSupplies(projectId, craftIds);
+    }
 
     return projectId;
   })();
@@ -303,6 +312,19 @@ function handleRouteError(res: Response, error: unknown): void {
   throw error;
 }
 
+function enrichProjectCovers(db: ReturnType<typeof getDb>, items: any[], owner: number): void {
+  if (items.length === 0) return;
+  const ids = items.map(i => i.id);
+  const placeholders = ids.map(() => '?').join(',');
+  const covers = db.prepare(
+    `SELECT id, entity_id FROM photos WHERE owner_id = ? AND entity_type = 'project' AND entity_id IN (${placeholders}) AND is_cover = 1`
+  ).all(owner, ...ids) as Array<{ id: number; entity_id: number }>;
+  const coverMap = new Map(covers.map(c => [c.entity_id, c.id]));
+  for (const item of items) {
+    item.cover_photo_id = coverMap.get(item.id) ?? null;
+  }
+}
+
 router.post('/', validate(createSchema), (req: Request, res: Response) => {
   const owner = ownerId(req);
   const data = req.body as CreateProjectInput;
@@ -335,6 +357,31 @@ router.post('/from-craft', validate(fromCraftSchema), (req: Request, res: Respon
   }
 });
 
+router.post('/from-curiosity', validate(fromCuriositySchema), (req: Request, res: Response) => {
+  const db = getDb();
+  const owner = ownerId(req);
+  const { curiosity_id, title, description } = req.body as z.infer<typeof fromCuriositySchema>;
+
+  const curiosity = db.prepare('SELECT * FROM curiosities WHERE id = ? AND owner_id = ?').get(curiosity_id, owner) as any;
+  if (!curiosity) {
+    res.status(404).json({ error: 'Curiosity not found' });
+    return;
+  }
+
+  try {
+    const projectDescription = description ?? curiosity.description ?? null;
+    const projectId = createProject(owner, {
+      title,
+      description: projectDescription,
+    });
+
+    const project = db.prepare('SELECT * FROM projects WHERE id = ? AND owner_id = ?').get(projectId, owner);
+    res.status(201).json(project);
+  } catch (error) {
+    handleRouteError(res, error);
+  }
+});
+
 router.get('/', (req: Request, res: Response) => {
   const db = getDb();
   const owner = ownerId(req);
@@ -343,6 +390,7 @@ router.get('/', (req: Request, res: Response) => {
   const { total } = db.prepare(countSql).get(...params) as { total: number };
 
   applyProjectExpansions(items, parseExpand(req), owner);
+  enrichProjectCovers(db, items, owner);
 
   res.json({
     items,
@@ -364,6 +412,7 @@ router.get('/:id', (req: Request, res: Response) => {
   }
 
   applyProjectExpansions([project], parseExpand(req), owner);
+  enrichProjectCovers(db, [project], owner);
   res.json(project);
 });
 

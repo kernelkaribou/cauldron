@@ -1,5 +1,7 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { useProject, useDeleteProject, useUpdateProject } from '@/hooks/useProjects';
+import { useCreateCraftFromProject } from '@/hooks/useCrafts';
 import { ErrorBanner } from '@/components/shared/ErrorBanner';
 import { DetailPageShell, TagsCard } from '@/components/shared/DetailPageShell';
 import { TagSelect } from '@/components/shared/TagSelect';
@@ -20,8 +22,10 @@ export function ProjectDetail() {
   const { data: project, isLoading, error, refetch } = useProject(projectId);
   const deleteProject = useDeleteProject();
   const updateProject = useUpdateProject();
+  const createCraft = useCreateCraftFromProject();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const [savingCraft, setSavingCraft] = useState(false);
 
   if (isLoading) return <p className="text-text-muted">Loading...</p>;
   if (error) return <ErrorBanner message={(error as Error).message} onRetry={() => refetch()} />;
@@ -39,6 +43,21 @@ export function ProjectDetail() {
     await updateProject.mutateAsync({ id: projectId, data: { status } });
   }
 
+  async function handleSaveAsCraft() {
+    if (!project) return;
+    setSavingCraft(true);
+    try {
+      const craft = await createCraft.mutateAsync({
+        project_id: projectId,
+        title: `${project.title} (Template)`,
+        description: project.description || undefined,
+      });
+      navigate(`/crafts/${craft.id}`);
+    } catch {
+      setSavingCraft(false);
+    }
+  }
+
   return (
     <DetailPageShell
       title={project.title}
@@ -53,6 +72,18 @@ export function ProjectDetail() {
         )}
         <TechniqueManager entityType="projects" entityId={projectId} />
         <SupplyManager entityType="projects" entityId={projectId} />
+        {project.status === 'complete' && (
+          <div className="p-4 bg-card border border-border rounded-xl">
+            <button
+              onClick={handleSaveAsCraft}
+              disabled={savingCraft}
+              className="w-full px-5 py-2.5 bg-accent text-white rounded-xl hover:bg-accent-dark disabled:opacity-50 font-medium"
+            >
+              {savingCraft ? 'Creating...' : 'Save as Craft Template'}
+            </button>
+            <p className="text-xs text-text-muted mt-2">Create a reusable craft blueprint from this project's techniques and supplies</p>
+          </div>
+        )}
         <PhotoGallery entityType="project" entityId={projectId} />
         <LogFeed projectId={projectId} />
         <NotesSection entityType="project" entityId={projectId} />
@@ -67,7 +98,7 @@ export function ProjectDetail() {
                 <span className={`px-2 py-0.5 rounded text-xs ${sc.color} ${sc.bg}`}>{sc.label}</span>
                 <div className="flex gap-1">
                   {(Object.keys(STATUS_CONFIG) as Project['status'][]).filter(s => s !== project.status).map(s => (
-                    <button key={s} onClick={() => handleStatusChange(s)} className={`px-1.5 py-0.5 rounded text-[10px] border border-border hover:border-accent transition-colors ${STATUS_CONFIG[s].color}`}>
+                    <button key={s} onClick={() => handleStatusChange(s)} className={`px-1.5 py-0.5 rounded text-[10px] border border-border hover:border-accent transition-all ${STATUS_CONFIG[s].color}`}>
                       {STATUS_CONFIG[s].label}
                     </button>
                   ))}

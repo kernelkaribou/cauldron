@@ -18,7 +18,7 @@ export const useDeleteProject = hooks.useDelete;
 export function useCreateProject() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: { title: string; description?: string; status?: string; due_date?: string; crafts: Array<{ id: number; quantity?: number }> }) =>
+    mutationFn: (data: { title: string; description?: string; status?: string; due_date?: string; crafts?: Array<{ id: number; quantity?: number }> }) =>
       apiFetch<Project>('/projects', { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['projects'] }),
   });
@@ -29,6 +29,15 @@ export function useCreateProjectFromCraft() {
   return useMutation({
     mutationFn: (data: { craft_id: number; title: string; description?: string }) =>
       apiFetch<Project>('/projects/from-craft', { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['projects'] }),
+  });
+}
+
+export function useCreateProjectFromCuriosity() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { curiosity_id: number; title: string; description?: string }) =>
+      apiFetch<Project>('/projects/from-curiosity', { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['projects'] }),
   });
 }

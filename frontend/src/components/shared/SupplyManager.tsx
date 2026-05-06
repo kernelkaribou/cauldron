@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { SupplyInlineForm } from '@/components/shared/SupplyInlineForm';
+import { SearchDropdown } from '@/components/shared/SearchDropdown';
 import { useEntitySupplies, useAddEntitySupply, useRemoveEntitySupply } from '@/hooks/useSubResources';
 import { useSupplies } from '@/hooks/useSupplies';
 
@@ -90,34 +91,19 @@ export function SupplyManager({ entityType, entityId }: SupplyManagerProps) {
       </div>
 
       {showExisting && (
-        <div className="mb-3 rounded-lg bg-page p-3 space-y-2">
+        <div className="mb-3 rounded-xl bg-page p-3 space-y-2">
           {!selectedId ? (
-            <>
-              <input
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                placeholder="Search supplies..."
-                className="w-full rounded border border-border bg-card px-2 py-1.5 text-sm text-text-primary focus:border-accent focus:outline-none"
-              />
-              {search && available.length === 0 && <p className="text-xs text-text-muted">No matching supplies.</p>}
-              {!search && available.length === 0 && <p className="text-xs text-text-muted">No more supplies available.</p>}
-              <div className="max-h-40 space-y-1 overflow-y-auto">
-                {available.slice(0, 10).map(supply => (
-                  <button
-                    key={supply.id}
-                    type="button"
-                    onClick={() => {
-                      setSelectedId(supply.id);
-                      setUnit(supply.unit || '');
-                    }}
-                    className="w-full rounded px-2 py-1.5 text-left text-sm text-text-primary transition-colors hover:bg-card"
-                  >
-                    {supply.name}
-                    {supply.unit ? ` (${supply.unit})` : ''}
-                  </button>
-                ))}
-              </div>
-            </>
+            <SearchDropdown
+              placeholder="Search supplies..."
+              items={available.map(s => ({ id: s.id, label: s.name, sublabel: s.unit || undefined }))}
+              onSelect={item => {
+                const supply = available.find(s => s.id === item.id);
+                setSelectedId(item.id);
+                setUnit(supply?.unit || '');
+              }}
+              onSearchChange={setSearch}
+              emptyMessage={search ? 'No matching supplies.' : 'No more supplies available.'}
+            />
           ) : (
             <>
               <p className="text-sm text-text-primary">Adding supply...</p>
@@ -140,7 +126,7 @@ export function SupplyManager({ entityType, entityId }: SupplyManagerProps) {
                 <button
                   type="button"
                   onClick={handleAdd}
-                  className="rounded bg-accent px-3 py-1.5 text-xs text-white hover:bg-accent-light"
+                  className="rounded bg-accent px-3 py-1.5 text-xs text-white hover:bg-accent-dark"
                 >
                   Add
                 </button>
@@ -163,7 +149,7 @@ export function SupplyManager({ entityType, entityId }: SupplyManagerProps) {
       {data?.items.length === 0 && !isLoading && <p className="text-xs text-text-muted">No supplies attached.</p>}
       <div className="space-y-1">
         {data?.items.map(item => (
-          <div key={item.supply_id} className="group flex items-center justify-between rounded-lg bg-page p-2">
+          <div key={item.supply_id} className="group flex items-center justify-between rounded-xl bg-page p-2">
             <span className="text-sm text-text-primary">
               {item.name}
               {item.quantity > 0 && <span className="ml-1 text-text-muted">({item.quantity}{item.unit ? ` ${item.unit}` : ''})</span>}

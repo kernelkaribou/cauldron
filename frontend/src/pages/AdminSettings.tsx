@@ -64,20 +64,20 @@ export function AdminSettings() {
         <h1 className="text-xl font-semibold text-text-primary">Admin Settings</h1>
         <button
           onClick={() => setShowCreate(true)}
-          className="px-3 py-1.5 bg-accent text-white text-sm rounded-lg hover:bg-accent-hover transition-colors"
+          className="px-3 py-1.5 bg-accent text-white text-sm rounded-xl hover:bg-accent-hover transition-all"
         >
           + Create User
         </button>
       </div>
 
       {message && (
-        <div className="bg-green-900/20 border border-green-700 text-green-300 text-sm px-4 py-2 rounded-lg mb-4">
+        <div className="bg-green-900/20 border border-green-700 text-green-300 text-sm px-4 py-2 rounded-xl mb-4">
           {message}
           <button onClick={() => setMessage('')} className="ml-2 text-green-400">✕</button>
         </div>
       )}
       {error && (
-        <div className="bg-red-900/20 border border-red-700 text-red-300 text-sm px-4 py-2 rounded-lg mb-4">
+        <div className="bg-red-900/20 border border-red-700 text-red-300 text-sm px-4 py-2 rounded-xl mb-4">
           {error}
           <button onClick={() => setError('')} className="ml-2 text-red-400">✕</button>
         </div>
@@ -123,13 +123,13 @@ export function AdminSettings() {
               <div className="flex items-center gap-2 ml-4">
                 <button
                   onClick={() => setPasswordUserId(user.id)}
-                  className="text-xs px-2 py-1 rounded border border-border text-text-secondary hover:text-text-primary hover:border-text-muted transition-colors"
+                  className="text-xs px-2 py-1 rounded border border-border text-text-secondary hover:text-text-primary hover:border-text-muted transition-all"
                 >
                   Set Password
                 </button>
                 <button
                   onClick={() => changeRole(user.id, user.role === 'admin' ? 'user' : 'admin')}
-                  className="text-xs px-2 py-1 rounded border border-border text-text-secondary hover:text-text-primary hover:border-text-muted transition-colors"
+                  className="text-xs px-2 py-1 rounded border border-border text-text-secondary hover:text-text-primary hover:border-text-muted transition-all"
                   disabled={user.id === currentUser?.id}
                 >
                   {user.role === 'admin' ? 'Demote' : 'Promote'}
@@ -139,13 +139,13 @@ export function AdminSettings() {
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() => deleteUser(user.id)}
-                        className="text-xs px-2 py-1 rounded bg-red-600 text-white hover:bg-red-700 transition-colors"
+                        className="text-xs px-2 py-1 rounded bg-red-600 text-white hover:bg-red-700 transition-all"
                       >
                         Confirm
                       </button>
                       <button
                         onClick={() => setConfirmDelete(null)}
-                        className="text-xs px-2 py-1 rounded border border-border text-text-muted hover:text-text-primary transition-colors"
+                        className="text-xs px-2 py-1 rounded border border-border text-text-muted hover:text-text-primary transition-all"
                       >
                         Cancel
                       </button>
@@ -153,7 +153,7 @@ export function AdminSettings() {
                   ) : (
                     <button
                       onClick={() => setConfirmDelete(user.id)}
-                      className="text-xs px-2 py-1 rounded border border-red-800 text-red-400 hover:bg-red-900/30 transition-colors"
+                      className="text-xs px-2 py-1 rounded border border-red-800 text-red-400 hover:bg-red-900/30 transition-all"
                     >
                       Delete
                     </button>
@@ -199,7 +199,7 @@ function CreateUserForm({ onSuccess, onCancel, onError }: {
           value={form.email}
           onChange={e => setForm({ ...form, email: e.target.value })}
           required
-          className="col-span-2 px-3 py-2 bg-page border border-border rounded-lg text-sm text-text-primary"
+          className="col-span-2 px-4 py-2.5 bg-page border border-border rounded-xl text-sm text-text-primary"
         />
         <input
           type="text"
@@ -207,12 +207,12 @@ function CreateUserForm({ onSuccess, onCancel, onError }: {
           value={form.name}
           onChange={e => setForm({ ...form, name: e.target.value })}
           required
-          className="px-3 py-2 bg-page border border-border rounded-lg text-sm text-text-primary"
+          className="px-4 py-2.5 bg-page border border-border rounded-xl text-sm text-text-primary"
         />
         <select
           value={form.role}
           onChange={e => setForm({ ...form, role: e.target.value })}
-          className="px-3 py-2 bg-page border border-border rounded-lg text-sm text-text-primary"
+          className="px-4 py-2.5 bg-page border border-border rounded-xl text-sm text-text-primary"
         >
           <option value="user">User</option>
           <option value="admin">Admin</option>
@@ -224,13 +224,13 @@ function CreateUserForm({ onSuccess, onCancel, onError }: {
           onChange={e => setForm({ ...form, password: e.target.value })}
           required
           minLength={8}
-          className="col-span-2 px-3 py-2 bg-page border border-border rounded-lg text-sm text-text-primary"
+          className="col-span-2 px-4 py-2.5 bg-page border border-border rounded-xl text-sm text-text-primary"
         />
         <div className="col-span-2 flex justify-end gap-2">
-          <button type="button" onClick={onCancel} className="px-3 py-1.5 text-sm text-text-muted hover:text-text-primary transition-colors">
+          <button type="button" onClick={onCancel} className="px-3 py-1.5 text-sm text-text-muted hover:text-text-primary transition-all">
             Cancel
           </button>
-          <button type="submit" disabled={loading} className="px-3 py-1.5 bg-accent text-white text-sm rounded-lg hover:bg-accent-hover transition-colors disabled:opacity-50">
+          <button type="submit" disabled={loading} className="px-3 py-1.5 bg-accent text-white text-sm rounded-xl hover:bg-accent-hover transition-all disabled:opacity-50">
             {loading ? 'Creating...' : 'Create'}
           </button>
         </div>
@@ -273,12 +273,12 @@ function SetPasswordForm({ userId, userName, onSuccess, onCancel, onError }: {
           onChange={e => setPassword(e.target.value)}
           required
           minLength={8}
-          className="flex-1 px-3 py-2 bg-page border border-border rounded-lg text-sm text-text-primary"
+          className="flex-1 px-4 py-2.5 bg-page border border-border rounded-xl text-sm text-text-primary"
         />
-        <button type="button" onClick={onCancel} className="px-3 py-1.5 text-sm text-text-muted hover:text-text-primary transition-colors">
+        <button type="button" onClick={onCancel} className="px-3 py-1.5 text-sm text-text-muted hover:text-text-primary transition-all">
           Cancel
         </button>
-        <button type="submit" disabled={loading} className="px-3 py-1.5 bg-accent text-white text-sm rounded-lg hover:bg-accent-hover transition-colors disabled:opacity-50">
+        <button type="submit" disabled={loading} className="px-3 py-1.5 bg-accent text-white text-sm rounded-xl hover:bg-accent-hover transition-all disabled:opacity-50">
           {loading ? 'Saving...' : 'Set Password'}
         </button>
       </form>

@@ -87,13 +87,6 @@ router.delete('/projects/:id/crafts/:craftId', (req: Request, res: Response) => 
     .get(projectId, req.params.craftId);
   if (!existing) { res.status(204).send(); return; }
 
-  const { total } = db.prepare('SELECT COUNT(*) as total FROM project_crafts WHERE project_id = ?')
-    .get(projectId) as { total: number };
-  if (total <= 1) {
-    res.status(400).json({ error: 'Cannot remove the last craft from a project' });
-    return;
-  }
-
   db.prepare('DELETE FROM project_crafts WHERE project_id = ? AND craft_id = ?')
     .run(projectId, req.params.craftId);
   res.status(204).send();

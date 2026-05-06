@@ -48,12 +48,12 @@ export function SetupWizard() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-page">
-      <div className="w-full max-w-sm p-8 bg-card rounded-xl border border-border">
-        <h1 className="text-2xl font-semibold text-accent-light mb-2 text-center">Welcome to Cauldron</h1>
-        <p className="text-sm text-text-secondary mb-6 text-center">Create your admin account to get started.</p>
+    <div className="flex items-center justify-center min-h-screen bg-page relative z-10">
+      <div className="w-full max-w-md p-10 bg-card rounded-2xl border border-border shadow-lg">
+        <h1 className="font-serif text-3xl font-semibold text-accent-light mb-2 text-center">Welcome to Cauldron</h1>
+        <p className="text-sm text-text-muted mb-8 text-center">Create your admin account to get started.</p>
         {error && (
-          <div className="mb-4 p-3 rounded-lg bg-error-bg text-error text-sm">{error}</div>
+          <div className="mb-6 p-3 rounded-xl bg-terracotta-bg text-terracotta text-sm">{error}</div>
         )}
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
@@ -63,7 +63,7 @@ export function SetupWizard() {
               value={name}
               onChange={e => setName(e.target.value)}
               required
-              className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none"
+              className="w-full px-4 py-2.5 bg-page border border-border rounded-xl text-text-primary focus:border-accent focus:outline-none"
             />
           </div>
           <div>
@@ -73,7 +73,7 @@ export function SetupWizard() {
               value={email}
               onChange={e => setEmail(e.target.value)}
               required
-              className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none"
+              className="w-full px-4 py-2.5 bg-page border border-border rounded-xl text-text-primary focus:border-accent focus:outline-none"
             />
           </div>
           <div>
@@ -84,14 +84,14 @@ export function SetupWizard() {
               onChange={e => setPassword(e.target.value)}
               required
               minLength={8}
-              className="w-full px-3 py-2 bg-page border border-border rounded-lg text-text-primary focus:border-accent focus:outline-none"
+              className="w-full px-4 py-2.5 bg-page border border-border rounded-xl text-text-primary focus:border-accent focus:outline-none"
             />
             <p className="text-xs text-text-muted mt-1">Minimum 8 characters</p>
           </div>
           <button
             type="submit"
             disabled={loading}
-            className="mt-2 px-4 py-2 bg-accent text-white rounded-lg font-medium hover:bg-accent-light transition-colors disabled:opacity-50"
+            className="mt-2 px-5 py-2.5 bg-accent text-white rounded-xl font-medium hover:bg-accent-dark transition-all disabled:opacity-50"
           >
             {loading ? 'Creating...' : 'Create Account'}
           </button>

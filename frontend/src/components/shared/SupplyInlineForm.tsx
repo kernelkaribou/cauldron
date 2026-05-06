@@ -48,7 +48,7 @@ export function SupplyInlineForm({ onCreated, onCancel }: SupplyInlineFormProps)
           value={typeId ?? ''}
           onChange={e => setTypeId(e.target.value ? Number(e.target.value) : null)}
           required
-          className="w-full rounded-lg border border-border bg-card px-3 py-2 text-text-primary focus:border-accent focus:outline-none"
+          className="w-full rounded-xl border border-border bg-card px-4 py-2.5 text-text-primary focus:border-accent focus:outline-none"
         >
           <option value="">Select a type...</option>
           {types.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
@@ -62,7 +62,7 @@ export function SupplyInlineForm({ onCreated, onCancel }: SupplyInlineFormProps)
           value={name}
           onChange={e => setName(e.target.value)}
           required
-          className="w-full rounded-lg border border-border bg-card px-3 py-2 text-text-primary focus:border-accent focus:outline-none"
+          className="w-full rounded-xl border border-border bg-card px-4 py-2.5 text-text-primary focus:border-accent focus:outline-none"
         />
         {errors.name && <p className="mt-1 text-xs text-error">{errors.name}</p>}
       </div>
@@ -73,7 +73,7 @@ export function SupplyInlineForm({ onCreated, onCancel }: SupplyInlineFormProps)
           value={unit}
           onChange={e => setUnit(e.target.value)}
           placeholder="e.g., oz, yards, pieces"
-          className="w-full rounded-lg border border-border bg-card px-3 py-2 text-text-primary focus:border-accent focus:outline-none"
+          className="w-full rounded-xl border border-border bg-card px-4 py-2.5 text-text-primary focus:border-accent focus:outline-none"
         />
       </div>
 
@@ -94,14 +94,14 @@ export function SupplyInlineForm({ onCreated, onCancel }: SupplyInlineFormProps)
           type="button"
           onClick={handleSave}
           disabled={createSupply.isPending || !name.trim() || !typeId}
-          className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-light disabled:opacity-50"
+          className="rounded-xl bg-accent px-4 py-2 text-sm font-medium text-white transition-all hover:bg-accent-dark disabled:opacity-50"
         >
           {createSupply.isPending ? 'Saving...' : 'Save'}
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-lg border border-border px-4 py-2 text-sm text-text-secondary transition-colors hover:border-accent hover:text-accent"
+          className="rounded-xl border border-border px-4 py-2 text-sm text-text-secondary transition-all hover:border-accent hover:text-accent"
         >
           Cancel
         </button>

@@ -17,7 +17,7 @@ export function MobileNav({ onClose }: Props) {
             end={item.path === '/'}
             onClick={onClose}
             className={({ isActive }) =>
-              `px-4 py-2 rounded-lg text-sm transition-colors ${
+              `px-4 py-2 rounded-xl text-sm transition-all ${
                 isActive
                   ? 'bg-accent-bg text-accent-light'
                   : 'text-text-secondary hover:text-text-primary hover:bg-accent-bg/50'

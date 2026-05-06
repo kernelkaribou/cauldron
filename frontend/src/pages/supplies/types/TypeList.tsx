@@ -32,8 +32,8 @@ export function TypeList() {
           <p className="text-sm text-text-secondary mt-1">Create reusable field schemas for your supplies.</p>
         </div>
         <div className="flex flex-wrap gap-3">
-          <Link to="/supplies" className="px-4 py-2 border border-border rounded-lg text-text-secondary hover:border-accent hover:text-accent transition-colors text-sm">Back to Supplies</Link>
-          <Link to="/supplies/types/new" className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent-light transition-colors text-sm">New Type</Link>
+          <Link to="/supplies" className="px-4 py-2 border border-border rounded-xl text-text-secondary hover:border-accent hover:text-accent transition-all text-sm">Back to Supplies</Link>
+          <Link to="/supplies/types/new" className="px-5 py-2.5 bg-accent text-white rounded-xl hover:bg-accent-dark transition-all text-sm">New Type</Link>
         </div>
       </div>
 
@@ -51,7 +51,7 @@ export function TypeList() {
                 <div key={supplyType.id} className="p-5 bg-card border border-border rounded-xl">
                   <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div>
-                      <Link to={`/supplies/types/${supplyType.id}/edit`} className="text-lg font-medium text-text-primary hover:text-accent transition-colors">
+                      <Link to={`/supplies/types/${supplyType.id}/edit`} className="text-lg font-medium text-text-primary hover:text-accent transition-all">
                         {supplyType.name}
                       </Link>
                       <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-text-muted">
@@ -60,12 +60,12 @@ export function TypeList() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Link to={`/supplies/types/${supplyType.id}/edit`} className="px-3 py-2 border border-border rounded-lg text-text-secondary hover:border-accent hover:text-accent transition-colors text-sm">Edit</Link>
+                      <Link to={`/supplies/types/${supplyType.id}/edit`} className="px-4 py-2.5 border border-border rounded-xl text-text-secondary hover:border-accent hover:text-accent transition-all text-sm">Edit</Link>
                       <button
                         type="button"
                         onClick={() => handleDelete(supplyType.id, supplyType.name)}
                         disabled={deleteType.isPending}
-                        className="px-3 py-2 border border-border rounded-lg text-text-secondary hover:border-red-500 hover:text-red-400 transition-colors text-sm disabled:opacity-50"
+                        className="px-4 py-2.5 border border-border rounded-xl text-text-secondary hover:border-red-500 hover:text-red-400 transition-all text-sm disabled:opacity-50"
                       >
                         Delete
                       </button>
@@ -77,7 +77,7 @@ export function TypeList() {
           </div>
           {data.total_pages > page && (
             <div className="text-center mt-6">
-              <button onClick={() => setPage(current => current + 1)} className="px-4 py-2 border border-border rounded-lg text-text-secondary hover:border-accent hover:text-accent transition-colors text-sm">Load more</button>
+              <button onClick={() => setPage(current => current + 1)} className="px-4 py-2 border border-border rounded-xl text-text-secondary hover:border-accent hover:text-accent transition-all text-sm">Load more</button>
             </div>
           )}
         </>

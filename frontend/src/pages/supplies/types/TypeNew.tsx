@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useCreateSupplyType } from '@/hooks/useSupplyTypes';
 import { ApiError } from '@/lib/api';
 import { TypeForm } from './TypeForm';
@@ -8,13 +8,15 @@ export function TypeNew() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const createSupplyType = useCreateSupplyType();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const returnTo = searchParams.get('return') || '/supplies/types';
 
   async function handleSubmit(data: { name: string; schema: string }) {
     setErrors({});
 
     try {
       await createSupplyType.mutateAsync(data);
-      navigate('/supplies/types');
+      navigate(returnTo);
     } catch (err) {
       if (err instanceof ApiError && err.details) {
         setErrors(err.details);
@@ -36,7 +38,7 @@ export function TypeNew() {
         isSubmitting={createSupplyType.isPending}
         errors={errors}
         onSubmit={handleSubmit}
-        onCancel={() => navigate('/supplies/types')}
+        onCancel={() => navigate(returnTo)}
       />
     </div>
   );
