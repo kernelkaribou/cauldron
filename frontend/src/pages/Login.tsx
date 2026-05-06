@@ -35,7 +35,7 @@ export function Login() {
           <img src="/icon-128.webp" alt="Cauldron" className="w-20 h-20 rounded-xl" />
         </div>
         <h1 className="font-serif text-3xl font-semibold text-accent-light mb-2 text-center">Cauldron</h1>
-        <p className="text-sm text-text-muted text-center mb-8">Your creative studio awaits</p>
+        <p className="text-sm text-text-muted text-center mb-8">Your creative atelier awaits</p>
         {error && (
           <div className="mb-6 p-3 rounded-xl bg-terracotta-bg text-terracotta text-sm">{error}</div>
         )}
