@@ -33,10 +33,10 @@ export function CuriosityList() {
       {data && data.items.length === 0 && <EmptyState title="No curiosities yet" actionLabel="New Curiosity" actionTo="/curiosities/new" />}
       {data && data.items.length > 0 && (
         <>
-          <div className="columns-1 md:columns-2 xl:columns-3 gap-5 space-y-5">
+          <div className="columns-2 md:columns-3 xl:columns-4 gap-4 space-y-4">
             {data.items.map(cur => (
               <Link key={cur.id} to={`/curiosities/${cur.id}`} className="block bg-card border border-border rounded-2xl hover:border-accent hover:-translate-y-0.5 hover:shadow-md transition-all break-inside-avoid overflow-hidden">
-                <CoverThumb photoId={cur.cover_photo_id} alt={cur.title} className="w-full aspect-square rounded-t-2xl" />
+                <CoverThumb photoId={cur.cover_photo_id} alt={cur.title} className="w-full aspect-[4/3] rounded-t-2xl" />
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="font-medium text-text-primary">{cur.title}</h3>

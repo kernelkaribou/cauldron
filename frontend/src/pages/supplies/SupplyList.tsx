@@ -52,13 +52,13 @@ export function SupplyList() {
       {data && data.items.length === 0 && <EmptyState title="No supplies yet" actionLabel="New Supply" actionTo="/supplies/new" />}
       {data && data.items.length > 0 && (
         <>
-          <div className="columns-1 md:columns-2 xl:columns-3 2xl:columns-4 gap-5 space-y-5">
+          <div className="columns-2 md:columns-3 xl:columns-4 2xl:columns-5 gap-4 space-y-4">
             {data.items.map(supply => {
               const schema = supply.type_id ? typeSchemas.get(supply.type_id) || [] : [];
               const listValues = getListDisplayValues(supply.attributes, schema);
               return (
               <Link key={supply.id} to={`/supplies/${supply.id}`} className="block bg-card border border-border rounded-2xl hover:border-accent hover:-translate-y-0.5 hover:shadow-md transition-all break-inside-avoid overflow-hidden">
-                <CoverThumb photoId={supply.cover_photo_id} alt={supply.name} className="w-full aspect-square rounded-t-2xl" />
+                <CoverThumb photoId={supply.cover_photo_id} alt={supply.name} className="w-full aspect-[4/3] rounded-t-2xl" />
                 <div className="p-4">
                   <h3 className="font-medium text-text-primary mb-1">
                     {supply.name}

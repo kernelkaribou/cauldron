@@ -32,14 +32,14 @@ export function ProjectList() {
       {data && data.items.length === 0 && <EmptyState title="No projects yet" actionLabel="New Project" actionTo="/projects/new" />}
       {data && data.items.length > 0 && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+          <div className="columns-2 md:columns-3 xl:columns-4 gap-4 space-y-4">
             {data.items.map((project: Project) => {
               const sc = STATUS_CONFIG[project.status];
               const craftCount = project.crafts?.length || 0;
 
               return (
-                <Link key={project.id} to={`/projects/${project.id}`} className="block bg-card border border-border rounded-2xl hover:border-accent hover:-translate-y-0.5 hover:shadow-md transition-all overflow-hidden">
-                  <CoverThumb photoId={project.cover_photo_id} alt={project.title} className="w-full aspect-square rounded-t-2xl" />
+                <Link key={project.id} to={`/projects/${project.id}`} className="block bg-card border border-border rounded-2xl hover:border-accent hover:-translate-y-0.5 hover:shadow-md transition-all overflow-hidden break-inside-avoid">
+                  <CoverThumb photoId={project.cover_photo_id} alt={project.title} className="w-full aspect-[4/3] rounded-t-2xl" />
                   <div className="p-4">
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="font-medium text-text-primary">{project.title}</h3>
